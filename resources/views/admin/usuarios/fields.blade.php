@@ -28,46 +28,22 @@
     @enderror
 </div>
 
-{{-- Email --}}
+<!-- Email Field (antes era Correo) -->
 <div class="form-group col-sm-6">
     {!! Form::label('email', 'Email:') !!}
-    {!! Form::email('email', old('email', $usuario->email ?? null), [
-        'class' => 'form-control' . ($errors->has('email') ? ' is-invalid' : ''),
-        'maxlength' => 100,
-        'autocomplete' => 'email',
-    ]) !!}
-    @error('email')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    {!! Form::email('email', null, ['class' => 'form-control', 'required']) !!}
 </div>
 
-{{-- Contraseña (solo requerida en create;) --}}
+<!-- Contraseña Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('contrasena', 'Contraseña:') !!}
-    {!! Form::password('contrasena', [
-        'class' => 'form-control' . ($errors->has('contrasena') ? ' is-invalid' : ''),
-        'autocomplete' => 'new-password',
-        'minlength' => 8,
-        // sin pattern para no activar validación del navegador
-    ]) !!}
-    @error('contrasena')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-    <small class="form-text text-muted">
-        Mínimo 8 caracteres, con mayúsculas, minúsculas, números y símbolo.
-    </small>
+    {!! Form::password('contrasena', ['class' => 'form-control', 'required', 'minlength' => 6]) !!}
 </div>
 
-{{-- Confirmación de contraseña --}}
+<!-- Fecha de Nacimiento Field -->
 <div class="form-group col-sm-6">
-    {!! Form::label('contrasena_confirmation', 'Confirmar contraseña:') !!}
-    {!! Form::password('contrasena_confirmation', [
-        'class' => 'form-control' . ($errors->has('contrasena_confirmation') ? ' is-invalid' : ''),
-        'autocomplete' => 'new-password',
-    ]) !!}
-    @error('contrasena_confirmation')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    {!! Form::label('fechaNacimiento', 'Fecha de Nacimiento:') !!}
+    {!! Form::text('fechaNacimiento', null, ['class' => 'form-control', 'id' => 'fechaNacimiento']) !!}
 </div>
 
 {{-- Fecha de nacimiento --}}
@@ -92,7 +68,11 @@
     <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
 </div>
 
+<<<<<<< HEAD
+<!-- Sexo Field -->
+=======
 {{-- Sexo --}}
+>>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('sexo', 'Sexo:') !!}
     {!! Form::select(
@@ -109,6 +89,15 @@
     @enderror
 </div>
 
+<<<<<<< HEAD
+<!-- Teléfono Field -->
+<div class="form-group col-sm-6">
+    {!! Form::label('telefono', 'Teléfono:') !!}
+    {!! Form::text('telefono', null, ['class' => 'form-control']) !!}
+</div>
+
+<!-- Tipo de Usuario Field -->
+=======
 {{-- Teléfono --}}
 <div class="form-group col-sm-6">
     {!! Form::label('telefono', 'Teléfono:') !!}
@@ -125,6 +114,7 @@
 </div>
 
 {{-- Tipo de usuario --}}
+>>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('tipoUsuario', 'Tipo de usuario:') !!}
     {!! Form::select(
@@ -141,8 +131,12 @@
     @enderror
 </div>
 
+<<<<<<< HEAD
+<!-- Estado de Cuenta Field -->
+=======
 
 
+>>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('estadoCuenta', 'Estado de Cuenta:') !!}
     {!! Form::select('estadoCuenta', [

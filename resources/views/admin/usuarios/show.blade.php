@@ -29,13 +29,15 @@
         </div>
 
         <div class="card-body bg-light py-4 px-5">
+            {{-- 📨 Email --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-envelope me-1 text-primary"></i>Correo electrónico
                 </h6>
-                <p class="fw-semibold text-dark">{{ $usuario->email }}</p>
+                <p class="fw-semibold text-dark">{{ $usuario->email }}</p> {{-- cambiado correo → email --}}
             </div>
 
+            {{-- 📞 Teléfono --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-phone me-1 text-primary"></i>Teléfono
@@ -43,6 +45,7 @@
                 <p class="fw-semibold text-dark">{{ $usuario->telefono }}</p>
             </div>
 
+            {{-- 🎂 Fecha de nacimiento --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-birthday-cake me-1 text-primary"></i>Fecha de nacimiento
@@ -50,6 +53,7 @@
                 <p class="fw-semibold text-dark">{{ $usuario->fechaNacimiento }}</p>
             </div>
 
+            {{-- ⚧ Sexo --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-venus-mars me-1 text-primary"></i>Sexo
@@ -57,6 +61,7 @@
                 <p class="fw-semibold text-dark">{{ ucfirst($usuario->sexo) }}</p>
             </div>
 
+            {{-- 🆔 Tipo de usuario --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-id-badge me-1 text-primary"></i>Tipo de usuario
@@ -64,6 +69,7 @@
                 <p class="fw-semibold text-dark text-capitalize">{{ $usuario->tipoUsuario }}</p>
             </div>
 
+            {{-- 🔘 Estado de cuenta --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-toggle-on me-1 text-primary"></i>Estado de cuenta

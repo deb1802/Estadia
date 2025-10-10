@@ -1,63 +1,43 @@
- <!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>@yield('title', 'MindWare')</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ config('app.name', 'Mindware') }}</title>
 
-  {{-- Carga de CSS y JS con Vite --}}
-  @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/css/paciente.css'])
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ asset('css/crud-style.css') }}">
-  <link rel="stylesheet" href="{{ asset('css/paciente.css') }}">
-
-
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-light">
 
-  {{-- Navbar --}}
-  <nav class="navbar navbar-expand-lg navbar-dark bg-mindware shadow-sm">
-    <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-        <img src="{{ asset('img/logo.png') }}" 
-        alt="MindWare" 
-        width="80" 
-     class="me-2 rounded-circle">
+<body class="font-sans antialiased bg-gray-100">
+    <div class="min-h-screen">
 
-        <span class="fw-bold text-primary">MindWare</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div id="navbarMain" class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="#">Acerca de nosotros</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Iniciar sesión</a></li>
-        </ul>
-      </div>
+        {{-- Barra de navegación (común para todos los roles) --}}
+        @include('layouts.navigation')
+
+        <!-- Page Heading -->
+        @if (isset($header))
+            <header class="bg-white shadow">
+                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    {{ $header }}
+                </div>
+            </header>
+        @endif
+
+        <!-- Page Content -->
+        <main class="py-4">
+            {{-- ✅ Compatible con ambos estilos --}}
+            @hasSection('content')
+                @yield('content')
+            @else
+                {{ $slot ?? '' }}
+            @endif
+        </main>
+
     </div>
-  </nav>
-
-  {{-- cargar aquí el contenido de la pagina --}}
-  <main>
-    @yield('content')
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  @stack('scripts')
-  <!-- AOS CSS -->
-<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-<!-- AOS JS -->
-<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-<script>
-  AOS.init({
-    duration: 900,
-    once: true,
-    offset: 120,
-  });
-</script>
-
-  </body>
-
-
 </body>
 </html>

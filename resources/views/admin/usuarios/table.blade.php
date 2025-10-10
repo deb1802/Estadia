@@ -1,11 +1,11 @@
 <div class="card-body p-0">
     <div class="table-responsive">
-        <table class="table table-crud" id="usuarios-table">
-            <thead>
+        <table class="table table-crud align-middle" id="usuarios-table">
+            <thead class="table-primary text-center">
                 <tr>
                     <th>Nombre</th>
                     <th>Apellido</th>
-                    <th>email</th>
+                    <th>Email</th> {{-- antes: Correo --}}
                     {{-- Por seguridad no mostramos la contraseña --}}
                     <th>Fecha de Nacimiento</th>
                     <th>Sexo</th>
@@ -20,14 +20,30 @@
                     <tr>
                         <td>{{ $usuario->nombre }}</td>
                         <td>{{ $usuario->apellido }}</td>
-                        <td>{{ $usuario->email }}</td>
-                        <td>{{ optional($usuario->fechaNacimiento)->format('Y-m-d') }}</td>
-                        <td>{{ $usuario->sexo }}</td>
+                        <td>{{ $usuario->email }}</td> {{-- cambiado correo → email --}}
+                        <td>{{ $usuario->fechaNacimiento }}</td>
+                        <td>{{ ucfirst($usuario->sexo) }}</td>
                         <td>{{ $usuario->telefono }}</td>
-                        <td>{{ $usuario->tipoUsuario }}</td>
-                        <td>{{ $usuario->estadoCuenta }}</td>
+                        <td>
+                            <span class="badge bg-info text-dark text-capitalize px-2 py-1">
+                                {{ $usuario->tipoUsuario }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($usuario->estadoCuenta === 'activo')
+                                <span class="badge bg-success px-2 py-1">Activo</span>
+                            @else
+                                <span class="badge bg-danger px-2 py-1">Inactivo</span>
+                            @endif
+                        </td>
+
+                        {{-- Acciones --}}
                         <td class="text-center align-middle">
-                            {!! Form::open(['route' => ['admin.usuarios.destroy', $usuario->idUsuario], 'method' => 'delete', 'class' => 'form-delete d-inline']) !!}
+                            {!! Form::open([
+                                'route' => ['admin.usuarios.destroy', $usuario->idUsuario],
+                                'method' => 'delete',
+                                'class' => 'form-delete d-inline'
+                            ]) !!}
                             <div class="btn-group" role="group" aria-label="Acciones">
                                 {{-- Ver --}}
                                 <a href="{{ route('admin.usuarios.show', $usuario->idUsuario) }}" 
@@ -71,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', function () {
       const form = this.closest('form.form-delete');
-
       Swal.fire({
         title: '¿Eliminar usuario?',
         text: 'Esta acción no se puede deshacer.',

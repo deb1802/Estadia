@@ -1,54 +1,57 @@
 <!-- Nombre Field -->
 <div class="col-sm-12">
     {!! Form::label('nombre', 'Nombre:') !!}
-    <p>{{ $usuarios->nombre }}</p>
+    <p>{{ $usuario->nombre }}</p>
 </div>
 
 <!-- Apellido Field -->
 <div class="col-sm-12">
     {!! Form::label('apellido', 'Apellido:') !!}
-    <p>{{ $usuarios->apellido }}</p>
+    <p>{{ $usuario->apellido }}</p>
 </div>
 
-<!-- email Field -->
+<!-- Email Field (antes era Correo) -->
 <div class="col-sm-12">
-    {!! Form::label('email', 'email:') !!}
-    <p>{{ $usuarios->email }}</p>
+    {!! Form::label('email', 'Email:') !!}
+    <p>{{ $usuario->email }}</p>
 </div>
 
-<!-- Contrasena Field -->
+<!-- Contraseña Field -->
 <div class="col-sm-12">
-    {!! Form::label('contrasena', 'Contrasena:') !!}
-    <p>{{ $usuarios->contrasena }}</p>
+    {!! Form::label('contrasena', 'Contraseña:') !!}
+    <p>{{ $usuario->contrasena }}</p>
 </div>
 
-<!-- Fechanacimiento Field -->
+<!-- Fecha de Nacimiento Field -->
 <div class="col-sm-12">
-    {!! Form::label('fechaNacimiento', 'Fechanacimiento:') !!}
-    <p>{{ $usuarios->fechaNacimiento }}</p>
+    {!! Form::label('fechaNacimiento', 'Fecha de Nacimiento:') !!}
+    <p>{{ $usuario->fechaNacimiento }}</p>
 </div>
 
 <!-- Sexo Field -->
 <div class="col-sm-12">
     {!! Form::label('sexo', 'Sexo:') !!}
-    <p>{{ $usuarios->sexo }}</p>
+    <p>{{ ucfirst($usuario->sexo) }}</p>
 </div>
 
-<!-- Telefono Field -->
+<!-- Teléfono Field -->
 <div class="col-sm-12">
-    {!! Form::label('telefono', 'Telefono:') !!}
-    <p>{{ $usuarios->telefono }}</p>
+    {!! Form::label('telefono', 'Teléfono:') !!}
+    <p>{{ $usuario->telefono }}</p>
 </div>
 
-<!-- Tipousuario Field -->
+<!-- Tipo de Usuario Field -->
 <div class="col-sm-12">
-    {!! Form::label('tipoUsuario', 'Tipo de usuario:') !!}
-    <p>{{ $usuarios->tipoUsuario }}</p>
+    {!! Form::label('tipoUsuario', 'Tipo de Usuario:') !!}
+    <p>{{ ucfirst($usuario->tipoUsuario) }}</p>
 </div>
 
-<!-- Estadocuenta Field -->
+<!-- Estado de Cuenta Field -->
 <div class="col-sm-12">
-    {!! Form::label('estadoCuenta', 'Estadocuenta:') !!}
-    <p>{{ $usuarios->estadoCuenta }}</p>
+    {!! Form::label('estadoCuenta', 'Estado de Cuenta:') !!}
+    <p>
+        <span class="badge {{ $usuario->estadoCuenta === 'activo' ? 'bg-success' : 'bg-danger' }}">
+            {{ ucfirst($usuario->estadoCuenta) }}
+        </span>
+    </p>
 </div>
-
