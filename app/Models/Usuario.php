@@ -8,18 +8,12 @@ use Illuminate\Notifications\Notifiable;
 
 class Usuario extends Authenticatable
 {
-<<<<<<< HEAD
     use HasFactory, Notifiable;
 
     protected $table = 'Usuarios';
     protected $primaryKey = 'idUsuario';
     public $incrementing = true;
     public $timestamps = false;
-=======
-    protected $table = 'Usuarios';          // Nombre real de tu tabla
-    protected $primaryKey = 'idUsuario';    // Llave primaria
-    public $timestamps = false;             // 🔹 Desactiva created_at y updated_at
->>>>>>> upstream/main
 
     /**
      * Campos que pueden asignarse masivamente
@@ -27,11 +21,7 @@ class Usuario extends Authenticatable
     protected $fillable = [
         'nombre',
         'apellido',
-<<<<<<< HEAD
         'email',          // ✅ cambiado de 'correo' a 'email'
-=======
-        'email',
->>>>>>> upstream/main
         'contrasena',
         'fechaNacimiento',
         'sexo',
@@ -40,7 +30,6 @@ class Usuario extends Authenticatable
         'estadoCuenta',
     ];
 
-<<<<<<< HEAD
     /**
      * Campos que deben ocultarse (por ejemplo, contraseñas)
      */
@@ -55,13 +44,4 @@ class Usuario extends Authenticatable
     {
         return $this->contrasena;
     }
-=======
-    protected $attributes = [
-        'estadoCuenta' => 'activo',
-    ];
-
-    protected $casts = [
-        'fechaNacimiento' => 'date',
-    ];
->>>>>>> upstream/main
 }
