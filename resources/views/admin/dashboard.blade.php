@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
 <style>
-  /* 🔹 Fondo animado suave */
+  /* 🌈 Fondo animado suave */
   .dashboard-bg {
     position: absolute;
     inset: 0;
@@ -22,13 +22,15 @@
     100% { background-position: 50% 50%, 50% 50%; }
   }
 
-  /* 🔹 Tarjetas con efecto 3D */
+  /* 🧩 Tarjetas de botones */
   .gestion-card {
     display: block;
     text-align: center;
     background: white;
     border-radius: 16px;
-    padding: 30px 20px;
+    padding: 25px 15px;
+    width: 220px; /* 🔹 Menos anchas */
+    margin: 15px; /* 🔹 Más separación entre tarjetas */
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     text-decoration: none;
     color: #333;
@@ -45,14 +47,14 @@
   }
 
   .icon-box {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 15px auto;
-    font-size: 2.3rem;
+    font-size: 2.2rem;
     background: linear-gradient(135deg, #6c63ff, #00bcd4);
     color: white;
     transition: transform 0.4s ease, box-shadow 0.4s ease;
@@ -67,14 +69,15 @@
   .gestion-card h4 {
     font-weight: bold;
     color: #374151;
+    font-size: 1.1rem;
   }
 
   .gestion-card p {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #6b7280;
   }
 
-  /* 🔹 Brillo al pasar el cursor */
+  /* ✨ Efecto de brillo diagonal */
   .gestion-card::after {
     content: "";
     position: absolute;
@@ -91,113 +94,160 @@
     left: 125%;
     transition: 0.6s;
   }
+
+  /* 🧠 Acomodo responsive */
+  .dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px 40px; /* 🔹 Espacio vertical y horizontal */
+  }
+
+  /* 💫 Efecto de brillo continuo para los íconos */
+.icon-box {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px auto;
+  font-size: 2.2rem;
+  background: linear-gradient(135deg, #6c63ff, #00bcd4);
+  color: white;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  box-shadow: 0 0 15px rgba(108,99,255,0.4);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* ✨ Brillo animado sutil */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 15px rgba(108,99,255,0.4), 0 0 25px rgba(0,188,212,0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(139,128,249,0.6), 0 0 45px rgba(0,188,212,0.5);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(108,99,255,0.4), 0 0 25px rgba(0,188,212,0.3);
+    transform: scale(1);
+  }
+}
+
 </style>
 
-<section class="content-header py-4 text-center position-relative">
+<section class="content-header py-6 position-relative w-100 text-center" style="background: transparent;">
   <div class="dashboard-bg"></div>
-  <div class="container">
-    <h1 class="fw-bold text-primary mb-3">
-      <i class="fas fa-crown me-2"></i>Panel principal del administrador
-    </h1>
-    <p class="text-muted">Gestiona usuarios, tutores, actividades, reportes y más desde un solo lugar.</p>
-  </div>
+
+  <!-- 💬 Mensaje de bienvenida -->
+  <h1 class="fw-semibold mt-3 mb-0"
+      style="font-size: 2.7rem; color: #5c6ac4; text-align: center; width: 100%;">
+    Bienvenido(a),
+    <span style="color: #8b80f9; font-weight: 800;">
+      {{ ucfirst(Auth::user()->nombre) }}
+    </span>
+  </h1>
 </section>
 
-<div class="container py-5">
-  <div class="row g-4 justify-content-center">
+<div class="min-h-screen flex flex-col items-center justify-start pt-16">
+  <div class="dashboard-grid">
 
     {{-- 1. Usuarios --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="100">
-      <a href="{{ route('admin.usuarios.index') }}" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-users"></i></div>
-        <h4>Usuarios</h4>
-        <p>Administra todas las cuentas registradas.</p>
-      </a>
-    </div>
+    <a href="{{ route('admin.usuarios.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="100">
+      <div class="icon-box" style="background: linear-gradient(135deg, #7a9cc6, #8b80f9);">
+        <i class="fas fa-users"></i>
+      </div>
+      <h4>Usuarios</h4>
+      <p>Administra todas las cuentas registradas.</p>
+    </a>
 
     {{-- 2. Tutores --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="150">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-user-graduate"></i></div>
-        <h4>Tutores</h4>
-        <p>Gestiona la información de tutores asignados.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="150">
+      <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #a29bfe);">
+        <i class="fas fa-chalkboard-teacher"></i>
+      </div>
+      <h4>Tutores</h4>
+      <p>Gestiona la información de tutores asignados.</p>
+    </a>
 
     {{-- 3. Medicamentos --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="200">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-pills"></i></div>
-        <h4>Medicamentos</h4>
-        <p>Controla el catálogo de tratamientos.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
+      <div class="icon-box" style="background: linear-gradient(135deg, #00bcd4, #6c63ff);">
+        <i class="fas fa-capsules"></i>
+      </div>
+      <h4>Medicamentos</h4>
+      <p>Controla el catálogo de tratamientos.</p>
+    </a>
 
     {{-- 4. Tests Psicológicos --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="250">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-brain"></i></div>
-        <h4>Tests Psicológicos</h4>
-        <p>Administra los tests aplicados a pacientes.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
+      <div class="icon-box" style="background: linear-gradient(135deg, #a29bfe, #74b9ff);">
+        <i class="fas fa-brain"></i>
+      </div>
+      <h4>Tests Psicológicos</h4>
+      <p>Administra los tests aplicados a pacientes.</p>
+    </a>
 
     {{-- 5. Actividades Terapéuticas --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="300">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-heartbeat"></i></div>
-        <h4>Actividades Terapéuticas</h4>
-        <p>Registra y supervisa terapias personalizadas.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
+      <div class="icon-box" style="background: linear-gradient(135deg, #6c5ce7, #00cec9);">
+        <i class="fas fa-heart"></i>
+      </div>
+      <h4>Actividades Terapéuticas</h4>
+      <p>Registra y supervisa terapias personalizadas.</p>
+    </a>
 
     {{-- 6. Citas --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="350">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-calendar-check"></i></div>
-        <h4>Citas</h4>
-        <p>Agenda, modifica o cancela citas médicas.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
+      <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #6c63ff);">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+      <h4>Citas</h4>
+      <p>Agenda, modifica o cancela citas médicas.</p>
+    </a>
 
     {{-- 7. Emociones --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="400">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-smile"></i></div>
-        <h4>Emociones</h4>
-        <p>Analiza los registros emocionales de los pacientes.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="400">
+      <div class="icon-box" style="background: linear-gradient(135deg, #81ecec, #a29bfe);">
+        <i class="fas fa-smile-beam"></i>
+      </div>
+      <h4>Emociones</h4>
+      <p>Analiza los registros emocionales de los pacientes.</p>
+    </a>
 
     {{-- 8. Expediente Clínico --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="450">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-file-medical"></i></div>
-        <h4>Expediente Clínico</h4>
-        <p>Consulta y administra expedientes de pacientes.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="450">
+      <div class="icon-box" style="background: linear-gradient(135deg, #00cec9, #6c5ce7);">
+        <i class="fas fa-file-medical-alt"></i>
+      </div>
+      <h4>Expediente Clínico</h4>
+      <p>Consulta y administra expedientes de pacientes.</p>
+    </a>
 
     {{-- 9. Reportes --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="500">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-chart-line"></i></div>
-        <h4>Reportes</h4>
-        <p>Visualiza estadísticas y reportes del sistema.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="500">
+      <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #00bcd4);">
+        <i class="fas fa-chart-bar"></i>
+      </div>
+      <h4>Reportes</h4>
+      <p>Visualiza estadísticas y reportes del sistema.</p>
+    </a>
 
     {{-- 10. Configuración --}}
-    <div class="col-md-5 col-lg-3" data-aos="zoom-in" data-aos-delay="550">
-      <a href="#" class="gestion-card">
-        <div class="icon-box"><i class="fas fa-cogs"></i></div>
-        <h4>Configuración</h4>
-        <p>Administra opciones y ajustes del sistema.</p>
-      </a>
-    </div>
+    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="550">
+      <div class="icon-box" style="background: linear-gradient(135deg, #b388ff, #82b1ff);">
+        <i class="fas fa-cog"></i>
+      </div>
+      <h4>Configuración</h4>
+      <p>Administra opciones y ajustes del sistema.</p>
+    </a>
 
   </div>
 </div>
+
 
 <script>
   // Inicializa animaciones AOS
@@ -207,15 +257,15 @@
     easing: 'ease-out-back'
   });
 
-  // 💫 Animación interactiva con anime.js
+  // 💫 Animación de íconos con anime.js
   document.querySelectorAll('.gestion-card').forEach(card => {
     card.addEventListener('mouseenter', () => {
       anime({
         targets: card.querySelector('.icon-box i'),
         scale: [1, 1.3, 1],
         rotate: '1turn',
-        duration: 1000,
-        easing: 'easeInOutElastic(1, .6)'
+        duration: 900,
+        easing: 'easeInOutElastic(1, .7)'
       });
     });
   });
