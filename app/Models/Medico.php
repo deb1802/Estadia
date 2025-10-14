@@ -27,4 +27,10 @@ class Medico extends Model
     // {
     //     return $this->hasMany(Paciente::class, 'medico_id', 'id');
     // }
+
+        public function pacientes()
+    {
+        return $this->hasMany(Paciente::class, 'medico_id', 'id');
+    }
+
 }

@@ -24,13 +24,19 @@ CREATE TABLE Medicos (
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(idUsuario)
 );
 
+
 CREATE TABLE Pacientes (
-    idPaciente INT PRIMARY KEY,
-    padecimientos TEXT,
-    fkMedicoAsignado INT,
-    FOREIGN KEY (idPaciente) REFERENCES Usuarios(idUsuario),
-    FOREIGN KEY (fkMedicoAsignado) REFERENCES Medicos(idMedico)
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario_id INT NOT NULL UNIQUE,
+  medico_id INT NOT NULL,
+  padecimientos TEXT,
+    FOREIGN KEY (usuario_id) REFERENCES Usuarios(idUsuario)
+      ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT fk_pacientes_medico
+    FOREIGN KEY (medico_id) REFERENCES Medicos(id)
+      ON UPDATE CASCADE ON DELETE RESTRICT
 );
+
 
 CREATE TABLE Tutores (
     idTutor INT PRIMARY KEY AUTO_INCREMENT,

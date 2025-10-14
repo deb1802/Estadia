@@ -3,7 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Mindware') }}</title>
+
+    {{-- 🔹 Título de la pestaña --}}
+    <title>Mindware</title>
+
+    {{-- 🔹 Favicon personalizado (usa el que tengas en /public/img) --}}
+    <link rel="icon" type="image/png" href="{{ asset('img/mindware-logo.png') }}">
+    {{-- Cambia el nombre del archivo según el tuyo, por ejemplo: mindware.ico, logo.png, etc. --}}
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -15,13 +21,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Estilos personalizados -->
-     @vite(['resources/css/crud-users.css'])
+    @vite(['resources/css/crud-users.css'])
 
-     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
+
 
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen">

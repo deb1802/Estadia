@@ -285,3 +285,36 @@
 #detallesMedicos .card-body {
   background: #f5f9ff;
 }
+
+
+.table-scroll{
+  width:100%;
+  overflow-x:auto;               /* scroll horizontal */
+  -webkit-overflow-scrolling:touch;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+/* Ancho mínimo para que no se corte en móvil (ajusta según columnas) */
+.table-crud{ min-width: 1100px; }
+
+/* Evita quiebres raros; usa .td-wrap si quieres permitir saltos en alguna col */
+.table-crud th, .table-crud td{ white-space:nowrap; }
+
+/* Columnas utilitarias */
+.td-email, .td-date, .td-phone{ white-space:nowrap; }
+.col-actions{ width:1%; white-space:nowrap; }
+
+/* (Opcional) Cabezal pegajoso si deseas scroll vertical interno */
+.table-scroll{ max-height:70vh; }
+.table-scroll thead th{
+  position:sticky; top:0; z-index:2;
+  background-color:#b5c8e1; color:#fff;
+}
+
+/* (Opcional) Scrollbar más discreta */
+.table-scroll::-webkit-scrollbar{ height:10px; }
+.table-scroll::-webkit-scrollbar-track{ background:#eef3fb; border-radius:10px; }
+.table-scroll::-webkit-scrollbar-thumb{ background:#c7d6ea; border-radius:10px; }
+.table-scroll::-webkit-scrollbar-thumb:hover{ background:#b5c8e1; }

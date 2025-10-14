@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\MedicamentoController;
+use App\Http\Controllers\Medico\PacienteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,11 +45,21 @@ Route::middleware(['auth', 'rol:administrador'])->prefix('admin')->name('admin.'
 });
 
 /* 🩺 Sección del MÉDICO */
-Route::middleware(['auth', 'rol:medico'])->prefix('medico')->name('medico.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('medico.dashboard');
-    })->name('dashboard');
-});
+
+Route::middleware(['auth', 'rol:medico'])
+    ->prefix('medico')
+    ->name('medico.')
+    ->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', function () {
+            return view('medico.dashboard');
+        })->name('dashboard');
+
+        // CRUD de pacientes 
+        Route::resource('pacientes', PacienteController::class);
+    });
+
 
 /* 💬 Sección del PACIENTE */
 Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.')->group(function () {
@@ -59,3 +70,5 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
+
+

@@ -137,14 +137,14 @@
 <div class="min-h-screen flex flex-col items-center justify-start pt-16">
   <div class="dashboard-grid">
 
-    {{-- 1. Pacientes --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="100">
-      <div class="icon-box" style="background: linear-gradient(135deg, #7a9cc6, #8b80f9);">
-        <i class="fas fa-user-injured"></i>
-      </div>
-      <h4>Pacientes</h4>
-      <p>Gestiona la información de los pacientes asignados.</p>
-    </a>
+   {{-- 1. Pacientes --}}
+  <a href="{{ route('medico.pacientes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="100">
+    <div class="icon-box" style="background: linear-gradient(135deg, #7a9cc6, #8b80f9);">
+      <i class="fas fa-user-injured"></i>
+    </div>
+    <h4>Pacientes</h4>
+    <p>Gestiona la información de los pacientes asignados.</p>
+  </a>
 
     {{-- 2. Tutores --}}
     <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="150">
