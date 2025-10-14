@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // ✅ Importa correctamente el trait desde el namespace de Laravel
-use Illuminate\Foundation\Auth\User as Authenticatable; // ✅ Necesario para el login
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
 
 class Usuario extends Authenticatable
 {
-    use HasFactory, Notifiable; // ✅ Usa los traits correctos
+    use HasFactory, Notifiable;
 
-    protected $table = 'usuarios';
+    // Nombre exacto de la tabla (respetando mayúsculas si tu DB es sensible a ellas)
+    protected $table = 'Usuarios';
     protected $primaryKey = 'idUsuario';
+    public $timestamps = false;
 
     protected $fillable = [
         'nombre',
@@ -30,13 +33,17 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
-    public $timestamps = false;
 
-    /**
-     * 🔐 Indica a Laravel qué campo es la contraseña
-     */
     public function getAuthPassword()
     {
         return $this->contrasena;
     }
+
+    // Un usuario puede tener un registro de médico
+    public function medico()
+    {
+        // FK en Medicos = usuario_id, PK en Usuarios = idUsuario
+        return $this->hasOne(Medico::class, 'usuario_id', 'idUsuario');
+    }
+
 }

@@ -4,105 +4,124 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Usuario;
+use App\Models\Medico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Http\Requests\CreateUsuariosRequest;
 use App\Http\Requests\UpdateUsuariosRequest;
 
+
+
 class UsuarioController extends Controller
 {
-    /**
-     * 📋 Mostrar lista paginada de usuarios
-     */
+
     public function index(Request $request)
     {
         $usuarios = Usuario::paginate(10);
         return view('admin.usuarios.index', compact('usuarios'));
     }
 
-    /**
-     * 🆕 Mostrar formulario para crear un nuevo usuario
-     */
     public function create()
     {
         return view('admin.usuarios.create');
     }
 
-    /**
-     * 💾 Guardar un nuevo usuario en la base de datos
-     */
-    public function store(CreateUsuariosRequest $request)
+    public function store(\App\Http\Requests\CreateUsuariosRequest $request)
     {
-        $data = $request->validated();
+        $data = $request->all();
 
-        // Estado por defecto si no se envía
+        // Defaults y hash
         $data['estadoCuenta'] = $data['estadoCuenta'] ?? 'activo';
-
-        // Hashear la contraseña si existe
         if (!empty($data['contrasena'])) {
             $data['contrasena'] = Hash::make($data['contrasena']);
         }
 
-        // Crear el usuario con los campos validados
-        Usuario::create($data);
+        DB::transaction(function () use ($data, $request) {
+            // 1) Crear usuario
+            $usuario = \App\Models\Usuario::create($data);
+
+            // 2) Si es médico, crear perfil en Medicos con FK usuario_id
+            if (($data['tipoUsuario'] ?? null) === 'medico') {
+                Medico::create([
+                    'usuario_id'        => $usuario->idUsuario,
+                    'cedulaProfesional' => $request->cedulaProfesional,
+                    'especialidad'      => $request->especialidad,
+                ]);
+            }
+        });
 
         return redirect()
             ->route('admin.usuarios.index')
             ->with('success', 'Usuario registrado correctamente.');
     }
 
-    /**
-     * ✏️ Mostrar formulario de edición de usuario
-     */
+
+
+
     public function edit($id)
     {
         $usuario = Usuario::findOrFail($id);
         return view('admin.usuarios.edit', compact('usuario'));
     }
 
-    /**
-     * 🔄 Actualizar usuario existente
-     */
-    public function update(UpdateUsuariosRequest $request, $id)
+    public function update(\App\Http\Requests\UpdateUsuariosRequest $request, $id)
     {
-        $usuario = Usuario::findOrFail($id);
-        $data = $request->validated();
+        $usuario = \App\Models\Usuario::findOrFail($id);
+        $data = $request->all();
 
-        // Si el estado no debe modificarse desde el formulario:
+        // Si no debes modificar estado desde el form:
         unset($data['estadoCuenta']);
 
-        // Solo hashear la contraseña si se envía
+        // Hash solo si viene
         if (!empty($data['contrasena'])) {
             $data['contrasena'] = Hash::make($data['contrasena']);
         } else {
             unset($data['contrasena']);
         }
 
-        $usuario->update($data);
+        DB::transaction(function () use ($usuario, $data, $request) {
+            // 1) Actualizar usuario
+            $usuario->update($data);
+
+            // 2) Sincronizar perfil médico según tipoUsuario
+            if (($data['tipoUsuario'] ?? null) === 'medico') {
+                Medico::updateOrCreate(
+                    ['usuario_id' => $usuario->idUsuario],
+                    [
+                        'cedulaProfesional' => $request->cedulaProfesional,
+                        'especialidad'      => $request->especialidad,
+                    ]
+                );
+            } else {
+                // Si dejó de ser médico, elimina su perfil
+                Medico::where('usuario_id', $usuario->idUsuario)->delete();
+            }
+        });
 
         return redirect()
             ->route('admin.usuarios.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
-    /**
-     * 🔍 Mostrar detalles de un usuario
-     */
+
     public function show($id)
     {
-        $usuario = Usuario::findOrFail($id);
+        $usuario = \App\Models\Usuario::with('medico')->findOrFail($id);
         return view('admin.usuarios.show', compact('usuario'));
     }
 
-    /**
-     * ❌ Eliminar un usuario
-     */
+
     public function destroy($id)
     {
-        Usuario::destroy($id);
+        DB::transaction(function () use ($id) {
+            Medico::where('usuario_id', $id)->delete(); // borrar perfil médico si existe
+            \App\Models\Usuario::destroy($id);
+        });
 
         return redirect()
             ->route('admin.usuarios.index')
             ->with('success', 'Usuario eliminado correctamente.');
     }
+
 }

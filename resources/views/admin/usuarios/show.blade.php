@@ -14,6 +14,7 @@
 
 <div class="content px-4">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        {{-- HEADER --}}
         <div class="card-header bg-primary text-white text-center py-4">
             <h4 class="mb-1 fw-semibold">
                 {{ $usuario->nombre }} {{ $usuario->apellido }}
@@ -28,13 +29,14 @@
             @endif
         </div>
 
+        {{-- BODY --}}
         <div class="card-body bg-light py-4 px-5">
             {{-- 📨 Email --}}
             <div class="info-box mb-3">
                 <h6 class="text-muted mb-1">
                     <i class="fas fa-envelope me-1 text-primary"></i>Correo electrónico
                 </h6>
-                <p class="fw-semibold text-dark">{{ $usuario->email }}</p> {{-- cambiado correo → email --}}
+                <p class="fw-semibold text-dark">{{ $usuario->email }}</p>
             </div>
 
             {{-- 📞 Teléfono --}}
@@ -80,42 +82,84 @@
                     <p class="fw-semibold text-danger">Inactivo</p>
                 @endif
             </div>
+
+            {{-- ===== Detalles médicos (solo si aplica) ===== --}}
+            @if($usuario->medico)
+            <hr class="my-4">
+
+            <div id="detallesMedicos" class="mt-3 d-none">
+                <div class="card border-0 shadow-sm">
+                <div class="card-header fw-semibold bg-primary text-white">
+                    Perfil médico
+                </div>
+                <div class="card-body bg-light">
+                    <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">
+                        <i class="fas fa-id-card me-1"></i> Cédula profesional
+                        </div>
+                        <div class="fw-medium">{{ $usuario->medico->cedulaProfesional ?? '—' }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-muted small mb-1">
+                        <i class="fas fa-graduation-cap me-1"></i> Especialidad
+                        </div>
+                        <div class="fw-medium">{{ $usuario->medico->especialidad ?? '—' }}</div>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            @endif
+
         </div>
 
-        <div class="card-footer text-center bg-white border-top py-3">
-            <a href="{{ route('admin.usuarios.edit', $usuario->idUsuario) }}" class="btn btn-primary px-4 me-2">
-                <i class="fas fa-edit me-1"></i> Editar
-            </a>
-            <form action="{{ route('admin.usuarios.destroy', $usuario->idUsuario) }}" 
-                  method="POST" class="d-inline form-delete">
-                @csrf @method('DELETE')
-                <button type="button" class="btn btn-danger btn-delete px-4">
-                    <i class="fas fa-trash-alt me-1"></i> Eliminar
-                </button>
-            </form>
+        {{-- FOOTER --}}
+        <div class="card-footer bg-white border-top py-3">
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{{ route('admin.usuarios.edit', $usuario->idUsuario) }}" class="btn btn-primary px-4">
+                    <i class="fas fa-edit me-1"></i> Editar
+                </a>
+
+                <form action="{{ route('admin.usuarios.destroy', $usuario->idUsuario) }}"
+                      method="POST" class="form-delete m-0">
+                    @csrf @method('DELETE')
+                    <button type="button" class="btn btn-danger btn-delete px-4">
+                        <i class="fas fa-trash-alt me-1"></i> Eliminar
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-@push('scripts')
+
+
+{{-- Script directo para la confirmación (no dependemos de @push) --}}
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', function () {
       const form = this.closest('form.form-delete');
-      Swal.fire({
-        title: '¿Eliminar usuario?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) form.submit();
-      });
+      if (!form) return;
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: '¿Eliminar usuario?',
+          text: 'Esta acción no se puede deshacer.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) form.submit();
+        });
+      } else {
+        if (confirm('¿Eliminar usuario? Esta acción no se puede deshacer.')) form.submit();
+      }
     });
   });
 });
 </script>
-@endpush
+
+
 @endsection

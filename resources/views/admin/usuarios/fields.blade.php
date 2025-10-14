@@ -28,7 +28,7 @@
     @enderror
 </div>
 
-<!-- Email Field (antes era Correo) -->
+<!-- Email Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('email', 'Email:') !!}
     {!! Form::email('email', null, ['class' => 'form-control', 'required']) !!}
@@ -40,11 +40,6 @@
     {!! Form::password('contrasena', ['class' => 'form-control', 'required', 'minlength' => 6]) !!}
 </div>
 
-<!-- Fecha de Nacimiento Field -->
-<div class="form-group col-sm-6">
-    {!! Form::label('fechaNacimiento', 'Fecha de Nacimiento:') !!}
-    {!! Form::text('fechaNacimiento', null, ['class' => 'form-control', 'id' => 'fechaNacimiento']) !!}
-</div>
 
 {{-- Fecha de nacimiento --}}
 <div class="form-group col-sm-6">
@@ -68,11 +63,7 @@
     <small class="form-text text-muted">Formato: AAAA-MM-DD</small>
 </div>
 
-<<<<<<< HEAD
 <!-- Sexo Field -->
-=======
-{{-- Sexo --}}
->>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('sexo', 'Sexo:') !!}
     {!! Form::select(
@@ -89,15 +80,6 @@
     @enderror
 </div>
 
-<<<<<<< HEAD
-<!-- Teléfono Field -->
-<div class="form-group col-sm-6">
-    {!! Form::label('telefono', 'Teléfono:') !!}
-    {!! Form::text('telefono', null, ['class' => 'form-control']) !!}
-</div>
-
-<!-- Tipo de Usuario Field -->
-=======
 {{-- Teléfono --}}
 <div class="form-group col-sm-6">
     {!! Form::label('telefono', 'Teléfono:') !!}
@@ -114,15 +96,15 @@
 </div>
 
 {{-- Tipo de usuario --}}
->>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('tipoUsuario', 'Tipo de usuario:') !!}
     {!! Form::select(
         'tipoUsuario',
-        ['administrador' => 'Administrador', 'paciente' => 'Paciente'],
+        ['administrador' => 'Administrador', 'medico' => 'Médico'],  {{-- ← solo estos --}}
         old('tipoUsuario', $usuario->tipoUsuario ?? null),
         [
-            'class' => 'form-select' . ($errors->has('tipoUsuario') ? ' is-invalid' : ''),
+            'class' => 'form-select',
+            'id' => 'tipoUsuario',
             'placeholder' => 'Seleccione…',
         ]
     ) !!}
@@ -131,12 +113,36 @@
     @enderror
 </div>
 
-<<<<<<< HEAD
+
+<!-- Campos exclusivos para médico -->
+<div id="camposMedico" class="row" style="display:none;">
+    <div class="form-group col-sm-6">
+        {!! Form::label('cedulaProfesional', 'Cédula profesional:') !!}
+        {!! Form::text('cedulaProfesional', old('cedulaProfesional', $usuario->medico->cedulaProfesional ?? null), [
+            'class' => 'form-control' . ($errors->has('cedulaProfesional') ? ' is-invalid' : ''),
+            'maxlength' => 20,
+            'placeholder' => 'Ej. 1234567',
+        ]) !!}
+        @error('cedulaProfesional')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="form-group col-sm-6">
+        {!! Form::label('especialidad', 'Especialidad:') !!}
+        {!! Form::text('especialidad', old('especialidad', $usuario->medico->especialidad ?? null), [
+            'class' => 'form-control' . ($errors->has('especialidad') ? ' is-invalid' : ''),
+            'maxlength' => 100,
+            'placeholder' => 'Ej. Psiquiatría',
+        ]) !!}
+        @error('especialidad')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+</div>
+
+
 <!-- Estado de Cuenta Field -->
-=======
-
-
->>>>>>> upstream/main
 <div class="form-group col-sm-6">
     {!! Form::label('estadoCuenta', 'Estado de Cuenta:') !!}
     {!! Form::select('estadoCuenta', [
@@ -144,3 +150,24 @@
         'inactivo' => 'Inactivo'
     ], null, ['class' => 'form-control', 'placeholder' => 'Seleccione estado']) !!}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoUsuarioSelect = document.querySelector('#tipoUsuario');
+    const camposMedico = document.querySelector('#camposMedico');
+
+    if (!tipoUsuarioSelect || !camposMedico) return;
+
+    const toggleCampos = () => {
+        if (tipoUsuarioSelect.value === 'medico') {
+            camposMedico.style.display = 'flex';
+        } else {
+            camposMedico.style.display = 'none';
+        }
+    };
+
+    tipoUsuarioSelect.addEventListener('change', toggleCampos);
+    toggleCampos(); // ejecutar al cargar (por si ya es médico)
+});
+</script>
+

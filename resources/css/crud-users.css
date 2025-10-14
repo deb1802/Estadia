@@ -1,0 +1,287 @@
+/* ======================================================
+   ESTILOS CRUD DE USUARIOS (INDEX, CREATE, EDIT)
+   ====================================================== */
+
+/* ======= ENCABEZADOS ======= */
+.content-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background: #e7f1ff;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+.content-header h1 {
+  color: #2c2c54;
+  font-weight: 700;
+  font-size: 1.8rem;
+  font-family: 'Figtree', sans-serif;
+}
+
+.content-header .btn {
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+}
+
+/* ======= TABLAS ======= */
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: 'Figtree', sans-serif;
+  color: #2c2c54;
+}
+
+.table thead {
+  background-color: #b5c8e1; /* azul pastel */
+  color: #fff;
+  font-weight: 600;
+}
+
+.table th,
+.table td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f7faff;
+}
+
+.table tbody tr:hover {
+  background-color: #eaf1fb;
+  transition: 0.25s ease;
+}
+
+/* Iconos de acción */
+.table td i {
+  font-size: 1.1rem;
+  margin: 0 6px;
+  color: #8aa7cc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.table td i:hover {
+  color: #b5c8e1;
+  transform: scale(1.15);
+}
+
+/* ======= FORMULARIOS ======= */
+.card-body label {
+  font-weight: 600;
+  color: #2c2c54;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.card-body input.form-control,
+.card-body select.form-control,
+.card-body textarea.form-control {
+  border: 1px solid #cdd8e6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background-color: #f9fbff;
+  transition: all 0.2s ease;
+}
+
+.card-body input.form-control:focus,
+.card-body select.form-control:focus,
+.card-body textarea.form-control:focus {
+  border-color: #b5c8e1;
+  box-shadow: 0 0 0 0.2rem rgba(181, 200, 225, 0.3);
+  background-color: #fff;
+}
+
+/* ======= BOTONES ======= */
+.btn-primary {
+  background: linear-gradient(90deg, #b5c8e1, #8aa7cc);
+  border: none;
+  font-weight: 500;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #a5bbda, #7a99bd);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.btn-outline-secondary {
+  border: 1px solid #b5c8e1;
+  color: #4a5b78;
+  border-radius: 8px;
+  padding: 0.6rem 1.3rem;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #b5c8e1;
+  color: #fff;
+}
+
+
+.is-invalid{
+  border-color:#dc3545 !important;
+  box-shadow:0 0 0 .2rem rgba(220,53,69,.15);
+}
+.field-error{
+  color:#dc3545;
+  font-size:.875rem;
+  margin-top:.25rem;
+}
+
+
+/* =======================
+   ESTILOS PARA SHOW-USUARIO
+   ======================= */
+
+/* Fondo general */
+.content {
+  background: linear-gradient(180deg, #e7f1ff 0%, #f5f9ff 100%);
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+/* Card general */
+.card {
+  border-radius: 1.2rem;
+  border: none;
+  box-shadow: 0 4px 20px rgba(13, 110, 253, 0.1);
+}
+
+/* Cabecera del card */
+.card-header {
+  background: linear-gradient(90deg, #0d6efd, #007bff);
+  color: #fff;
+  border: none;
+}
+
+.card-header h4 {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.card-header p {
+  margin: 0;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Sección de información */
+.card-body {
+  background: #ffffff;
+  border-top: 3px solid #0d6efd;
+  padding: 2.5rem;
+}
+
+.info-box {
+  background: #f5f9ff;
+  border: 1px solid #e1eaff;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.info-box:hover {
+  background: #e9f3ff;
+  box-shadow: 0 0 10px rgba(13, 110, 253, 0.1);
+}
+
+/* Títulos de secciones */
+.info-box h6 {
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+/* Texto de los valores */
+.info-box p {
+  margin: 0;
+  font-size: 1rem;
+  color: #212529;
+  font-weight: 500;
+}
+
+/* Footer (botones Editar / Eliminar) */
+.card-footer {
+  background: #f5f9ff;
+  border-top: 1px solid #dbe8ff;
+  text-align: center;
+}
+
+.card-footer .btn {
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.card-footer .btn-primary {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+.card-footer .btn-primary:hover {
+  background-color: #084298;
+  border-color: #084298;
+}
+
+.card-footer .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.card-footer .btn-danger:hover {
+  background-color: #bb2d3b;
+  border-color: #bb2d3b;
+}
+
+/*detalle médico*/
+
+/* Evita que el collapse quede “pegado” al borde inferior de la card */
+.card-body hr {
+  border-color: #dbe8ff;
+  opacity: .65;
+}
+
+/* Footer: separa y evita encimado en pantallas chicas */
+.card-footer .btn {
+  border-radius: 8px;
+  font-weight: 600;
+}
+.card-footer .d-flex {
+  row-gap: .5rem;
+}
+
+/* Botón del collapse más visible */
+.btn-outline-primary.btn-sm {
+  font-weight: 600;
+  border-radius: 8px;
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+.btn-outline-primary.btn-sm:hover {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Tarjeta interna de detalles médicos */
+#detallesMedicos .card {
+  border-radius: 10px;
+}
+#detallesMedicos .card-body {
+  background: #f5f9ff;
+}

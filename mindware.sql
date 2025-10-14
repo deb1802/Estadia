@@ -1,0 +1,183 @@
+DROP DATABASE IF EXISTS mindware;
+CREATE DATABASE IF NOT EXISTS mindware;
+USE mindware;
+
+CREATE TABLE Usuarios (
+    idUsuario INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
+    fechaNacimiento DATE,
+    sexo ENUM('masculino', 'femenino', 'otro'),
+    telefono VARCHAR(20),
+    tipoUsuario ENUM('administrador', 'medico', 'paciente') NOT NULL,
+    estadoCuenta ENUM('activo', 'inactivo') DEFAULT 'activo'
+);
+
+DROP TABLE IF EXISTS Medicos;
+CREATE TABLE Medicos (
+    id INT AUTO_INCREMENT PRIMARY KEY,           -- ID propio del médico
+    usuario_id INT NOT NULL UNIQUE,              -- FK hacia Usuarios.idUsuario
+    cedulaProfesional VARCHAR(20),
+    especialidad VARCHAR(100),
+    FOREIGN KEY (usuario_id) REFERENCES Usuarios(idUsuario)
+);
+
+CREATE TABLE Pacientes (
+    idPaciente INT PRIMARY KEY,
+    padecimientos TEXT,
+    fkMedicoAsignado INT,
+    FOREIGN KEY (idPaciente) REFERENCES Usuarios(idUsuario),
+    FOREIGN KEY (fkMedicoAsignado) REFERENCES Medicos(idMedico)
+);
+
+CREATE TABLE Tutores (
+    idTutor INT PRIMARY KEY AUTO_INCREMENT,
+    nombreCompleto VARCHAR(100),
+    parentesco VARCHAR(50),
+    telefono VARCHAR(20),
+    correo VARCHAR(100),
+    direccion TEXT,
+    observaciones TEXT,
+    fkPaciente INT,
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Medicamentos (
+    idMedicamento INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100),
+    presentacion VARCHAR(50),
+    indicaciones TEXT,
+    efectosSecundarios TEXT,
+    imagenMedicamento VARCHAR(255)
+);
+
+CREATE TABLE RecetasMedicas (
+    idReceta INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATE,
+    observaciones TEXT,
+    fkMedico INT,
+    fkPaciente INT,
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Detalle_Medicamento (
+    idDetalleMedicamento INT PRIMARY KEY AUTO_INCREMENT,
+    fkReceta INT,
+    fkMedicamento INT,
+    dosis VARCHAR(100),
+    frecuencia VARCHAR(100),
+    duracion VARCHAR(100),
+    FOREIGN KEY (fkReceta) REFERENCES RecetasMedicas(idReceta),
+    FOREIGN KEY (fkMedicamento) REFERENCES Medicamentos(idMedicamento)
+);
+
+CREATE TABLE Tests (
+    idTest INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100),
+    tipoTrastorno VARCHAR(100),
+    descripcion TEXT,
+    preguntas TEXT,
+    puntajePorRespuesta TEXT,
+    rangoEvaluacion TEXT,
+    estado ENUM('activo', 'inactivo'),
+    fechaCreacion DATE,
+    fkMedico INT,
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico)
+);
+
+CREATE TABLE AsignacionTest (
+    idAsignacionTest INT PRIMARY KEY AUTO_INCREMENT,
+    fkTest INT,
+    fkPaciente INT,
+    fechaAsignacion DATE,
+    fechaRespuesta DATE,
+    resultado TEXT,
+    FOREIGN KEY (fkTest) REFERENCES Tests(idTest),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Actividades (
+    idActividad INT PRIMARY KEY AUTO_INCREMENT,
+    titulo VARCHAR(100),
+    tipoContenido ENUM('audio', 'video', 'lectura', 'ejercicio'),
+    categoriaTerapeutica VARCHAR(100),
+    diagnosticoDirigido VARCHAR(100),
+    nivelSeveridad VARCHAR(50),
+    recurso TEXT,
+    fkMedico INT,
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico)
+);
+
+CREATE TABLE AsignacionActividad (
+    idAsignacionActividad INT PRIMARY KEY AUTO_INCREMENT,
+    fkActividad INT,
+    fkPaciente INT,
+    fechaAsignacion DATE,
+    estado ENUM('pendiente', 'completada'),
+    FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Citas (
+    idCita INT PRIMARY KEY AUTO_INCREMENT,
+    fkMedico INT,
+    fkPaciente INT,
+    fechaHora DATETIME,
+    motivo TEXT,
+    ubicacion VARCHAR(150),
+    estado ENUM('programada', 'realizada', 'cancelada'),
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Emociones (
+    idEmocion INT PRIMARY KEY AUTO_INCREMENT,
+    fkActividad INT,
+    fkPaciente INT,
+    fechaHoraRegistro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    emocionesExperimentadas TEXT, -- ejemplo: JSON con ["feliz", "confundido"]
+    intensidad INT, -- escala 1-5
+    comentario TEXT,
+    FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Expedientes (
+    idExpediente INT PRIMARY KEY AUTO_INCREMENT,
+    fkPaciente INT,
+    antecedentes TEXT,
+    diagnosticos TEXT,
+    notasClinicas TEXT,
+    historialCitas TEXT,
+    testsAplicados TEXT,
+    actividadesAsignadas TEXT,
+    respuestasEmocionales TEXT,
+    medicamentosPrescritos TEXT,
+    observaciones TEXT,
+    fechaActualizacion DATE,
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Testimonios (
+    idTestimonio INT PRIMARY KEY AUTO_INCREMENT,
+    fkPaciente INT,
+    fecha DATE,
+    contenido TEXT,
+    publico BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+);
+
+CREATE TABLE Notificaciones (
+    idNotificacion INT PRIMARY KEY AUTO_INCREMENT,
+    fkUsuario INT,
+    titulo VARCHAR(150),
+    mensaje TEXT,
+    tipo ENUM('sistema', 'correo'),
+    fecha DATETIME,
+    leida BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (fkUsuario) REFERENCES Usuarios(idUsuario)
+);
+
