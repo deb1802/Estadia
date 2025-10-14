@@ -161,5 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+{{-- FOOTER opcional: acciones solo de lectura para médico --}}
+        <div class="card-footer bg-white border-top py-3">
+            <div class="d-flex justify-content-center">
+                <a href="{{ route('admin.usuarios.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> Volver al listado de usuarios
+                </a>
+            </div>
+        </div>
+
 
 @endsection

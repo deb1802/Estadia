@@ -174,7 +174,7 @@
     </a>
 
     {{-- 3. Medicamentos --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
+    <a href="{{ route('admin.medicamentos.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
       <div class="icon-box" style="background: linear-gradient(135deg, #00bcd4, #6c63ff);">
         <i class="fas fa-capsules"></i>
       </div>

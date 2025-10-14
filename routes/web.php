@@ -42,6 +42,9 @@ Route::middleware(['auth', 'rol:administrador'])->prefix('admin')->name('admin.'
 
     // CRUD de usuarios
     Route::resource('usuarios', UsuarioController::class);
+
+     // CRUD de medicamentos
+        Route::resource('medicamentos', MedicamentoController::class);
 });
 
 /* 🩺 Sección del MÉDICO */

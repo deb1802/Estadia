@@ -1,23 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>
-Detalles del medicamento
-                    </h1>
-                </div>
-                <div class="col-sm-6">
-                    <a class="btn btn-default float-right"
-                       href="{{ route('admin.medicamentos.index') }}">
-                                                    Volver
-                                            </a>
-                </div>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2 align-items-center">
+            <div class="col-sm-6 d-flex align-items-center">
+                <h1 class="mb-0">
+                    <i class="fa-solid fa-capsules text-info me-2"></i>
+                    Detalles del medicamento
+                </h1>
+            </div>
+            <div class="col-sm-6">
+                <a class="btn btn-default float-right"
+                   href="{{ route('admin.medicamentos.index') }}">
+                    <i class="fa-solid fa-list me-1"></i> Volver
+                </a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
+
+
 
     <div class="content px-3">
         <div class="card">
@@ -28,4 +31,15 @@ Detalles del medicamento
             </div>
         </div>
     </div>
+
+     {{-- FOOTER opcional: acciones solo de lectura para médico --}}
+        <div class="card-footer bg-white border-top py-3">
+            <div class="d-flex justify-content-center">
+                <a href="{{ route('admin.medicamentos.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> Volver al listado de medicamentos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
