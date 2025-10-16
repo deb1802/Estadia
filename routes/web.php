@@ -69,7 +69,16 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
     Route::get('/dashboard', function () {
         return view('paciente.dashboard');
     })->name('dashboard');
+
+    // Foro de testimonios (misma vista para listar y publicar)
+    Route::get('/testimonios', [\App\Http\Controllers\Paciente\TestimonioController::class, 'index'])
+        ->name('testimonios.index');
+
+    Route::post('/testimonios', [\App\Http\Controllers\Paciente\TestimonioController::class, 'store'])
+        ->name('testimonios.store');
 });
+
+
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';

@@ -127,7 +127,7 @@
   <!-- 💬 Bienvenida al paciente -->
   <h1 class="fw-semibold mt-3 mb-0"
       style="font-size: 2.7rem; color: #5c6ac4; text-align: center; width: 100%;">
-    Bienvenido(a),
+    Bienvenido(a) paciente ,
     <span style="color: #8b80f9; font-weight: 800;">
       {{ ucfirst(Auth::user()->nombre) }}
     </span>

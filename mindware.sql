@@ -167,14 +167,33 @@ CREATE TABLE Expedientes (
     FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
 );
 
+
+--testimonios y sus repsuestas 
 CREATE TABLE Testimonios (
     idTestimonio INT PRIMARY KEY AUTO_INCREMENT,
-    fkPaciente INT,
-    fecha DATE,
-    contenido TEXT,
-    publico BOOLEAN DEFAULT TRUE,
+    fkPaciente INT NOT NULL,
+    fecha DATE DEFAULT CURRENT_DATE,
+    contenido TEXT NOT NULL,
     FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+      ON UPDATE CASCADE ON DELETE RESTRICT
 );
+
+
+
+CREATE TABLE RespuestasTestimonio (
+  idRespuesta INT AUTO_INCREMENT PRIMARY KEY,
+  fkTestimonio INT NOT NULL,
+  fkPaciente INT NOT NULL,
+  contenido TEXT NOT NULL,
+  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (fkTestimonio) REFERENCES Testimonios(idTestimonio)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  INDEX (fkTestimonio),
+  INDEX (fkPaciente)
+);
+
 
 CREATE TABLE Notificaciones (
     idNotificacion INT PRIMARY KEY AUTO_INCREMENT,
