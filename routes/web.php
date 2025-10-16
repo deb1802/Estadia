@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\MedicamentoController;
 use App\Http\Controllers\Medico\PacienteController;
+use App\Http\Controllers\Paciente\TestimonioController;
+use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +78,10 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
 
     Route::post('/testimonios', [\App\Http\Controllers\Paciente\TestimonioController::class, 'store'])
         ->name('testimonios.store');
+
+    Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
+        ->name('testimonios.respuestas.store');
+
 });
 
 
