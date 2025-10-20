@@ -12,3 +12,10 @@
         <p>Medicamentos</p>
     </a>
 </li>
+
+<li class="nav-item">
+    <a href="{{ route('actividadesTeraps.index') }}" class="nav-link {{ Request::is('actividadesTeraps*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-home"></i>
+        <p>Actividades Teraps</p>
+    </a>
+</li>

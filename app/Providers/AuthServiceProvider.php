@@ -2,25 +2,29 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use App\Policies\ActividadesTerapPolicy;
+// Importaciones necesarias
+use App\Models\Medicamento;
+use App\Policies\MedicamentoPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * The model to policy mappings for the application.
+     * Mapeo de modelos con sus respectivas Policies.
      *
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        Medicamento::class => MedicamentoPolicy::class,
+        ActividadesTerap::class => ActividadesTerapPolicy::class,
     ];
 
     /**
-     * Register any authentication / authorization services.
+     * Registrar los servicios de autenticación/autorización.
      */
     public function boot(): void
     {
-        //
+        // Aquí Laravel ya aplicará automáticamente las policies registradas.
     }
 }

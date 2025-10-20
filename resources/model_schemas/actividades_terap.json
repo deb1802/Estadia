@@ -1,0 +1,45 @@
+[
+  {
+    "name": "titulo",
+    "dbType": "string,100",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "tipoContenido",
+    "dbType": "string,50",
+    "htmlType": "select",
+    "options": ["audio", "video", "lectura", "ejercicio"],
+    "validations": "required"
+  },
+  {
+    "name": "categoriaTerapeutica",
+    "dbType": "string,100",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "diagnosticoDirigido",
+    "dbType": "string,100",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "nivelSeveridad",
+    "dbType": "string,50",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "recurso",
+    "dbType": "text",
+    "htmlType": "file",
+    "validations": "nullable"
+  },
+  {
+    "name": "fkMedico",
+    "dbType": "integer",
+    "htmlType": "number",
+    "validations": "required"
+  }
+]

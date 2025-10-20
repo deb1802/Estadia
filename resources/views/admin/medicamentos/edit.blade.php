@@ -1,3 +1,8 @@
+@php
+  // Detecta si la URL pertenece a médico o admin
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+@endphp
+
 @extends('layouts.app')
 
 @section('content')
@@ -17,13 +22,13 @@
     <div class="card">
         @if(isset($medicamento))
             {!! Form::model($medicamento, [
-                'route' => ['admin.medicamentos.update', $medicamento],
+                'route' => [$routeArea . 'medicamentos.update', $medicamento],
                 'method' => 'patch',
                 'files' => true
             ]) !!}
         @else
             {!! Form::open([
-                'route' => ['admin.medicamentos.update', request()->route('medicamento')],
+                'route' => [$routeArea . 'medicamentos.update', request()->route('medicamento')],
                 'method' => 'patch',
                 'files' => true
             ]) !!}
@@ -37,7 +42,7 @@
 
         <div class="card-footer">
             {!! Form::submit('Guardar', ['class' => 'btn btn-primary']) !!}
-            <a href="{{ route('admin.medicamentos.index') }}" class="btn btn-secondary">Cancelar</a>
+            <a href="{{ route($routeArea . 'medicamentos.index') }}" class="btn btn-secondary">Cancelar</a>
         </div>
 
         {!! Form::close() !!}

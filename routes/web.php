@@ -7,6 +7,8 @@ use App\Http\Controllers\Admin\MedicamentoController;
 use App\Http\Controllers\Medico\PacienteController;
 use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
+use App\Http\Controllers\Medico\ActividadesTController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -37,20 +39,39 @@ Route::middleware(['auth'])->group(function () {
 });
 
 /* 👑 Sección del ADMINISTRADOR */
-Route::middleware(['auth', 'rol:administrador'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+Route::middleware(['auth', 'rol:administrador'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-    // CRUD de usuarios
-    Route::resource('usuarios', UsuarioController::class);
+        // 🧭 Dashboard principal del administrador
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        })->name('dashboard');
 
-     // CRUD de medicamentos
-        Route::resource('medicamentos', MedicamentoController::class);
-});
+        // 👥 CRUD de usuarios
+        Route::resource('usuarios', App\Http\Controllers\Admin\UsuarioController::class);
+
+        // 💊 CRUD de medicamentos
+        Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
+
+        // 🧘‍♀️ CRUD de actividades terapéuticas
+        Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
+            ->parameters(['actividades_terap' => 'actividad']);
+        // Si quisieras limitar acciones visibles:
+        // ->only(['index', 'show', 'destroy']);
+
+        // 📊 Panel de estadísticas del administrador
+        Route::get('/panel-estadisticas', function () {
+            return view('admin.resumen_admin');
+        })->name('panel.estadisticas');
+
+    });
+
+
+
 
 /* 🩺 Sección del MÉDICO */
-
 Route::middleware(['auth', 'rol:medico'])
     ->prefix('medico')
     ->name('medico.')
@@ -61,9 +82,17 @@ Route::middleware(['auth', 'rol:medico'])
             return view('medico.dashboard');
         })->name('dashboard');
 
-        // CRUD de pacientes 
-        Route::resource('pacientes', PacienteController::class);
+        // CRUD de pacientes (solo médicos)
+        Route::resource('pacientes', App\Http\Controllers\Medico\PacienteController::class);
+
+        // CRUD de medicamentos (reutiliza el controlador del admin)
+        Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
+
+        // CRUD de actividades terapéuticas (usa parámetro 'actividad')
+        Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
+            ->parameters(['actividades_terap' => 'actividad']);
     });
+
 
 
 /* 💬 Sección del PACIENTE */
@@ -88,5 +117,3 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
-
-

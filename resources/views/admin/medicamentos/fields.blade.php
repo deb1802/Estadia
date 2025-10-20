@@ -1,3 +1,4 @@
+
 <div class="form-group col-md-6">
     {!! Form::label('nombre', 'Nombre del medicamento:') !!}
     {!! Form::text('nombre', null, ['class' => 'form-control', 'required', 'placeholder' => 'Ej. Paracetamol']) !!}

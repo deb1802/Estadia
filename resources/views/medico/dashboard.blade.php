@@ -156,7 +156,7 @@
     </a>
 
     {{-- 3. Medicamentos --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
+    <a href="{{ route('medico.medicamentos.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
       <div class="icon-box" style="background: linear-gradient(135deg, #00bcd4, #6c63ff);">
         <i class="fas fa-pills"></i>
       </div>
@@ -174,7 +174,7 @@
     </a>
 
     {{-- 5. Actividades Terapéuticas --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
+   <a href="{{ route('medico.actividades_terap.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
       <div class="icon-box" style="background: linear-gradient(135deg, #6c5ce7, #00cec9);">
         <i class="fas fa-heartbeat"></i>
       </div>
