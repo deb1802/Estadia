@@ -117,3 +117,5 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
+
+Route::resource('tutors', App\Http\Controllers\TutorController::class);

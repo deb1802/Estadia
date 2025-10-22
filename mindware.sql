@@ -6,7 +6,7 @@ CREATE TABLE Usuarios (
     idUsuario INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(50),
     apellido VARCHAR(50),
-    correo VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     contrasena VARCHAR(255) NOT NULL,
     fechaNacimiento DATE,
     sexo ENUM('masculino', 'femenino', 'otro'),
@@ -49,6 +49,24 @@ CREATE TABLE Tutores (
     fkPaciente INT,
     FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
 );
+
+INSERT INTO Usuarios (nombre, apellido, email, contrasena, tipoUsuario, estadoCuenta) VALUES
+('Debanni', 'Morales', 'modo220339@upemor.edu.mx', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'administrador', 'activo'),
+('Patrick', 'Perez', 'prpo221479@upemor.edu.mx', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'administrador', 'activo'),
+('Debanni', 'Morales', 'deb@medico.com', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'medico', 'activo'),
+('Patrick', 'Pérez', 'pat@medico.com', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'medico', 'activo'),
+('Debanni', 'Morales', 'deb@paciente.com', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'paciente', 'activo'),
+('Patrick', 'Pérez', 'pat@paciente.com', '$2y$12$h8sHmrEh34sdcB9QgfzrzuRb5qaBYuj0oWzGMfnhMVbdgkfqa2JxW', 'paciente', 'activo');
+
+INSERT INTO Medicos (usuario_id, cedulaProfesional, especialidad)
+VALUES
+(3, 'MED12345', 'Psicología Clínica'),
+(4, 'MED67890', 'Psiquiatría');
+
+INSERT INTO Pacientes (usuario_id, medico_id, padecimientos)
+VALUES
+(5, 1, 'Ansiedad generalizada'),
+(6, 2, 'Estrés laboral');
 
 CREATE TABLE Medicamentos (
     idMedicamento INT PRIMARY KEY AUTO_INCREMENT,

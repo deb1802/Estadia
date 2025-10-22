@@ -19,3 +19,10 @@
         <p>Actividades Teraps</p>
     </a>
 </li>
+
+<li class="nav-item">
+    <a href="{{ route('tutors.index') }}" class="nav-link {{ Request::is('tutors*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-home"></i>
+        <p>Tutors</p>
+    </a>
+</li>

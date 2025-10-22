@@ -165,7 +165,7 @@
     </a>
 
     {{-- 2. Tutores --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="150">
+    <a href="{{ route('tutors.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="150">
       <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #a29bfe);">
         <i class="fas fa-chalkboard-teacher"></i>
       </div>

@@ -1,0 +1,49 @@
+[
+  {
+    "name": "fkPaciente",
+    "dbType": "integer:unsigned",
+    "htmlType": "select",
+    "validations": "required",
+    "label": "Paciente asignado",
+    "foreignKey": {
+      "table": "pacientes",
+      "field": "idPaciente"
+    }
+  },
+  {
+    "name": "nombre",
+    "dbType": "string,100",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "parentesco",
+    "dbType": "string,50",
+    "htmlType": "text",
+    "validations": "required"
+  },
+  {
+    "name": "telefono",
+    "dbType": "string,20",
+    "htmlType": "text",
+    "validations": "nullable"
+  },
+  {
+    "name": "correo",
+    "dbType": "string,120",
+    "htmlType": "email",
+    "validations": "nullable|email"
+  },
+  {
+    "name": "created_at",
+    "dbType": "dateTime",
+    "htmlType": "text",
+    "validations": "nullable"
+  },
+  {
+    "name": "updated_at",
+    "dbType": "dateTime",
+    "htmlType": "text",
+    "validations": "nullable"
+  }
+]
