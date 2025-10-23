@@ -137,13 +137,17 @@ CREATE TABLE Actividades (
 
 CREATE TABLE AsignacionActividad (
     idAsignacionActividad INT PRIMARY KEY AUTO_INCREMENT,
-    fkActividad INT,
-    fkPaciente INT,
-    fechaAsignacion DATE,
-    estado ENUM('pendiente', 'completada'),
+    fkActividad INT NOT NULL,
+    fkPaciente INT NOT NULL,
+    fkMedico INT NOT NULL,
+    fechaAsignacion DATE NOT NULL,
+    fechaFinalizacion DATE NULL,
+    estado ENUM('pendiente', 'completada') DEFAULT 'pendiente',
     FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id),
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(id)
 );
+
 
 CREATE TABLE Citas (
     idCita INT PRIMARY KEY AUTO_INCREMENT,
@@ -220,7 +224,6 @@ CREATE TABLE Notificaciones (
     mensaje TEXT,
     tipo ENUM('sistema', 'correo'),
     fecha DATETIME,
-    leida BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (fkUsuario) REFERENCES Usuarios(idUsuario)
 );
 

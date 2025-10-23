@@ -8,6 +8,9 @@ use App\Http\Controllers\Medico\PacienteController;
 use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 use App\Http\Controllers\Medico\ActividadesTController;
+use App\Http\Controllers\Medico\AsignacionActividadController;
+Route::pattern('actividad', '[0-9]+');
+
 
 
 /*
@@ -55,18 +58,16 @@ Route::middleware(['auth', 'rol:administrador'])
         // 💊 CRUD de medicamentos
         Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
 
-        // 🧘‍♀️ CRUD de actividades terapéuticas
+         // Actividades terapéuticas (ambos roles entran por aquí)
         Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
-        // Si quisieras limitar acciones visibles:
-        // ->only(['index', 'show', 'destroy']);
 
         // 📊 Panel de estadísticas del administrador
         Route::get('/panel-estadisticas', function () {
             return view('admin.resumen_admin');
         })->name('panel.estadisticas');
-
     });
+
 
 
 
@@ -78,20 +79,31 @@ Route::middleware(['auth', 'rol:medico'])
     ->group(function () {
 
         // Dashboard
-        Route::get('/dashboard', function () {
-            return view('medico.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', fn() => view('medico.dashboard'))->name('dashboard');
 
-        // CRUD de pacientes (solo médicos)
+        // CRUD de pacientes
         Route::resource('pacientes', App\Http\Controllers\Medico\PacienteController::class);
 
-        // CRUD de medicamentos (reutiliza el controlador del admin)
+        // Medicamentos
         Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
 
-        // CRUD de actividades terapéuticas (usa parámetro 'actividad')
+        // ✅ Rutas de ASIGNACIÓN (poner antes del resource o usar Route::pattern)
+        Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
+            // GET /medico/actividades_terap/asignar?actividad=ID
+            Route::get('asignar', [AsignacionActividadController::class, 'create'])
+                ->name('asignar');
+
+            // POST /medico/actividades_terap/asignar
+            Route::post('asignar', [AsignacionActividadController::class, 'store'])
+                ->name('asignar.store');
+        });
+
+        // 🧘‍♀️ Actividades terapéuticas (resource)
         Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
     });
+
+
 
 
 
@@ -119,3 +131,27 @@ Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.
 require __DIR__.'/auth.php';
 
 Route::resource('tutors', App\Http\Controllers\TutorController::class);
+
+Route::get('/prueba-asignar', function (\Illuminate\Http\Request $request) {
+    $actividadId = (int) $request->query('actividad', 4);
+
+    // comprueba login
+    if (!Auth::check()) {
+        return '❌ No hay sesión activa';
+    }
+
+    // fuerza conexión a MySQL
+    $actividad = DB::connection('mysql')
+        ->table('Actividades')
+        ->where('idActividad', $actividadId)
+        ->first();
+
+    if (!$actividad) {
+        return '⚠️ No se encontró la actividad '.$actividadId;
+    }
+
+    return [
+        'usuario_actual' => Auth::user()->tipoUsuario ?? 'sin tipo',
+        'actividad' => $actividad,
+    ];
+});

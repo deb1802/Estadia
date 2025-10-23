@@ -2,41 +2,58 @@
 
 namespace App\Policies;
 
-use App\Models\Usuario;
+use App\Models\Usuario as User;        
 use App\Models\ActividadesTerap;
 
 class ActividadesTerapPolicy
 {
-    /** Ver listado: Admin y Médico */
-    public function viewAny(Usuario $usuario): bool
+    protected function isMedico(User $user): bool
     {
-        return in_array(strtolower($usuario->tipoUsuario), ['administrador', 'medico']);
+        return strcasecmp($user->tipoUsuario ?? '', 'medico') === 0;
     }
 
-    /** Ver detalle: Admin y Médico */
-    public function view(Usuario $usuario, ActividadesTerap $actividad): bool
+    protected function isAdmin(User $user): bool
     {
-        return in_array(strtolower($usuario->tipoUsuario), ['administrador', 'medico']);
+        return strcasecmp($user->tipoUsuario ?? '', 'administrador') === 0;
     }
 
-    /** Crear: SOLO Médico */
-    public function create(Usuario $usuario): bool
+    /** Listado / catálogo */
+    public function viewAny(User $user): bool
     {
-        return strtolower($usuario->tipoUsuario) === 'medico';
+        return $this->isMedico($user) || $this->isAdmin($user);
     }
 
-    /** Editar: SOLO Médico (admin no edita) */
-    public function update(Usuario $usuario, ActividadesTerap $actividad): bool
+    /** Ver un registro */
+    public function view(User $user, ActividadesTerap $actividad): bool
     {
-        return strtolower($usuario->tipoUsuario) === 'medico';
+        return $this->isMedico($user) || $this->isAdmin($user);
     }
 
-    /** Eliminar: Admin y Médico */
-    public function delete(Usuario $usuario, ActividadesTerap $actividad): bool
+    /** Crear (solo médico) */
+    public function create(User $user): bool
     {
-        return in_array(strtolower($usuario->tipoUsuario), ['administrador', 'medico']);
+        return $this->isMedico($user);
     }
 
-    public function restore(Usuario $usuario, ActividadesTerap $actividad): bool { return false; }
-    public function forceDelete(Usuario $usuario, ActividadesTerap $actividad): bool { return false; }
+    /** Editar (solo médico) */
+    public function update(User $user, ActividadesTerap $actividad): bool
+    {
+        return $this->isMedico($user);
+    }
+
+    /** Eliminar (médico y admin) */
+    public function delete(User $user, ActividadesTerap $actividad): bool
+    {
+        return $this->isMedico($user) || $this->isAdmin($user);
+    }
+
+    public function restore(User $user, ActividadesTerap $actividad): bool
+    {
+        return $this->isMedico($user);
+    }
+
+    public function forceDelete(User $user, ActividadesTerap $actividad): bool
+    {
+        return $this->isMedico($user);
+    }
 }

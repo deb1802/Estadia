@@ -2,8 +2,8 @@
     use Illuminate\Support\Str;
     use Illuminate\Support\Facades\Storage;
 
-    // Detecta si la URL pertenece a médico o admin
-    $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+    // Usa el $routeArea que venga del include; si no viene, detecta por la URL
+    $routeArea = isset($routeArea) ? $routeArea : (request()->is('medico/*') ? 'medico.' : 'admin.');
 @endphp
 
 <div class="card-body p-0">
@@ -80,6 +80,17 @@
                                     <i class="fas fa-edit"></i>
                                 </a>
                             @endcan
+
+                            <a
+                            href="{{ route($routeArea.'actividades_terap.asignar', ['actividad' => $actividad->idActividad]) }}"
+                            class="btn btn-sm btn-success"
+                            title="Asignar a paciente"
+                            >
+                            <i class="fas fa-user-plus"></i>
+                            </a>
+
+
+
 
                             {{-- Eliminar (médico y admin) --}}
                             @can('delete', $actividad)

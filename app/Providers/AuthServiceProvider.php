@@ -3,10 +3,13 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use App\Policies\ActividadesTerapPolicy;
-// Importaciones necesarias
+
+// Importa los modelos y sus policies
 use App\Models\Medicamento;
 use App\Policies\MedicamentoPolicy;
+
+use App\Models\ActividadesTerap;
+use App\Policies\ActividadesTerapPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -16,7 +19,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        Medicamento::class => MedicamentoPolicy::class,
+        Medicamento::class      => MedicamentoPolicy::class,
         ActividadesTerap::class => ActividadesTerapPolicy::class,
     ];
 
@@ -25,6 +28,11 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Aquí Laravel ya aplicará automáticamente las policies registradas.
+        $this->registerPolicies();
+
+        // Gate::before o Gate::after que altere permisos globales, coméntalo aquí.
+        // Gate::before(function ($user, $ability) {
+        //     return null;
+        // });
     }
 }

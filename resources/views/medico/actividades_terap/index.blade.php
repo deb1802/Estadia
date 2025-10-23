@@ -1,14 +1,16 @@
-@include('flash::message')
-@include('adminlte-templates::common.errors')
-
+{{-- resources/views/medico/actividades_terap/index.blade.php --}}
 @extends('layouts.app')
 
 @php
-    // Detecta automáticamente si estás en /medico/* o /admin/*
+    // Detecta si estás en /medico/* o /admin/*
     $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
 @endphp
 
 @section('content')
+    {{-- Mensajes flash y errores --}}
+    @include('flash::message')
+    @include('adminlte-templates::common.errors')
+
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -29,12 +31,9 @@
     </section>
 
     <div class="content px-3">
-        @include('flash::message')
-        <div class="clearfix"></div>
-
         <div class="card">
-            {{-- La tabla interna también usará $routeArea --}}
-            @include('medico.actividades_terap.table')
+            {{-- Pasa $routeArea para que los enlaces apunten a /admin o /medico según corresponda --}}
+            @include('medico.actividades_terap.table', ['routeArea' => $routeArea])
         </div>
     </div>
 @endsection
