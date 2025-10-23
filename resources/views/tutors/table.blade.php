@@ -29,23 +29,25 @@
                  public function usuario() { return $this->belongsTo(Usuario::class, 'usuario_id', 'idUsuario'); }
                  Entonces puedes mostrar el nombre así: --}}
             <td>
-                @if(optional($tutor->paciente)->usuario)
-                    {{ $tutor->paciente->usuario->nombre }} {{ $tutor->paciente->usuario->apellido }}
-                @else
-                    {{ $tutor->fkPaciente ?? '—' }}
-                @endif
-            </td>
+    @if(!empty($tutor->paciente_nombre))
+        {{ $tutor->paciente_nombre . ' ' . $tutor->paciente_apellido }}
+    @else
+        <em>Sin asignar</em>
+    @endif
+</td>
+
+
 
             <td style="width: 160px">
                 <div class="btn-group" role="group" aria-label="Acciones">
-                    <a href="{{ route('tutors.show', $tutor->idTutor) }}" class="btn btn-default btn-xs">
+                    <a href="{{ route('admin.tutores.show', $tutor->idTutor) }}" class="btn btn-default btn-xs">
                         <i class="far fa-eye"></i>
                     </a>
-                    <a href="{{ route('tutors.edit', $tutor->idTutor) }}" class="btn btn-default btn-xs">
+                    <a href="{{ route('admin.tutores.edit', $tutor->idTutor) }}" class="btn btn-default btn-xs">
                         <i class="far fa-edit"></i>
                     </a>
 
-                    {!! Form::open(['route' => ['tutors.destroy', $tutor->idTutor], 'method' => 'delete', 'style' => 'display:inline']) !!}
+                    {!! Form::open(['route' => ['admin.tutores.destroy', $tutor->idTutor], 'method' => 'delete', 'style' => 'display:inline']) !!}
                         {!! Form::button('<i class="far fa-trash-alt"></i>', [
                             'type' => 'submit',
                             'class' => 'btn btn-danger btn-xs',

@@ -19,7 +19,7 @@
 
         <div class="card">
 
-            {!! Form::open(['route' => 'tutors.store']) !!}
+            {!! Form::open(['url' => route(Auth::user()->tipoUsuario === 'medico' ? 'medico.tutores.store' : 'admin.tutores.store')]) !!}
 
             <div class="card-body">
 
@@ -31,7 +31,7 @@
 
             <div class="card-footer">
                 {!! Form::submit('Save', ['class' => 'btn btn-primary']) !!}
-                <a href="{{ route('tutors.index') }}" class="btn btn-default"> Cancel </a>
+                <a href="{{ route(Auth::user()->tipoUsuario === 'medico' ? 'medico.tutores.index' : 'admin.tutores.index') }}" class="btn btn-default"> Cancel </a>
             </div>
 
             {!! Form::close() !!}

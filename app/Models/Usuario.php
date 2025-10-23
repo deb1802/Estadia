@@ -6,16 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-
 class Usuario extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Nombre exacto de la tabla (respetando mayúsculas si tu DB es sensible a ellas)
+    // Nombre exacto de la tabla (respetando mayúsculas si tu DB lo requiere)
     protected $table = 'Usuarios';
     protected $primaryKey = 'idUsuario';
     public $timestamps = false;
 
+    // Campos asignables
     protected $fillable = [
         'nombre',
         'apellido',
@@ -28,28 +28,50 @@ class Usuario extends Authenticatable
         'estadoCuenta',
     ];
 
+    // Campos ocultos en respuestas JSON
     protected $hidden = [
         'contrasena',
         'remember_token',
     ];
 
-
+    // Contraseña personalizada (Laravel la busca con getAuthPassword)
     public function getAuthPassword()
     {
         return $this->contrasena;
     }
 
-    // Un usuario puede tener un registro de médico
+    /**
+     * 🔹 Relación: un usuario puede tener un registro de médico
+     * (Usuarios.idUsuario → Medicos.usuario_id)
+     */
     public function medico()
     {
-        // FK en Medicos = usuario_id, PK en Usuarios = idUsuario
         return $this->hasOne(Medico::class, 'usuario_id', 'idUsuario');
     }
 
-        public function paciente()
+    /**
+     * 🔹 Relación: un usuario puede tener un registro de paciente
+     * (Usuarios.idUsuario → Pacientes.usuario_id)
+     */
+    public function paciente()
     {
         return $this->hasOne(Paciente::class, 'usuario_id', 'idUsuario');
     }
 
+    /**
+     * 🔹 Helper: nombre completo del usuario
+     */
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->nombre} {$this->apellido}";
+    }
 
+    /**
+     * 🔹 Helper: verificar si el usuario tiene un rol específico
+     * Ejemplo de uso: Auth::user()->esRol('medico')
+     */
+    public function esRol(string $rol): bool
+    {
+        return strtolower($this->tipoUsuario) === strtolower($rol);
+    }
 }

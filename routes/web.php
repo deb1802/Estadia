@@ -9,9 +9,11 @@ use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 use App\Http\Controllers\Medico\ActividadesTController;
 use App\Http\Controllers\Medico\AsignacionActividadController;
+use App\Http\Controllers\TutorController; // ✅ aseguramos importación
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 Route::pattern('actividad', '[0-9]+');
-
-
 
 /*
 |--------------------------------------------------------------------------
@@ -26,10 +28,10 @@ Route::pattern('actividad', '[0-9]+');
 
 /* 🌐 Página principal */
 Route::get('/', function () {
-    return view('welcome'); // Tu página principal personalizada
+    return view('welcome');
 })->name('home');
 
-/* 🧭 Dashboard general (solo ejemplo, se redirige según tipo de usuario al iniciar sesión) */
+/* 🧭 Dashboard general */
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -53,24 +55,24 @@ Route::middleware(['auth', 'rol:administrador'])
         })->name('dashboard');
 
         // 👥 CRUD de usuarios
-        Route::resource('usuarios', App\Http\Controllers\Admin\UsuarioController::class);
+        Route::resource('usuarios', UsuarioController::class);
 
         // 💊 CRUD de medicamentos
-        Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
+        Route::resource('medicamentos', MedicamentoController::class);
 
-         // Actividades terapéuticas (ambos roles entran por aquí)
-        Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
+        // 📘 CRUD de tutores (nuevo)
+        Route::resource('tutores', TutorController::class)
+            ->names('tutores'); // ✅ cambia nombres internos a tutores.*
+
+        // 🧘‍♀️ Actividades terapéuticas (ambos roles)
+        Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
-        // 📊 Panel de estadísticas del administrador
+        // 📊 Panel de estadísticas
         Route::get('/panel-estadisticas', function () {
             return view('admin.resumen_admin');
         })->name('panel.estadisticas');
     });
-
-
-
-
 
 /* 🩺 Sección del MÉDICO */
 Route::middleware(['auth', 'rol:medico'])
@@ -82,65 +84,57 @@ Route::middleware(['auth', 'rol:medico'])
         Route::get('/dashboard', fn() => view('medico.dashboard'))->name('dashboard');
 
         // CRUD de pacientes
-        Route::resource('pacientes', App\Http\Controllers\Medico\PacienteController::class);
+        Route::resource('pacientes', PacienteController::class);
 
         // Medicamentos
-        Route::resource('medicamentos', App\Http\Controllers\Admin\MedicamentoController::class);
+        Route::resource('medicamentos', MedicamentoController::class);
 
-        // ✅ Rutas de ASIGNACIÓN (poner antes del resource o usar Route::pattern)
+        // ✅ Rutas de ASIGNACIÓN
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
-            // GET /medico/actividades_terap/asignar?actividad=ID
-            Route::get('asignar', [AsignacionActividadController::class, 'create'])
-                ->name('asignar');
-
-            // POST /medico/actividades_terap/asignar
-            Route::post('asignar', [AsignacionActividadController::class, 'store'])
-                ->name('asignar.store');
+            Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
+            Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
         });
 
         // 🧘‍♀️ Actividades terapéuticas (resource)
-        Route::resource('actividades_terap', App\Http\Controllers\Medico\ActividadesTController::class)
+        Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
+
+        // 👨‍⚕️ CRUD de tutores (solo los del médico autenticado)
+Route::resource('tutores', App\Http\Controllers\TutorController::class)
+    ->names('tutores')
+    ->parameters(['tutores' => 'tutor']);
+
+
     });
 
-
-
-
-
 /* 💬 Sección del PACIENTE */
-Route::middleware(['auth', 'rol:paciente'])->prefix('paciente')->name('paciente.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('paciente.dashboard');
-    })->name('dashboard');
+Route::middleware(['auth', 'rol:paciente'])
+    ->prefix('paciente')
+    ->name('paciente.')
+    ->group(function () {
+        Route::get('/dashboard', fn() => view('paciente.dashboard'))->name('dashboard');
 
-    // Foro de testimonios (misma vista para listar y publicar)
-    Route::get('/testimonios', [\App\Http\Controllers\Paciente\TestimonioController::class, 'index'])
-        ->name('testimonios.index');
+        // Foro de testimonios
+        Route::get('/testimonios', [TestimonioController::class, 'index'])->name('testimonios.index');
+        Route::post('/testimonios', [TestimonioController::class, 'store'])->name('testimonios.store');
+        Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
+            ->name('testimonios.respuestas.store');
 
-    Route::post('/testimonios', [\App\Http\Controllers\Paciente\TestimonioController::class, 'store'])
-        ->name('testimonios.store');
-
-    Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
-        ->name('testimonios.respuestas.store');
-
-});
-
-
+        // 📘 Vista de tutores (solo lectura)
+        Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
+    });
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
 
-Route::resource('tutors', App\Http\Controllers\TutorController::class);
-
+/* 🧪 Ruta de prueba temporal */
 Route::get('/prueba-asignar', function (\Illuminate\Http\Request $request) {
     $actividadId = (int) $request->query('actividad', 4);
 
-    // comprueba login
     if (!Auth::check()) {
         return '❌ No hay sesión activa';
     }
 
-    // fuerza conexión a MySQL
     $actividad = DB::connection('mysql')
         ->table('Actividades')
         ->where('idActividad', $actividadId)

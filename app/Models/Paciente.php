@@ -9,7 +9,7 @@ class Paciente extends Model
     // Nombre real de la tabla
     protected $table = 'Pacientes';
 
-    // PK autoincrement (según el ajuste que hicimos)
+    // PK autoincrement (según tu base de datos)
     protected $primaryKey = 'id';
     public $incrementing = true;
     protected $keyType = 'int';
@@ -22,16 +22,39 @@ class Paciente extends Model
         'padecimientos',
     ];
 
-    // Relaciones
+    /**
+     * 🔹 Relación con la tabla Usuarios
+     * Cada paciente está vinculado a un registro en Usuarios.
+     */
     public function usuario()
     {
-        // Usuarios.idUsuario es la PK de Usuarios
         return $this->belongsTo(Usuario::class, 'usuario_id', 'idUsuario');
     }
 
+    /**
+     * 🔹 Relación con la tabla Médicos
+     * Cada paciente tiene asignado un médico responsable.
+     */
     public function medico()
     {
-        // Medicos.id es la PK de Medicos
         return $this->belongsTo(Medico::class, 'medico_id', 'id');
+    }
+
+    /**
+     * 🔹 Relación con la tabla Tutores
+     * Un paciente puede tener varios tutores asignados.
+     */
+    public function tutores()
+    {
+        return $this->hasMany(Tutor::class, 'fkPaciente', 'id');
+    }
+
+    /**
+     * 🔹 Acceso rápido al nombre completo del paciente
+     * (concatenando nombre + apellido desde Usuarios)
+     */
+    public function getNombreCompletoAttribute()
+    {
+        return "{$this->usuario->nombre} {$this->usuario->apellido}";
     }
 }
