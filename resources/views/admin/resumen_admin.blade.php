@@ -5,62 +5,118 @@
 <style>
   :root{
     --ink:#1b3b6f; --ink-2:#2c4c86; --sky:#eaf3ff; --card-b:#f8fbff; --stroke:#e6eefc; --chip:#eef6ff;
+    --male:#3a86ff; --female:#ff6ea7; --other:#8b8dbb;
+    --emerald:#00c48c; --amber:#ffb703;
   }
+
   .wrap{
+    position: relative;
     background: radial-gradient(1100px 700px at 10% -10%, #e9f4ff 0%, #f6fbff 55%, #ffffff 100%);
     min-height: calc(100vh - var(--navbar-h,56px));
-    padding: 20px 14px 32px;
+    padding: 18px 14px 40px;
+    overflow: hidden;
   }
+
   .toolbar{
     background: linear-gradient(180deg,#dfeeff, #eaf4ff);
     border: 1px solid var(--stroke);
     border-radius: 16px;
     padding: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
     display:flex; align-items:center; gap:10px; flex-wrap: wrap;
+    box-shadow: 0 8px 22px rgba(27,59,111,.06);
   }
-  .toolbar .title{ font-weight: 800; color: var(--ink); margin-right:auto; font-size:1.4rem; }
+  .toolbar .title{ font-weight: 800; color: var(--ink); margin-right:auto; font-size:1.1rem; letter-spacing:.2px; }
+  .segmented{ background:#fff; border:1px solid var(--stroke); border-radius:14px; padding:4px; display:inline-flex; gap:4px; }
+  .segmented .seg{
+    border:0; background:transparent; padding:8px 12px; border-radius:10px; display:flex; align-items:center; gap:6px;
+    color:#41567e; font-weight:700; transition: background .2s ease, transform .12s ease, color .2s ease, box-shadow .2s;
+  }
+  .segmented .seg:hover{ transform: translateY(-1px); background:#f2f7ff; }
+  .segmented .seg.active{ background:#e7f1ff; color:#113869; box-shadow: 0 6px 16px rgba(27,59,111,.08) inset; }
+  input[type="date"].form-control-sm{ border-radius:10px; border:1px solid var(--stroke); background:#fff; }
 
-  /* Filtro sexo con iconos */
-  .segmented{ background:#fff; border:1px solid var(--stroke); border-radius:12px; padding:4px; display:inline-flex; gap:4px; }
-  .segmented .seg{ border:0; background:transparent; padding:6px 10px; border-radius:10px; display:flex; align-items:center; gap:6px; color:#4a5d80; font-weight:700; }
-  .segmented .seg.active{ background:#e7f1ff; color:#113869; }
-
-  /* ===== KPI compactos en línea ===== */
-  .kpi-grid{
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0,1fr));
+  /* ===== GRID ===== */
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns: repeat(12, minmax(0,1fr));
+    grid-auto-rows: 130px; /* altura base */
     gap: 12px;
-    margin-bottom: 12px;
   }
-  @media (max-width: 1200px){ .kpi-grid{ grid-template-columns: repeat(3,1fr); } }
-  @media (max-width: 768px){  .kpi-grid{ grid-template-columns: repeat(2,1fr); } }
-  @media (max-width: 480px){  .kpi-grid{ grid-template-columns: 1fr; } }
+  .grid-s1{ grid-column: span 3; grid-row: span 1; }
+  .grid-l4{ grid-column: span 8; grid-row: span 2; }  /* barras grandes */
+  .grid-m3t{ grid-column: span 4; grid-row: span 3; } /* dona ALTA (evita corte) */
+  .grid-full{ grid-column: 1 / -1; grid-row: span 1; }
 
+  @media (max-width: 1200px){
+    .dashboard-grid{ grid-template-columns: repeat(8,1fr); grid-auto-rows: 120px; }
+    .grid-s1{ grid-column: span 2; }
+    .grid-l4{ grid-column: span 8; grid-row: span 2; }
+    .grid-m3t{ grid-column: span 8; grid-row: span 3; }
+  }
+  @media (max-width: 768px){
+    .dashboard-grid{ grid-template-columns: repeat(4,1fr); grid-auto-rows: 120px; }
+    .grid-s1,.grid-l4,.grid-m3t,.grid-full{ grid-column: 1 / -1; }
+  }
+
+  /* ===== Tarjetas ===== */
   .mf-card{
-    background:#fff; border:1px solid var(--stroke); border-radius:16px; padding:12px;
-    box-shadow:0 8px 20px rgba(27,59,111,.06); height:100%;
-    transition: transform .15s ease, box-shadow .2s ease;
+    background:linear-gradient(180deg,#ffffff, #fbfdff);
+    border:1px solid var(--stroke); border-radius:16px; padding:12px;
+    box-shadow:0 10px 26px rgba(27,59,111,.07);
+    height:100%;
+    transition: transform .18s ease, box-shadow .22s ease;
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column;
   }
-  .mf-card:hover{ transform: translateY(-1px); box-shadow:0 12px 26px rgba(27,59,111,.08); }
+  .mf-card:hover{ transform: translateY(-2px) scale(1.01); box-shadow:0 14px 34px rgba(27,59,111,.10); }
 
-  .kpi{ display:flex; align-items:center; gap:10px; }
+  /* Los charts pueden salirse para no recortarse */
+  .chart-card{ overflow: visible; }
+
+  .kpi{ display:flex; align-items:center; gap:12px; }
   .kpi .ico{
-    width:36px; height:36px; border-radius:10px; display:grid; place-items:center; font-size:18px;
+    width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+    font-size:20px; line-height:1;
     background:linear-gradient(180deg,#e9f2ff,#f4f9ff); border:1px solid var(--stroke); color:#20457a;
+    box-shadow: inset 0 0 0 6px rgba(58,134,255,.05);
   }
-  .kpi .val{ font-size:1.6rem; font-weight:800; color:#213b6b; line-height:1; }
-  .kpi .sub{ color:#5d6e91; font-weight:700; font-size:.9rem; }
+  .kpi .val{ font-size:1.6rem; font-weight:850; color:#203a6a; line-height:1; letter-spacing:.2px; }
+  .kpi .sub{ color:#5d6e91; font-weight:700; font-size:.92rem; }
+  .mf-title{ font-weight:800; color:#284a85; font-size:1rem; margin-bottom:6px; letter-spacing:.2px; }
+  .legend-pill{
+    background:var(--chip); border:1px solid var(--stroke); color:#2e4c84; font-weight:700;
+    border-radius:999px; padding:6px 10px; display:inline-flex; gap:8px; align-items:center; font-size:.86rem;
+  }
 
-  /* Tarjetas de gráficos */
-  .chart-card .hbox{ position:relative; width:100%; height:260px; }
-  .mf-title{ font-weight:800; color:#2a497f; font-size:1rem; margin-bottom:6px; }
-  .legend-pill{ background:var(--chip); border:1px solid var(--stroke); color:#2e4c84; font-weight:600; border-radius:10px; padding:4px 8px; display:inline-flex; gap:6px; align-items:center; font-size:.85rem; }
+  /* Charts */
+  .chart-card .hbox{
+    position:relative; width:100%; height:100%; min-height: 200px; flex:1;
+  }
+  /* Asegura que el canvas ocupe todo y no se recorte */
+  .chart-card canvas{ display:block; width:100% !important; height:100% !important; }
 
-  .progress.sex{ height:8px; background:#eef4ff; }
-  .badge-soft{ background:#eef6ff; border:1px solid var(--stroke); color:#2e4c84; font-weight:600; }
-  .tiny{ font-size:.85rem; color:#7a8cae; }
-  .actions{ display:flex; gap:8px; }
+  .progress.sex{ height:8px; background:#eef4ff; border-radius:999px; overflow:hidden; }
+  .progress.sex .progress-bar{ border-radius:999px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  #barH{ background: var(--male) !important; }
+  #barM{ background: var(--female) !important; }
+  #barO{ background: var(--other) !important; }
+
+  .badge-soft{ background:#f4f8ff; border:1px solid var(--stroke); color:#284a85; font-weight:700; }
+  .tiny{ font-size:.86rem; color:#7386a7; }
+  .actions{ display:flex; gap:8px; align-items:center; }
+  .btn-outline-primary.btn-sm{ border-radius:10px; font-weight:700; border-color:#cfe0ff; color:#2a4b86; background:#fff; }
+  .btn-outline-primary.btn-sm:hover{ background:#eaf2ff; }
+
+  .badge-auto{
+    font-weight:800; letter-spacing:.2px;
+    border-radius:999px; padding:4px 10px;
+    background:#e6fffa; border:1px solid #b2f5ea; color:#0f766e;
+  }
+
+  .mf-card.compact{ padding:10px 12px; min-height:auto; }
+  .mf-card.compact .legend-pill{ padding:4px 8px; font-size:.82rem; }
+  .mf-card.compact .fs-4{ font-size:1.1rem !important; }
 </style>
 @endpush
 
@@ -87,15 +143,18 @@
         <input class="form-check-input" type="checkbox" id="autoRefresh">
         <label class="form-check-label tiny ms-1" for="autoRefresh">Auto</label>
       </div>
+      <span id="autoBadge" class="badge-auto d-none">Auto ON</span>
       <span id="lastUpdate" class="tiny ms-2"></span>
     </div>
   </div>
 
-  {{-- KPIs (compactos y en línea) --}}
-  <div class="kpi-grid">
-    <div class="mf-card">
+  {{-- GRID --}}
+  <div class="dashboard-grid">
+
+    {{-- KPIs (4 chicas) --}}
+    <div class="mf-card grid-s1">
       <div class="kpi">
-        <div class="ico"><i class="bi bi-people-fill"></i></div>
+        <div class="ico"><i class="bi bi-people-fill" aria-hidden="true"></i></div>
         <div>
           <div class="sub">Total de usuarios</div>
           <div id="usuarios_total" class="val">0</div>
@@ -103,9 +162,9 @@
       </div>
     </div>
 
-    <div class="mf-card">
+    <div class="mf-card grid-s1">
       <div class="kpi">
-        <div class="ico"><i class="bi bi-person-hearts"></i></div>
+        <div class="ico"><i class="bi bi-person-hearts" aria-hidden="true"></i></div>
         <div>
           <div class="sub">Pacientes</div>
           <div id="pacientes_total" class="val">0</div>
@@ -113,9 +172,9 @@
       </div>
     </div>
 
-    <div class="mf-card">
+    <div class="mf-card grid-s1">
       <div class="kpi">
-        <div class="ico"><i class="bi bi-stethoscope"></i></div>
+        <div class="ico"><i class="bi bi-stethoscope" aria-hidden="true"></i></div>
         <div>
           <div class="sub">Médicos</div>
           <div id="medicos_total" class="val">0</div>
@@ -123,83 +182,80 @@
       </div>
     </div>
 
-    <div class="mf-card">
+    <div class="mf-card grid-s1">
       <div class="kpi">
-        <div class="ico"><i class="bi bi-heart-pulse"></i></div>
+        <div class="ico"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div>
         <div>
           <div class="sub">Actividades terapéuticas</div>
           <div id="actividades_total" class="val">0</div>
         </div>
       </div>
     </div>
-  </div>
 
-  {{-- Gráficas --}}
-  <div class="row g-3">
-    <div class="col-12 col-lg-6">
-      <div class="mf-card chart-card">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="mf-title">Pacientes por sexo</span>
-          <button class="btn btn-light btn-sm badge-soft" data-export="sexo"><i class="bi bi-download"></i> Exportar PNG</button>
+    {{-- Barras (grande) --}}
+    <div class="mf-card chart-card grid-l4">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="mf-title">Pacientes por sexo</span>
+        <button class="btn btn-light btn-sm badge-soft" data-export="sexo"><i class="bi bi-download"></i> Exportar PNG</button>
+      </div>
+      <div class="hbox"><canvas id="sexoChart"></canvas></div>
+
+      <div class="mt-3">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--male);display:inline-block"></span> Masculino</span>
+          <div class="flex-grow-1">
+            <div class="progress sex"><div id="barH" class="progress-bar" style="width:0%"></div></div>
+          </div>
+          <span id="pctH" class="tiny">0%</span>
         </div>
-        <div class="hbox"><canvas id="sexoChart"></canvas></div>
-        <div class="mt-3">
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge badge-soft"><i class="bi bi-gender-male"></i> Masculino</span>
-            <div class="flex-grow-1">
-              <div class="progress sex"><div id="barH" class="progress-bar bg-primary" style="width:0%"></div></div>
-            </div>
-            <span id="pctH" class="tiny">0%</span>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--female);display:inline-block"></span> Femenino</span>
+          <div class="flex-grow-1">
+            <div class="progress sex"><div id="barM" class="progress-bar" style="width:0%"></div></div>
           </div>
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="badge badge-soft"><i class="bi bi-gender-female"></i> Femenino</span>
-            <div class="flex-grow-1">
-              <div class="progress sex"><div id="barM" class="progress-bar" style="background:#ff6ea7;width:0%"></div></div>
-            </div>
-            <span id="pctM" class="tiny">0%</span>
+          <span id="pctM" class="tiny">0%</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--other);display:inline-block"></span> Otro</span>
+          <div class="flex-grow-1">
+            <div class="progress sex"><div id="barO" class="progress-bar" style="width:0%"></div></div>
           </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="badge badge-soft"><i class="bi bi-gender-ambiguous"></i> Otro</span>
-            <div class="flex-grow-1">
-              <div class="progress sex"><div id="barO" class="progress-bar" style="background:#8b8dbb;width:0%"></div></div>
-            </div>
-            <span id="pctO" class="tiny">0%</span>
-          </div>
+          <span id="pctO" class="tiny">0%</span>
         </div>
       </div>
     </div>
 
-    <div class="col-12 col-lg-6">
-      <div class="mf-card chart-card">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="mf-title">Usuarios por rol</span>
-          <div class="d-flex gap-2">
-            <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#3a86ff;display:inline-block"></span> Admin</span>
-            <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#00c48c;display:inline-block"></span> Médico</span>
-            <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#ffb703;display:inline-block"></span> Paciente</span>
-          </div>
+    {{-- Dona (ALTA para que no se corte) --}}
+    <div class="mf-card chart-card grid-m3t">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="mf-title">Usuarios por rol</span>
+        <div class="d-flex gap-2">
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#3a86ff;display:inline-block"></span> Admin</span>
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#00c48c;display:inline-block"></span> Médico</span>
+          <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:#ffb703;display:inline-block"></span> Paciente</span>
         </div>
-        <div class="hbox"><canvas id="rolesChart"></canvas></div>
-        <div class="mt-2 tiny">Tip: haz clic en las leyendas del gráfico para mostrar/ocultar un rol.</div>
+      </div>
+      <div class="hbox"><canvas id="rolesChart"></canvas></div>
+      <div class="mt-2 tiny">Tip: haz clic en las leyendas del gráfico para mostrar/ocultar un rol.</div>
+    </div>
+
+    {{-- Test (ancho completo bajo) --}}
+    <div class="mf-card compact grid-full">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <i class="bi bi-emoji-smile fs-4 text-primary" aria-hidden="true"></i>
+        <div class="fw-bold me-2">Test psicológicos</div>
+        <span class="legend-pill">Respondidos: <span id="tests_total">0</span></span>
+        <span class="legend-pill">Comentarios: <span id="respuestas_test">0</span></span>
       </div>
     </div>
-  </div>
 
-  {{-- Chip de tests (datos del backend) --}}
-  <div class="mf-card mt-3">
-    <div class="d-flex align-items-center gap-3">
-      <i class="bi bi-emoji-smile fs-4 text-primary"></i>
-      <div class="fw-bold">Test psicológicos</div>
-      <span class="legend-pill">Respondidos: <span id="tests_total">0</span></span>
-      <span class="legend-pill">Comentarios: <span id="respuestas_test">0</span></span>
-    </div>
   </div>
-
 </div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "{{ url('/api/dashboard/summary') }}";
@@ -209,8 +265,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let sexoChart, rolesChart, timer = null;
 
   const lastUpdate = document.getElementById("lastUpdate");
+  const autoBadge  = document.getElementById("autoBadge");
+  const autoToggle = document.getElementById("autoRefresh");
 
-  // Filtro por sexo (botones segmentados)
   const sexoGroup = document.getElementById("sexoGroup");
   let sexoActual = "";
   sexoGroup.querySelectorAll(".seg").forEach(btn => {
@@ -222,17 +279,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Acciones
   document.getElementById("btnReload").addEventListener("click", cargar);
-  document.getElementById("autoRefresh").addEventListener("change", (e) => {
-    if (e.target.checked){
-      timer = setInterval(cargar, 30000);
-    } else {
-      clearInterval(timer); timer = null;
-    }
-  });
+  autoToggle.addEventListener("change", (e) => toggleAuto(e.target.checked));
+  function toggleAuto(on){
+    if (on){ autoBadge.classList.remove("d-none"); timer = setInterval(cargar, 30000); }
+    else   { autoBadge.classList.add("d-none"); clearInterval(timer); timer = null; }
+  }
 
-  // Exportar imágenes de las gráficas
   document.querySelectorAll("[data-export]").forEach(b=>{
     b.addEventListener("click", ()=>{
       const which = b.getAttribute("data-export");
@@ -244,7 +297,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Carga de datos
+  function mapSexoColors(labels){
+    const base = { masculino: getCSS('--male'), femenino: getCSS('--female'), otro: getCSS('--other') };
+    return labels.map(l => base[String(l||'').toLowerCase().trim()] || 'rgba(53,148,255,.75)');
+  }
+  function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+  function makeVerticalGradient(ctx, color){
+    const g = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+    g.addColorStop(0, color); g.addColorStop(1, 'rgba(255,255,255,0.65)');
+    return g;
+  }
+  function calcBarThickness(canvas, labelsCount){
+    const min = 28, max = 64, padding = 36;
+    const width = canvas.clientWidth - padding;
+    return Math.max(min, Math.min(max, Math.floor(width / (labelsCount * 1.6))));
+  }
+
   async function cargar(){
     const params = {
       sexo: sexoActual,
@@ -287,40 +355,68 @@ document.addEventListener("DOMContentLoaded", () => {
     const labelsSexo = Object.keys(pacSexoAbs);
     const dataSexo   = Object.values(pacSexoAbs);
 
+    const colorList = mapSexoColors(labelsSexo);
+    const bgList    = colorList.map(c => makeVerticalGradient(sexoCtx.getContext('2d'), c));
+    const barT      = calcBarThickness(sexoCtx, Math.max(1, labelsSexo.length));
+
     if (sexoChart) sexoChart.destroy();
     sexoChart = new Chart(sexoCtx, {
       type:"bar",
       data:{ labels: labelsSexo, datasets:[{
         label:"Pacientes",
         data: dataSexo,
-        backgroundColor:"rgba(53,148,255,.75)",
-        borderColor:"rgba(53,148,255,1)",
-        borderWidth:1,
-        borderRadius:8
+        backgroundColor: bgList,
+        borderColor: colorList,
+        borderWidth:1.2,
+        borderRadius:10,
+        hoverBorderWidth:1.6,
+        hoverBorderColor: colorList,
+        barThickness: barT,
+        maxBarThickness: Math.min(72, barT + 12),
+        categoryPercentage: 0.7,
+        barPercentage: 0.9
       }]},
       options:{
         responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ display:false }, tooltip:{ mode:'index', intersect:false } },
-        scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
-      }
+        animation:{ duration: 900, easing: 'cubicBezier(.2,.8,.2,1)', delay: (ctx) => ctx.dataIndex * 80 },
+        hover: { mode:'index', intersect:false },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ mode:'index', intersect:false, backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
+        },
+        scales:{ x:{ grid:{ display:false }, ticks:{ font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
+      },
+      plugins: [ChartDataLabels]
     });
 
+    // DONA
     const rolesObj = cards?.usuarios_por_rol || {};
     const rolLabels = Object.keys(rolesObj);
     const rolData   = Object.values(rolesObj);
+
     if (rolesChart) rolesChart.destroy();
     rolesChart = new Chart(rolesCtx, {
       type:"doughnut",
       data:{ labels:rolLabels, datasets:[{
         data: rolData, borderWidth:1,
-        backgroundColor:["#3a86ff","#00c48c","#ffb703"]
+        backgroundColor:[getCSS('--male'), getCSS('--emerald'), getCSS('--amber')]
       }]},
-      options:{ responsive:true, maintainAspectRatio:false, cutout:"58%" }
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:"58%",
+        animation:{ animateRotate:true, animateScale:true, duration: 950, easing: 'easeOutQuart' },
+        plugins:{
+          legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, font:{ weight:700 } } },
+          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          datalabels:{ display:false }
+        }
+      },
+      plugins: [ChartDataLabels]
     });
   }
 
-  // Primera carga
   cargar();
+  toggleAuto(autoToggle.checked);
 });
 </script>
 @endpush

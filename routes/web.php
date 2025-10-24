@@ -9,9 +9,12 @@ use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 use App\Http\Controllers\Medico\ActividadesTController;
 use App\Http\Controllers\Medico\AsignacionActividadController;
-use App\Http\Controllers\TutorController; // ✅ aseguramos importación
+use App\Http\Controllers\TutorController; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Paciente\NotificacionesController;
+use App\Http\Controllers\Medico\RecetaController;
+use App\Http\Controllers\Medico\AsignacionMedicamentoController;
 
 Route::pattern('actividad', '[0-9]+');
 
@@ -86,12 +89,41 @@ Route::middleware(['auth', 'rol:medico'])
         // CRUD de pacientes
         Route::resource('pacientes', PacienteController::class);
 
-        // Medicamentos
+        // ============================================================
+        // 📄 RECETAS MÉDICAS (cabecera + detalle + ver + pdf)
+        // ============================================================
+        Route::prefix('recetas')->name('recetas.')->group(function () {
+            // Crear CABECERA (viene desde botón en show de paciente: ?paciente=ID)
+            Route::get('crear', [RecetaController::class, 'create'])->name('create');
+            Route::post('/',     [RecetaController::class, 'store'])->name('store');
+
+            // DETALLE (agregar líneas de medicamentos a una receta)
+            Route::get('{idReceta}/detalle',                 [RecetaController::class, 'detalle'])->name('detalle');
+            Route::post('{idReceta}/detalle',                [RecetaController::class, 'agregarDetalle'])->name('detalle.agregar');
+            Route::delete('{idReceta}/detalle/{idDetalle}',  [RecetaController::class, 'borrarDetalle'])->name('detalle.borrar');
+
+            // 🧾 PDF (más específico que {idReceta}, por eso va antes)
+            Route::get('{idReceta}/pdf', [RecetaController::class, 'pdf'])->name('pdf');
+
+            // 👁️ Ver receta (HTML)
+            Route::get('{idReceta}', [RecetaController::class, 'show'])->name('show');
+        });
+
+        // ============================================================
+        // 💊 ASIGNACIÓN DIRECTA DESDE CATÁLOGO DE MEDICAMENTOS
+        // (usa querystring ?medicamento=ID, no choca con resource)
+        // ============================================================
+        Route::prefix('medicamentos')->name('medicamentos.')->group(function () {
+            Route::get('asignar',  [AsignacionMedicamentoController::class, 'create'])->name('asignar');
+            Route::post('asignar', [AsignacionMedicamentoController::class, 'store'])->name('asignar.store');
+        });
+
+        // CRUD de medicamentos (resource actual)
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // ✅ Rutas de ASIGNACIÓN
+        // ✅ ASIGNACIÓN de actividades (ya existente)
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
-            Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
+            Route::get('asignar',  [AsignacionActividadController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
         });
 
@@ -99,19 +131,21 @@ Route::middleware(['auth', 'rol:medico'])
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
-        // 👨‍⚕️ CRUD de tutores (solo los del médico autenticado)
-Route::resource('tutores', App\Http\Controllers\TutorController::class)
-    ->names('tutores')
-    ->parameters(['tutores' => 'tutor']);
-
-
+        // 👨‍⚕️ CRUD de tutores
+        Route::resource('tutores', TutorController::class)
+            ->names('tutores')
+            ->parameters(['tutores' => 'tutor']);
     });
+
+
+
 
 /* 💬 Sección del PACIENTE */
 Route::middleware(['auth', 'rol:paciente'])
     ->prefix('paciente')
     ->name('paciente.')
     ->group(function () {
+
         Route::get('/dashboard', fn() => view('paciente.dashboard'))->name('dashboard');
 
         // Foro de testimonios
@@ -122,30 +156,15 @@ Route::middleware(['auth', 'rol:paciente'])
 
         // 📘 Vista de tutores (solo lectura)
         Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
+
+         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])
+            ->name('notificaciones.markRead');
+        Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])
+            ->name('notificaciones.markAll');
+
     });
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
 
-/* 🧪 Ruta de prueba temporal */
-Route::get('/prueba-asignar', function (\Illuminate\Http\Request $request) {
-    $actividadId = (int) $request->query('actividad', 4);
 
-    if (!Auth::check()) {
-        return '❌ No hay sesión activa';
-    }
-
-    $actividad = DB::connection('mysql')
-        ->table('Actividades')
-        ->where('idActividad', $actividadId)
-        ->first();
-
-    if (!$actividad) {
-        return '⚠️ No se encontró la actividad '.$actividadId;
-    }
-
-    return [
-        'usuario_actual' => Auth::user()->tipoUsuario ?? 'sin tipo',
-        'actividad' => $actividad,
-    ];
-});

@@ -78,24 +78,38 @@ CREATE TABLE Medicamentos (
 );
 
 CREATE TABLE RecetasMedicas (
-    idReceta INT PRIMARY KEY AUTO_INCREMENT,
-    fecha DATE,
-    observaciones TEXT,
-    fkMedico INT,
-    fkPaciente INT,
-    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico),
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+  idReceta INT PRIMARY KEY AUTO_INCREMENT,
+  fecha DATE NOT NULL,
+  observaciones TEXT,
+  fkMedico INT NOT NULL,
+  fkPaciente INT NOT NULL,
+  FOREIGN KEY (fkMedico)
+    REFERENCES Medicos(id)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  FOREIGN KEY (fkPaciente)
+    REFERENCES Pacientes(id)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE
 );
 
+-- Detalle (tabla cruzada entre Recetas y Medicamentos)
 CREATE TABLE Detalle_Medicamento (
-    idDetalleMedicamento INT PRIMARY KEY AUTO_INCREMENT,
-    fkReceta INT,
-    fkMedicamento INT,
-    dosis VARCHAR(100),
-    frecuencia VARCHAR(100),
-    duracion VARCHAR(100),
-    FOREIGN KEY (fkReceta) REFERENCES RecetasMedicas(idReceta),
-    FOREIGN KEY (fkMedicamento) REFERENCES Medicamentos(idMedicamento)
+  idDetalleMedicamento INT PRIMARY KEY AUTO_INCREMENT,
+  fkReceta INT NOT NULL,
+  fkMedicamento INT NOT NULL,
+  dosis VARCHAR(100) NOT NULL,
+  frecuencia VARCHAR(100) NOT NULL,
+  duracion VARCHAR(100) NOT NULL,
+  FOREIGN KEY (fkReceta)
+    REFERENCES RecetasMedicas(idReceta)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  FOREIGN KEY (fkMedicamento)
+    REFERENCES Medicamentos(idMedicamento)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT uq_detalle_receta_medicamento UNIQUE (fkReceta, fkMedicamento)
 );
 
 CREATE TABLE Tests (
@@ -217,13 +231,18 @@ CREATE TABLE RespuestasTestimonio (
 );
 
 
+
+
 CREATE TABLE Notificaciones (
     idNotificacion INT PRIMARY KEY AUTO_INCREMENT,
-    fkUsuario INT,
-    titulo VARCHAR(150),
-    mensaje TEXT,
-    tipo ENUM('sistema', 'correo'),
-    fecha DATETIME,
+    fkUsuario INT NOT NULL,
+    titulo VARCHAR(150) NOT NULL,
+    mensaje TEXT NOT NULL,
+    tipo ENUM('sistema', 'correo') DEFAULT 'sistema',
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    leida TINYINT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (fkUsuario) REFERENCES Usuarios(idUsuario)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 

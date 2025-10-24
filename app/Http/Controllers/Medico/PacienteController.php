@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Usuario;
 use App\Models\Paciente;
 use App\Models\Medico;
-
+use Carbon\Carbon;
 use Illuminate\Validation\Rule; 
 
 class PacienteController extends Controller
@@ -87,25 +87,36 @@ class PacienteController extends Controller
     }
 
     public function show($id)
-    {
-        $user = Auth::user(); // fila en Usuarios
+{
+    $user = Auth::user(); // fila en Usuarios
 
-        // Obtén el id del médico actual (intenta por relación y, si no existe, por usuario_id)
-        $medicoIdActual = optional($user->medico)->id
-            ?? Medico::where('usuario_id', $user->idUsuario)->value('id');
+    // 1) Resolver el id del médico actual (relación o por usuario_id)
+    $medicoIdActual = optional($user->medico)->id
+        ?? \App\Models\Medico::where('usuario_id', $user->idUsuario)->value('id');
 
-        abort_if(!$medicoIdActual, 403, 'Perfil de médico no encontrado.');
+    abort_if(!$medicoIdActual, 403, 'Perfil de médico no encontrado.');
 
-        // Asegura que el paciente pertenece a este médico
-        $paciente = Paciente::where('id', $id)
-            ->where('medico_id', $medicoIdActual)
-            ->firstOrFail();
+    // 2) Validar que el paciente pertenece a este médico y cargarlo
+    $paciente = \App\Models\Paciente::where('id', $id)
+        ->where('medico_id', $medicoIdActual)
+        ->firstOrFail();
 
-        // Trae el usuario del paciente (Usuarios.idUsuario == Pacientes.usuario_id)
-        $usuario = Usuario::where('idUsuario', $paciente->usuario_id)->firstOrFail();
+    // 3) Cargar el usuario del paciente
+    $usuario = \App\Models\Usuario::where('idUsuario', $paciente->usuario_id)->firstOrFail();
 
-        return view('medico.pacientes.show', compact('usuario', 'paciente'));
-    }
+    // 4) Historial de recetas del paciente (para la tabla y botones Ver/PDF)
+    $recetas = DB::table('RecetasMedicas')
+        ->where('fkPaciente', $paciente->id)   // Pacientes.id
+        ->orderByDesc('fecha')
+        ->orderByDesc('idReceta')
+        ->get(['idReceta', 'fecha', 'observaciones']);
+
+    $ultimaRecetaId = optional($recetas->first())->idReceta;
+
+    // 5) Renderizar vista
+    return view('medico.pacientes.show', compact('usuario', 'paciente', 'recetas', 'ultimaRecetaId'));
+}
+
 
     public function edit($id)
     {

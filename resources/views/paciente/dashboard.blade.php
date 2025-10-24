@@ -215,4 +215,7 @@
     });
   });
 </script>
+
+@include('paciente.bottom-nabvar')
+
 @endsection
