@@ -146,23 +146,45 @@ Route::middleware(['auth', 'rol:paciente'])
     ->name('paciente.')
     ->group(function () {
 
+        // 🏠 Dashboard principal
         Route::get('/dashboard', fn() => view('paciente.dashboard'))->name('dashboard');
 
-        // Foro de testimonios
+        // 💬 Foro de testimonios
         Route::get('/testimonios', [TestimonioController::class, 'index'])->name('testimonios.index');
         Route::post('/testimonios', [TestimonioController::class, 'store'])->name('testimonios.store');
         Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
             ->name('testimonios.respuestas.store');
 
-        // 📘 Vista de tutores (solo lectura)
+        // 👨‍🏫 Vista de tutores (solo lectura)
         Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
 
-         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])
+        // 🔔 Notificaciones
+        Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])
             ->name('notificaciones.markRead');
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])
             ->name('notificaciones.markAll');
 
+        // 🧾 📄 RECETAS MÉDICAS (solo las del paciente autenticado)
+        Route::prefix('recetas')->name('recetas.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'index'])->name('index');
+            Route::get('/{idReceta}', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'show'])->name('show');
+            Route::get('/{idReceta}/pdf', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'pdf'])->name('pdf');
+        });
+
+        // ✅ 🧘‍♀️ ACTIVIDADES ASIGNADAS AL PACIENTE
+        Route::prefix('mis-actividades')->name('actividades.')->group(function () {
+            // Listado (con filtro opcional ?estado=pendiente|completada)
+            Route::get('/', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'index'])
+                ->name('index');
+
+            // Marcar una asignación como completada
+            Route::patch('/{asignacion}/completar', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'completar'])
+                ->name('completar');
+        });
     });
+
+
+
 
 /* 🛡️ Incluye las rutas de autenticación de Breeze */
 require __DIR__.'/auth.php';
