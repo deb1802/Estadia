@@ -1,4 +1,4 @@
-@extends('layouts.app') {{-- si usas AdminLTE, cambia por @extends('adminlte::page') --}}
+@extends('layouts.app') 
 
 @php
     use Illuminate\Support\Str;
@@ -59,6 +59,12 @@
   {{-- Listado --}}
   @forelse($asignaciones as $a)
     @php
+      $titulo     = $a->titulo ?? $a->nombreActividad ?? 'Actividad terapéutica';
+      $tipo       = $a->tipoContenido ?? 'N/D';
+      $categoria  = $a->categoriaTerapeutica ?? 'N/D';
+      $diag       = $a->diagnosticoDirigido ?? 'N/D';
+      $severidad  = $a->nivelSeveridad ?? 'N/D';
+
       $url       = recurso_url_local($a->recurso ?? '');
       $fechaAsig = \Carbon\Carbon::parse($a->fechaAsignacion)->format('d/m/Y');
       $fechaLim  = $a->fechaFinalizacion ? \Carbon\Carbon::parse($a->fechaFinalizacion)->format('d/m/Y') : null;
@@ -69,8 +75,9 @@
       $isPdf       = $url && Str::endsWith($lower, ['.pdf']);
       $isImage     = $url && Str::endsWith($lower, ['.png','.jpg','.jpeg','.gif','.webp']);
 
-      // Si el controller trajo observaciones/indicaciones con alias:
-      $indicaciones = $a->indicacionesMedicas
+      // 👇 AHORA TOMAMOS LAS INDICACIONES REALES DE AsignacionActividad.indicaciones
+      $indicaciones = $a->indicaciones
+                        ?? $a->indicacionesMedicas
                         ?? $a->observaciones
                         ?? null;
     @endphp
@@ -78,12 +85,12 @@
     <div class="card activity-card">
       <div class="card-head">
         <div class="title-col">
-          <h3 class="activity-title">{{ $a->titulo }}</h3>
+          <h3 class="activity-title">{{ $titulo }}</h3>
           <div class="meta">
-            <span>Tipo: <b>{{ ucfirst($a->tipoContenido) }}</b></span>
-            <span>· Categoría: {{ $a->categoriaTerapeutica ?? 'N/D' }}</span>
-            <span>· Diagnóstico: {{ $a->diagnosticoDirigido ?? 'N/D' }}</span>
-            <span>· Severidad: {{ $a->nivelSeveridad ?? 'N/D' }}</span>
+            <span>Tipo: <b>{{ ucfirst($tipo) }}</b></span>
+            <span>· Categoría: {{ $categoria }}</span>
+            <span>· Diagnóstico: {{ $diag }}</span>
+            <span>· Severidad: {{ $severidad }}</span>
           </div>
           <div class="dates">
             Asignada: <b>{{ $fechaAsig }}</b>

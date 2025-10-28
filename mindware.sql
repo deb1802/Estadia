@@ -69,12 +69,12 @@ VALUES
 (6, 2, 'Estrés laboral');
 
 CREATE TABLE Medicamentos (
-    idMedicamento INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100),
-    presentacion VARCHAR(50),
-    indicaciones TEXT,
-    efectosSecundarios TEXT,
-    imagenMedicamento VARCHAR(255)
+  idMedicamento INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(100),
+  presentacion VARCHAR(50),
+  indicaciones TEXT,
+  efectosSecundarios TEXT,
+  imagenMedicamento VARCHAR(255)
 );
 
 CREATE TABLE RecetasMedicas (
@@ -93,11 +93,10 @@ CREATE TABLE RecetasMedicas (
     ON UPDATE CASCADE
 );
 
--- Detalle (tabla cruzada entre Recetas y Medicamentos)
 CREATE TABLE Detalle_Medicamento (
   idDetalleMedicamento INT PRIMARY KEY AUTO_INCREMENT,
   fkReceta INT NOT NULL,
-  fkMedicamento INT NOT NULL,
+  fkMedicamento INT NULL,
   dosis VARCHAR(100) NOT NULL,
   frecuencia VARCHAR(100) NOT NULL,
   duracion VARCHAR(100) NOT NULL,
@@ -107,10 +106,11 @@ CREATE TABLE Detalle_Medicamento (
     ON UPDATE CASCADE,
   FOREIGN KEY (fkMedicamento)
     REFERENCES Medicamentos(idMedicamento)
-    ON DELETE RESTRICT
+    ON DELETE SET NULL
     ON UPDATE CASCADE,
   CONSTRAINT uq_detalle_receta_medicamento UNIQUE (fkReceta, fkMedicamento)
 );
+
 
 CREATE TABLE Tests (
     idTest INT PRIMARY KEY AUTO_INCREMENT,
@@ -157,6 +157,7 @@ CREATE TABLE AsignacionActividad (
     fechaAsignacion DATE NOT NULL,
     fechaFinalizacion DATE NULL,
     estado ENUM('pendiente', 'completada') DEFAULT 'pendiente',
+    indicaciones TEXT NULL,
     FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
     FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id),
     FOREIGN KEY (fkMedico) REFERENCES Medicos(id)

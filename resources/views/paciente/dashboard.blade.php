@@ -316,7 +316,7 @@
         </a>
 
         {{-- 3. Actividades Terapéuticas --}}
-        <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
+        <a href="{{ route('paciente.actividades.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
           <div class="icon-box" style="background:linear-gradient(135deg,#6c5ce7,#00cec9);">
             <i class="fas fa-heartbeat" aria-hidden="true"></i>
           </div>
@@ -343,7 +343,7 @@
         </a>
 
         {{-- 6. Testimonios --}}
-        <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
+       <a href="{{ route('paciente.testimonios.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
           <div class="icon-box" style="background:linear-gradient(135deg,#b388ff,#82b1ff);">
             <i class="fas fa-comment-dots" aria-hidden="true"></i>
           </div>

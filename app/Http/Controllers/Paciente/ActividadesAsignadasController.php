@@ -31,6 +31,7 @@ class ActividadesAsignadasController extends Controller
                 'aa.estado',
                 'aa.fechaAsignacion',
                 'aa.fechaFinalizacion',
+                'aa.indicaciones',               // 👈 NUEVO: traer indicaciones
                 'a.idActividad',
                 'a.titulo',
                 'a.tipoContenido',

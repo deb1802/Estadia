@@ -134,15 +134,15 @@ class RecetaController extends Controller
 
         // Cargar líneas existentes
         $detalles = DB::table('Detalle_Medicamento as d')
-            ->join('Medicamentos as m', 'm.idMedicamento', '=', 'd.fkMedicamento')
+            ->leftJoin('Medicamentos as m', 'm.idMedicamento', '=', 'd.fkMedicamento')
             ->where('d.fkReceta', $idReceta)
-            ->orderBy('m.nombre')
+            ->orderByRaw('COALESCE(m.nombre, "zzzz")') // que los NULL queden al final
             ->get([
                 'd.idDetalleMedicamento',
                 'd.fkMedicamento',
-                'm.nombre as medicamento',
-                'm.presentacion',
-                'd.dosis','d.frecuencia','d.duracion'
+                DB::raw('COALESCE(m.nombre, "Medicamento eliminado") as medicamento'),
+                DB::raw('COALESCE(m.presentacion, "-") as presentacion'),
+                'd.dosis','d.frecuencia','d.duracion',
             ]);
 
         return view('medico.recetas.detalle', [
@@ -252,16 +252,16 @@ class RecetaController extends Controller
 
         // Detalle
         $detalles = DB::table('Detalle_Medicamento as d')
-            ->join('Medicamentos as med', 'med.idMedicamento', '=', 'd.fkMedicamento')
-            ->where('d.fkReceta', $idReceta)
-            ->orderBy('med.nombre')
-            ->get([
-                'd.idDetalleMedicamento',
-                'med.idMedicamento',
-                'med.nombre',
-                'med.presentacion',
-                'd.dosis', 'd.frecuencia', 'd.duracion',
-            ]);
+        ->leftJoin('Medicamentos as med', 'med.idMedicamento', '=', 'd.fkMedicamento')
+        ->where('d.fkReceta', $idReceta)
+        ->orderByRaw('COALESCE(med.nombre, "zzzz")')
+        ->get([
+            'd.idDetalleMedicamento',
+            'med.idMedicamento',
+            DB::raw('COALESCE(med.nombre, "Medicamento eliminado") as nombre'),
+            DB::raw('COALESCE(med.presentacion, "-") as presentacion'),
+            'd.dosis', 'd.frecuencia', 'd.duracion',
+        ]);
 
         return ['receta' => $receta, 'detalles' => $detalles];
     }
