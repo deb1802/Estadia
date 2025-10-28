@@ -9,7 +9,8 @@ use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 use App\Http\Controllers\Medico\ActividadesTController;
 use App\Http\Controllers\Medico\AsignacionActividadController;
-use App\Http\Controllers\TutorController; // ✅ aseguramos importación
+use App\Http\Controllers\TutorController;
+use App\Http\Controllers\CitaController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -19,11 +20,6 @@ Route::pattern('actividad', '[0-9]+');
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Aquí se registran todas las rutas web de la aplicación.
-| Estas rutas se cargan a través del RouteServiceProvider y se
-| asignan al grupo "web" middleware.
-|
 */
 
 /* 🌐 Página principal */
@@ -50,9 +46,7 @@ Route::middleware(['auth', 'rol:administrador'])
     ->group(function () {
 
         // 🧭 Dashboard principal del administrador
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
 
         // 👥 CRUD de usuarios
         Route::resource('usuarios', UsuarioController::class);
@@ -60,18 +54,22 @@ Route::middleware(['auth', 'rol:administrador'])
         // 💊 CRUD de medicamentos
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // 📘 CRUD de tutores (nuevo)
+        // 📘 CRUD de tutores
         Route::resource('tutores', TutorController::class)
-            ->names('tutores'); // ✅ cambia nombres internos a tutores.*
+            ->names('tutores')
+            ->parameters(['tutores' => 'tutor']);
 
-        // 🧘‍♀️ Actividades terapéuticas (ambos roles)
+        // 📅 CRUD de citas (el admin ve todas)
+        Route::resource('citas', CitaController::class)
+            ->names('citas')
+            ->parameters(['citas' => 'cita']);
+
+        // 🧘‍♀️ Actividades terapéuticas
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
         // 📊 Panel de estadísticas
-        Route::get('/panel-estadisticas', function () {
-            return view('admin.resumen_admin');
-        })->name('panel.estadisticas');
+        Route::get('/panel-estadisticas', fn() => view('admin.resumen_admin'))->name('panel.estadisticas');
     });
 
 /* 🩺 Sección del MÉDICO */
@@ -80,31 +78,34 @@ Route::middleware(['auth', 'rol:medico'])
     ->name('medico.')
     ->group(function () {
 
-        // Dashboard
+        // 🧭 Dashboard
         Route::get('/dashboard', fn() => view('medico.dashboard'))->name('dashboard');
 
-        // CRUD de pacientes
+        // 👨‍⚕️ CRUD de pacientes
         Route::resource('pacientes', PacienteController::class);
 
-        // Medicamentos
+        // 💊 Medicamentos
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // ✅ Rutas de ASIGNACIÓN
+        // 🧘‍♀️ Actividades terapéuticas
+        Route::resource('actividades_terap', ActividadesTController::class)
+            ->parameters(['actividades_terap' => 'actividad']);
+
+        // 🎯 Asignación de actividades
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
             Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
         });
 
-        // 🧘‍♀️ Actividades terapéuticas (resource)
-        Route::resource('actividades_terap', ActividadesTController::class)
-            ->parameters(['actividades_terap' => 'actividad']);
+        // 📘 CRUD de tutores (solo los del médico autenticado)
+        Route::resource('tutores', TutorController::class)
+            ->names('tutores')
+            ->parameters(['tutores' => 'tutor']);
 
-        // 👨‍⚕️ CRUD de tutores (solo los del médico autenticado)
-Route::resource('tutores', App\Http\Controllers\TutorController::class)
-    ->names('tutores')
-    ->parameters(['tutores' => 'tutor']);
-
-
+        // 🗓️ CRUD de citas (solo las del médico)
+        Route::resource('citas', CitaController::class)
+            ->names('citas')
+            ->parameters(['citas' => 'cita']);
     });
 
 /* 💬 Sección del PACIENTE */
@@ -112,9 +113,11 @@ Route::middleware(['auth', 'rol:paciente'])
     ->prefix('paciente')
     ->name('paciente.')
     ->group(function () {
+
+        // 🧭 Dashboard
         Route::get('/dashboard', fn() => view('paciente.dashboard'))->name('dashboard');
 
-        // Foro de testimonios
+        // 💬 Foro de testimonios
         Route::get('/testimonios', [TestimonioController::class, 'index'])->name('testimonios.index');
         Route::post('/testimonios', [TestimonioController::class, 'store'])->name('testimonios.store');
         Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
@@ -122,12 +125,16 @@ Route::middleware(['auth', 'rol:paciente'])
 
         // 📘 Vista de tutores (solo lectura)
         Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
+
+        // 🗓️ Citas (solo sus propias citas)
+        Route::get('/citas', [CitaController::class, 'index'])->name('citas.index');
+        Route::patch('/citas/{id}/cancelar', [CitaController::class, 'cancelar'])->name('citas.cancelar');
     });
 
-/* 🛡️ Incluye las rutas de autenticación de Breeze */
-require __DIR__.'/auth.php';
+/* 🛡️ Rutas de autenticación (Breeze) */
+require __DIR__ . '/auth.php';
 
-/* 🧪 Ruta de prueba temporal */
+/* 🧪 Ruta de prueba */
 Route::get('/prueba-asignar', function (\Illuminate\Http\Request $request) {
     $actividadId = (int) $request->query('actividad', 4);
 
@@ -135,13 +142,12 @@ Route::get('/prueba-asignar', function (\Illuminate\Http\Request $request) {
         return '❌ No hay sesión activa';
     }
 
-    $actividad = DB::connection('mysql')
-        ->table('Actividades')
+    $actividad = DB::table('Actividades')
         ->where('idActividad', $actividadId)
         ->first();
 
     if (!$actividad) {
-        return '⚠️ No se encontró la actividad '.$actividadId;
+        return '⚠️ No se encontró la actividad ' . $actividadId;
     }
 
     return [

@@ -183,7 +183,7 @@
     </a>
 
     {{-- 6. Citas --}}
-    <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
+    <a href="{{ route('medico.citas.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
       <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #6c63ff);">
         <i class="fas fa-calendar-check"></i>
       </div>

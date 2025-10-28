@@ -6,27 +6,26 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\StringType;
+use Illuminate\Database\Connection;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // Forzar compatibilidad con columnas ENUM al usar Doctrine DBAL
-        if (class_exists(Type::class) && !Type::hasType('enum')) {
+        Schema::defaultStringLength(191);
+
+        // 👇 Arreglo definitivo para ENUM en InfyOm/Doctrine
+        $platform = app(Connection::class)->getDoctrineSchemaManager()->getDatabasePlatform();
+
+        if (!Type::hasType('enum')) {
             Type::addType('enum', StringType::class);
         }
 
-        Schema::defaultStringLength(191);
+        $platform->registerDoctrineTypeMapping('enum', 'string');
     }
 }
