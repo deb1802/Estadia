@@ -11,7 +11,6 @@
   }
   .foro-header { font-weight:700; color:#1b3b6f; font-size:1.8rem; margin-bottom:1.5rem; }
 
-  /* Composer (publicar) */
   .composer {
     background:#f0f7ff; border-radius:14px; padding:1rem; display:flex;
     align-items:flex-start; gap:1rem; margin-bottom:2rem;
@@ -32,7 +31,6 @@
   }
   .composer button:hover { background:#0043a7; }
 
-  /* Listado */
   .testimonio { border-top:1px solid #e0e8f5; padding-top:1.3rem; margin-top:1.3rem; }
   .user-row { display:flex; gap:.9rem; }
   .user-name { font-weight:600; color:#1b3b6f; text-transform: lowercase; }
@@ -40,7 +38,6 @@
   .user-date { font-size:.85rem; color:#7b8da6; }
   .contenido { margin-top:.4rem; color:#2b2b2b; line-height:1.55; }
 
-  /* Respuestas */
   .respuestas { margin-left:3.2rem; margin-top:.6rem; }
   .respuesta {
     background:#f5f9ff; border-radius:12px; padding:.65rem .9rem; margin-bottom:.5rem;
@@ -49,7 +46,6 @@
   .respuesta .r-name { font-weight:600; color:#1b3b6f; }
   .respuesta .r-body { margin:.2rem 0 0; }
 
-  /* Meta / responder */
   .meta-row {
     display:flex; align-items:center; gap:.75rem; color:#6f86a6; font-size:.9rem;
     margin-left:3.2rem; margin-top:.6rem;
@@ -57,7 +53,6 @@
   .btn-link.foro { padding:0; font-weight:600; text-decoration:none; }
   .btn-link.foro:hover { text-decoration:underline; }
 
-  /* Form de respuesta compacto */
   .reply-panel { margin-left:3.2rem; margin-top:.6rem; }
   .reply-card {
     background:#f6faff; border-radius:12px; padding:.75rem .9rem; max-width:640px;
@@ -65,18 +60,17 @@
   }
   .reply-card textarea { min-height:70px; }
 
-  /* Utilidades */
   .d-none { display:none !important; }
 
-  /* Animación leve del avatar */
   @keyframes bob { 0%{transform:translateY(0)} 50%{transform:translateY(-3px)} 100%{transform:translateY(0)} }
   .icon-user img, .user-avatar img { animation:bob 2.2s ease-in-out infinite; }
 
   .foro-empty { text-align:center; color:#7b8da6; font-style:italic; margin-top:1.5rem; }
+
+  
 </style>
 
 @php
-  // Avatar del usuario autenticado (composer)
   $sexoActual = auth()->user()?->sexo;
   $imgActual = ($sexoActual && strtolower($sexoActual) === 'femenino')
       ? asset('img/USER-MUJER.png')
@@ -87,7 +81,6 @@
   <div class="foro-container">
     <h2 class="foro-header">Testimonios</h2>
 
-    {{-- Publicar (misma vista) --}}
     @if(auth()->user()?->tipoUsuario === 'paciente')
       <form action="{{ route('paciente.testimonios.store') }}" method="POST">
         @csrf
@@ -107,12 +100,9 @@
       @endif
     @endif
 
-    {{-- Listado --}}
     @forelse($testimonios as $t)
       @php
         $countRes = $t->respuestas->count();
-
-        // Autor (Paciente -> Usuario)
         $autorUsuario = optional($t->paciente)->usuario;
         $nombrePaciente = $autorUsuario?->nombre
           ? ($autorUsuario->nombre.' '.$autorUsuario->apellido)
@@ -138,9 +128,20 @@
 
         <div class="contenido">{!! nl2br(e($t->contenido)) !!}</div>
 
-        {{-- Contador + botón responder --}}
+        {{-- Contador + botones --}}
         <div class="meta-row">
           <span>{{ $countRes }} / 3 respuestas</span>
+          @if($countRes > 0)
+            <span>•</span>
+            <button
+              type="button"
+              class="btn btn-link foro js-toggle-respuestas"
+              data-target="res-{{ $t->idTestimonio }}"
+            >
+              Ver respuestas
+            </button>
+          @endif
+
           @if(auth()->user()?->tipoUsuario === 'paciente' && $countRes < 3)
             <span>•</span>
             <button
@@ -153,8 +154,8 @@
           @endif
         </div>
 
-        {{-- Respuestas existentes (visibles) --}}
-        <div class="respuestas">
+        {{-- Respuestas (ocultas por defecto) --}}
+        <div id="res-{{ $t->idTestimonio }}" class="respuestas d-none">
           @foreach($t->respuestas as $r)
             @php
               $respUsuario = optional($r->paciente)->usuario;
@@ -186,7 +187,7 @@
           @endforeach
         </div>
 
-        {{-- Formulario de respuesta (toggle propio, compacto) --}}
+        {{-- Formulario de respuesta --}}
         @if(auth()->user()?->tipoUsuario === 'paciente' && $countRes < 3)
           <div id="reply-{{ $t->idTestimonio }}" class="reply-panel d-none">
             <form action="{{ route('paciente.testimonios.respuestas.store', $t->idTestimonio) }}" method="POST" class="reply-card">
@@ -194,9 +195,6 @@
               <label class="form-label fw-semibold mb-1">Tu respuesta</label>
               <textarea name="contenido" class="form-control mb-2" maxlength="800"
                         placeholder="Respuesta breve y respetuosa (máx. 800 caracteres)"></textarea>
-              @error('contenido')
-                <div class="text-danger small mb-2">{{ $message }}</div>
-              @enderror
               <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-outline-primary">Enviar</button>
               </div>
@@ -215,25 +213,36 @@
 </div>
 
 <script>
-  // Toggle simple: abre/cierra el panel del testimonio clicado
   document.addEventListener('click', function (e) {
-    const btn = e.target.closest('.js-toggle-reply');
-    if (!btn) return;
-    const id = btn.getAttribute('data-target');
-    const panel = document.getElementById(id);
-    if (!panel) return;
+    // Toggle formulario de respuesta
+    const btnReply = e.target.closest('.js-toggle-reply');
+    if (btnReply) {
+      const id = btnReply.dataset.target;
+      const panel = document.getElementById(id);
+      if (!panel) return;
+      document.querySelectorAll('.reply-panel').forEach(p => {
+        if (p.id !== id) p.classList.add('d-none');
+      });
+      panel.classList.toggle('d-none');
+      if (!panel.classList.contains('d-none')) {
+        const ta = panel.querySelector('textarea');
+        if (ta) setTimeout(() => ta.focus(), 50);
+      }
+    }
 
-    // Cerrar otros paneles abiertos
-    document.querySelectorAll('.reply-panel').forEach(p => {
-      if (p.id !== id) p.classList.add('d-none');
-    });
+    // Toggle de respuestas (mostrar/ocultar)
+    const btnRes = e.target.closest('.js-toggle-respuestas');
+    if (btnRes) {
+      const id = btnRes.dataset.target;
+      const cont = document.getElementById(id);
+      if (!cont) return;
 
-    panel.classList.toggle('d-none');
-    if (!panel.classList.contains('d-none')) {
-      // Llevar foco al textarea
-      const ta = panel.querySelector('textarea');
-      if (ta) setTimeout(() => ta.focus(), 50);
+      const visible = !cont.classList.contains('d-none');
+      cont.classList.toggle('d-none');
+      btnRes.textContent = visible ? 'Ver respuestas' : 'Ocultar respuestas';
     }
   });
 </script>
+
+@include('paciente.bottom-nabvar')
 @endsection

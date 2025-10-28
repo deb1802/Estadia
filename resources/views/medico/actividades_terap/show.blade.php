@@ -6,11 +6,9 @@
 
 @section('content')
   <section class="content-header">
-    ...
     <a href="{{ route($routeArea.'actividades_terap.index') }}" class="btn btn-default float-right">
       <i class="fas fa-arrow-left me-1"></i> Volver
     </a>
-    ...
   </section>
 
   <div class="content px-3">

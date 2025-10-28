@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\Usuario as User;        
+use App\Models\Usuario as User;
 use App\Models\ActividadesTerap;
 
 class ActividadesTerapPolicy
@@ -17,31 +17,31 @@ class ActividadesTerapPolicy
         return strcasecmp($user->tipoUsuario ?? '', 'administrador') === 0;
     }
 
-    /** Listado / catálogo */
+    // ✅ Admin y médico pueden ver el listado
     public function viewAny(User $user): bool
     {
         return $this->isMedico($user) || $this->isAdmin($user);
     }
 
-    /** Ver un registro */
+    // ✅ Admin y médico pueden ver detalle
     public function view(User $user, ActividadesTerap $actividad): bool
     {
         return $this->isMedico($user) || $this->isAdmin($user);
     }
 
-    /** Crear (solo médico) */
+    // ✅ Solo médico puede crear
     public function create(User $user): bool
     {
         return $this->isMedico($user);
     }
 
-    /** Editar (solo médico) */
+    // ✅ Solo médico puede editar
     public function update(User $user, ActividadesTerap $actividad): bool
     {
         return $this->isMedico($user);
     }
 
-    /** Eliminar (médico y admin) */
+    // ✅ Admin y médico pueden eliminar
     public function delete(User $user, ActividadesTerap $actividad): bool
     {
         return $this->isMedico($user) || $this->isAdmin($user);

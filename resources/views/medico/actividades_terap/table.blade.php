@@ -2,8 +2,8 @@
     use Illuminate\Support\Str;
     use Illuminate\Support\Facades\Storage;
 
-    // Usa el $routeArea que venga del include; si no viene, detecta por la URL
     $routeArea = isset($routeArea) ? $routeArea : (request()->is('medico/*') ? 'medico.' : 'admin.');
+    $isMedico  = strcasecmp(auth()->user()->tipoUsuario ?? '', 'medico') === 0;
 @endphp
 
 <div class="card-body p-0">
@@ -81,29 +81,29 @@
                                 </a>
                             @endcan
 
-                            <a
-                            href="{{ route($routeArea.'actividades_terap.asignar', ['actividad' => $actividad->idActividad]) }}"
-                            class="btn btn-sm btn-success"
-                            title="Asignar a paciente"
-                            >
-                            <i class="fas fa-user-plus"></i>
-                            </a>
-
-
-
+                            {{-- Asignar a paciente (solo visible para médicos) --}}
+                            @if($isMedico && Route::has('medico.actividades_terap.asignar'))
+                                <a
+                                    href="{{ route('medico.actividades_terap.asignar', ['actividad' => $actividad->idActividad]) }}"
+                                    class="btn btn-sm btn-success"
+                                    title="Asignar a paciente"
+                                >
+                                    <i class="fas fa-user-plus"></i>
+                                </a>
+                            @endif
 
                             {{-- Eliminar (médico y admin) --}}
                             @can('delete', $actividad)
                                 {!! Form::open([
                                     'route'  => [$routeArea.'actividades_terap.destroy', $actividad],
                                     'method' => 'delete',
-                                    'style'  => 'display:inline'
+                                    'class'  => 'd-inline form-delete'
                                 ]) !!}
                                     {!! Form::button('<i class="fas fa-trash-alt"></i>', [
-                                        'type'    => 'submit',
-                                        'class'   => 'btn btn-sm btn-outline-danger',
+                                        'type'    => 'button',             // <- evita submit inmediato
+                                        'class'   => 'btn btn-sm btn-outline-danger btn-delete',
                                         'title'   => 'Eliminar',
-                                        'onclick' => "return confirm('¿Deseas eliminar esta actividad terapéutica?')"
+                                        'data-title' => $actividad->titulo // <- lo usamos en el alert
                                     ]) !!}
                                 {!! Form::close() !!}
                             @endcan
@@ -127,3 +127,39 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const form = this.closest('form.form-delete');
+      if (!form) return;
+
+      // Título de la actividad para mostrar en el alert (si existe)
+      const titulo = this.getAttribute('data-title') || 'esta actividad terapéutica';
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          title: '¿Eliminar actividad terapéutica?',
+          html: `Se eliminará <strong>${titulo}</strong>. Esta acción no se puede deshacer.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          reverseButtons: true
+        }).then((r) => {
+          if (r.isConfirmed) form.submit();
+        });
+      } else {
+        if (confirm(`¿Eliminar "${titulo}"? Esta acción no se puede deshacer.`)) {
+          form.submit();
+        }
+      }
+    });
+  });
+});
+</script>
+@endpush

@@ -1,4 +1,3 @@
-{{-- resources/views/medico/actividades_terap/index.blade.php --}}
 @extends('layouts.app')
 
 @php
@@ -25,6 +24,9 @@
                             <i class="fas fa-plus"></i> Agregar nueva actividad
                         </a>
                     @endcan
+                    <a href="{{ route($routeArea . 'dashboard') }}" class="btn btn-default float-right">
+                        <i class="fas fa-arrow-left me-1"></i> Volver
+                    </a>
                 </div>
             </div>
         </div>

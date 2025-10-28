@@ -17,6 +17,29 @@ class MedicamentoController extends Controller
     public function __construct(MedicamentosRepository $medicamentosRepo)
     {
         $this->medicamentosRepository = $medicamentosRepo;
+
+        // (Opcional) Si usas policies:
+        // $this->authorizeResource(Medicamento::class, 'medicamento');
+    }
+
+    /**
+     * Devuelve 'admin.' o 'medico.' según el contexto actual.
+     * Detecta por primer segmento de la URL y por prefijo del nombre de ruta.
+     */
+    private function base(): string
+    {
+        $seg1 = request()->segment(1);
+        if ($seg1 === 'admin')  return 'admin.';
+        if ($seg1 === 'medico') return 'medico.';
+
+        $name = request()->route()?->getName() ?? '';
+        if (is_string($name)) {
+            if (str_starts_with($name, 'admin.'))  return 'admin.';
+            if (str_starts_with($name, 'medico.')) return 'medico.';
+        }
+
+        // Fallback sensato (ajústalo si lo prefieres):
+        return 'medico.';
     }
 
     /**
@@ -58,7 +81,7 @@ class MedicamentoController extends Controller
         $this->medicamentosRepository->create($data);
 
         Flash::success('Medicamento creado correctamente.');
-        return redirect()->route('admin.medicamentos.index');
+        return redirect()->route($this->base().'medicamentos.index');
     }
 
     /**
@@ -70,7 +93,7 @@ class MedicamentoController extends Controller
 
         if (empty($medicamento)) {
             Flash::error('Medicamento no encontrado');
-            return redirect()->route('admin.medicamentos.index');
+            return redirect()->route($this->base().'medicamentos.index');
         }
 
         return view('admin.medicamentos.show', compact('medicamento'));
@@ -79,16 +102,16 @@ class MedicamentoController extends Controller
     /**
      * Form de edición.
      */
-   public function edit($id)
-        {
-            $medicamento = $this->medicamentosRepository->find($id);
+    public function edit($id)
+    {
+        $medicamento = $this->medicamentosRepository->find($id);
 
-            if (empty($medicamento)) {
-                Flash::error('Medicamento no encontrado');
-                return redirect()->route('admin.medicamentos.index');
-            }
-            return view('admin.medicamentos.edit', compact('medicamento'));
+        if (empty($medicamento)) {
+            Flash::error('Medicamento no encontrado');
+            return redirect()->route($this->base().'medicamentos.index');
         }
+        return view('admin.medicamentos.edit', compact('medicamento'));
+    }
 
     /**
      * Actualizar (con posible reemplazo de imagen).
@@ -99,7 +122,7 @@ class MedicamentoController extends Controller
 
         if (empty($medicamento)) {
             Flash::error('Medicamento no encontrado');
-            return redirect()->route('admin.medicamentos.index');
+            return redirect()->route($this->base().'medicamentos.index');
         }
 
         $data = $request->validate([
@@ -122,7 +145,7 @@ class MedicamentoController extends Controller
         $this->medicamentosRepository->update($data, $id);
 
         Flash::success('Medicamento actualizado correctamente.');
-        return redirect()->route('admin.medicamentos.index');
+        return redirect()->route($this->base().'medicamentos.show', $medicamento);
     }
 
     /**
@@ -134,7 +157,7 @@ class MedicamentoController extends Controller
 
         if (empty($medicamento)) {
             Flash::error('Medicamento no encontrado');
-            return redirect()->route('admin.medicamentos.index');
+            return redirect()->route($this->base().'medicamentos.index');
         }
 
         if ($medicamento->imagenMedicamento && Storage::disk('public')->exists($medicamento->imagenMedicamento)) {
@@ -144,6 +167,6 @@ class MedicamentoController extends Controller
         $this->medicamentosRepository->delete($id);
 
         Flash::success('Medicamento eliminado correctamente.');
-        return redirect()->route('admin.medicamentos.index');
+        return redirect()->route($this->base().'medicamentos.index');
     }
 }

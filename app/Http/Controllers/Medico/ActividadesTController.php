@@ -12,13 +12,19 @@ class ActividadesTController extends Controller
     /** @var ActividadesTerapRepository */
     private $actividadesTerapRepository;
 
-    public function __construct(ActividadesTerapRepository $actividadesTerapRepo)
+    /** Prefijo de rutas según el área actual (admin. | medico.) */
+    protected string $routeBase;
+
+    public function __construct(ActividadesTerapRepository $actividadesTerapRepo, Request $request)
     {
         $this->actividadesTerapRepository = $actividadesTerapRepo;
 
         // Vincula la policy automáticamente con los métodos del resource.
-        // El nombre del parámetro ('actividad') DEBE coincidir con tus rutas ->parameters(['actividades_terap' => 'actividad'])
+        // Debe coincidir el nombre del parámetro de ruta: ->parameters(['actividades_terap' => 'actividad'])
         $this->authorizeResource(ActividadesTerap::class, 'actividad');
+
+        // Detecta el área desde donde vienes y fija el prefijo de rutas
+        $this->routeBase = $request->routeIs('admin.*') ? 'admin.' : 'medico.';
     }
 
     /**
@@ -28,8 +34,10 @@ class ActividadesTController extends Controller
     {
         $actividadesTeraps = $this->actividadesTerapRepository->paginate(10);
 
-        return view('medico.actividades_terap.index')
-            ->with('actividadesTeraps', $actividadesTeraps);
+        // Reutilizamos las vistas bajo /medico/... como acordaste
+        return view('medico.actividades_terap.index', [
+            'actividadesTeraps' => $actividadesTeraps,
+        ]);
     }
 
     /**
@@ -37,6 +45,8 @@ class ActividadesTController extends Controller
      */
     public function create()
     {
+        // Si entras como admin y tu Policy no permite create para admin,
+        // authorizeResource ya te devolverá 403 (correcto).
         return view('medico.actividades_terap.create');
     }
 
@@ -47,13 +57,13 @@ class ActividadesTController extends Controller
     {
         // Validación (ajusta a tus campos reales)
         $request->validate([
-            'titulo'              => 'required|string|max:255',
-            'tipoContenido'       => 'required|in:audio,video,lectura',
-            'categoriaTerapeutica'=> 'required|string|max:255',
-            'diagnosticoDirigido' => 'required|string|max:255',
-            'nivelSeveridad'      => 'required|string|max:255',
-            'link'                => 'nullable|url',
-            'archivo'             => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
+            'titulo'               => 'required|string|max:255',
+            'tipoContenido'        => 'required|in:audio,video,lectura',
+            'categoriaTerapeutica' => 'required|string|max:255',
+            'diagnosticoDirigido'  => 'required|string|max:255',
+            'nivelSeveridad'       => 'required|string|max:255',
+            'link'                 => 'nullable|url',
+            'archivo'              => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
         ]);
 
         $input = $request->all();
@@ -80,8 +90,7 @@ class ActividadesTController extends Controller
 
         \Flash::success('Actividad terapéutica registrada correctamente.');
 
-        $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
-        return redirect()->route($routeArea . 'actividades_terap.index');
+        return redirect()->route($this->routeBase . 'actividades_terap.index');
     }
 
     /**
@@ -92,8 +101,9 @@ class ActividadesTController extends Controller
      */
     public function show(ActividadesTerap $actividad)
     {
-        return view('medico.actividades_terap.show')
-            ->with('actividadesTerap', $actividad);
+        return view('medico.actividades_terap.show', [
+            'actividadesTerap' => $actividad,
+        ]);
     }
 
     /**
@@ -101,8 +111,9 @@ class ActividadesTController extends Controller
      */
     public function edit(ActividadesTerap $actividad)
     {
-        return view('medico.actividades_terap.edit')
-            ->with('actividadesTerap', $actividad);
+        return view('medico.actividades_terap.edit', [
+            'actividadesTerap' => $actividad,
+        ]);
     }
 
     /**
@@ -112,18 +123,18 @@ class ActividadesTController extends Controller
     {
         // Validación (ajusta a tus campos reales)
         $request->validate([
-            'titulo'              => 'required|string|max:255',
-            'tipoContenido'       => 'required|in:audio,video,lectura',
-            'categoriaTerapeutica'=> 'required|string|max:255',
-            'diagnosticoDirigido' => 'required|string|max:255',
-            'nivelSeveridad'      => 'required|string|max:255',
-            'link'                => 'nullable|url',
-            'archivo'             => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
+            'titulo'               => 'required|string|max:255',
+            'tipoContenido'        => 'required|in:audio,video,lectura',
+            'categoriaTerapeutica' => 'required|string|max:255',
+            'diagnosticoDirigido'  => 'required|string|max:255',
+            'nivelSeveridad'       => 'required|string|max:255',
+            'link'                 => 'nullable|url',
+            'archivo'              => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
         ]);
 
         $input = $request->all();
 
-        // Mantén el mismo fkMedico salvo que el usuario actual sea médico y quieras reasignar
+        // Si el usuario actual es médico, conserva/actualiza su fkMedico
         $medico = \App\Models\Medico::where('usuario_id', auth()->id())->first();
         if ($medico) {
             $input['fkMedico'] = $medico->id;
@@ -136,17 +147,16 @@ class ActividadesTController extends Controller
         } elseif (!empty($request->link)) {
             $input['recurso'] = $request->link;
         } else {
-            // si no viene ni archivo ni link, no toques 'recurso'
+            // Ni archivo ni link => no tocar el campo
             unset($input['recurso']);
         }
 
-        // Usa el id real del modelo (respeta primaryKey idActividad)
+        // Usa el id real del modelo (respeta primaryKey idActividad si aplica)
         $this->actividadesTerapRepository->update($input, $actividad->getKey());
 
         \Flash::success('Actividad terapéutica actualizada correctamente.');
 
-        $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
-        return redirect()->route($routeArea . 'actividades_terap.show', $actividad);
+        return redirect()->route($this->routeBase . 'actividades_terap.show', $actividad);
     }
 
     /**
@@ -158,7 +168,6 @@ class ActividadesTController extends Controller
 
         \Flash::success('Actividad terapéutica eliminada correctamente.');
 
-        $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
-        return redirect()->route($routeArea . 'actividades_terap.index');
+        return redirect()->route($this->routeBase . 'actividades_terap.index');
     }
 }

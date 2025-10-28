@@ -47,7 +47,7 @@ CREATE TABLE Tutores (
     direccion TEXT,
     observaciones TEXT,
     fkPaciente INT,
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
 );
 
 INSERT INTO Usuarios (nombre, apellido, email, contrasena, tipoUsuario, estadoCuenta) VALUES

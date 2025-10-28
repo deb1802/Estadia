@@ -91,7 +91,6 @@
       <p class="mb-0 text-muted">Sin recurso adjunto.</p>
 
     @elseif($isYoutube && $ytId)
-      {{-- Aspect ratio 16:9 sin depender de Bootstrap --}}
       <div style="position:relative;width:100%;padding-top:56.25%;border-radius:12px;overflow:hidden;background:#000;">
         <iframe
           src="https://www.youtube.com/embed/{{ $ytId }}"
