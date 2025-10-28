@@ -235,6 +235,8 @@
                   <option value="respira_circulo.mp3">Respira con ritmo visual</option>
                   <option value="musica_ambiental_relajante.mp3">Música ambiental relajante</option>
                   <option value="afirmacion_positiva_1min.mp3">Afirmación positiva 1 min</option>
+                  <option value="dr_psiquiatra.mp3">Canción motivacional</option>
+                  <option value="dr_psiquiatra_cumbia.mp3">Canción motivacional bailable</option>
                 </select>
               </div>
 
