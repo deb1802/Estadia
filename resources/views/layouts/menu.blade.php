@@ -26,3 +26,10 @@
         <p>Tutors</p>
     </a>
 </li>
+
+<li class="nav-item">
+    <a href="{{ route('citas.index') }}" class="nav-link {{ Request::is('citas*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-home"></i>
+        <p>Citas</p>
+    </a>
+</li>

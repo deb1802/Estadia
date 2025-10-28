@@ -168,13 +168,14 @@ CREATE TABLE Citas (
     idCita INT PRIMARY KEY AUTO_INCREMENT,
     fkMedico INT,
     fkPaciente INT,
-    fechaHora DATETIME,
-    motivo TEXT,
-    ubicacion VARCHAR(150),
-    estado ENUM('programada', 'realizada', 'cancelada'),
-    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico),
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    fechaHora DATETIME NOT NULL,
+    motivo TEXT NOT NULL,
+    ubicacion VARCHAR(150) NOT NULL,
+    estado ENUM('programada', 'realizada', 'cancelada') DEFAULT 'programada',
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(id),
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
 );
+
 
 CREATE TABLE Emociones (
     idEmocion INT PRIMARY KEY AUTO_INCREMENT,
