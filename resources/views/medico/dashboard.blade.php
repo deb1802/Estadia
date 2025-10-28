@@ -153,7 +153,7 @@
         <div class="inside">
           <div class="block-title">Atajos rápidos</div>
           <div class="quick-grid">
-            <a class="quick" href="{{ url('/medico/citas') }}"><i class="bi bi-calendar2-event"></i> Citas del día</a>
+            <a class="quick" href="{{ route('medico.citas.index') }}"><i class="bi bi-calendar2-event"></i> Citas del día</a>
             <a class="quick" href="{{ route('medico.pacientes.index') }}"><i class="bi bi-people"></i> Pacientes</a>
             <a class="quick" href="{{ route('medico.medicamentos.index') }}"><i class="bi bi-capsule"></i> Medicamentos</a>
             <a class="quick" href="{{ route('medico.tutores.index') }}"><i class="bi bi-person-lines-fill"></i> Tutores</a>
@@ -283,7 +283,7 @@
       </a>
 
       {{-- 6. Citas --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
+      <a href="{{ route('medico.citas.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
         <div class="icon-box" style="background:linear-gradient(135deg,#74b9ff,#6c63ff);">
           <i class="fas fa-calendar-check"></i>
         </div>

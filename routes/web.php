@@ -9,12 +9,12 @@ use App\Http\Controllers\Paciente\TestimonioController;
 use App\Http\Controllers\Paciente\RespuestaTestimonioController;
 use App\Http\Controllers\Medico\ActividadesTController;
 use App\Http\Controllers\Medico\AsignacionActividadController;
-use App\Http\Controllers\TutorController; 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Paciente\NotificacionesController;
+use App\Http\Controllers\TutorController;
 use App\Http\Controllers\Medico\RecetaController;
 use App\Http\Controllers\Medico\AsignacionMedicamentoController;
+use App\Http\Controllers\Paciente\NotificacionesController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 Route::pattern('actividad', '[0-9]+');
 
@@ -23,9 +23,7 @@ Route::pattern('actividad', '[0-9]+');
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Aquí se registran todas las rutas web de la aplicación.
-| Estas rutas se cargan a través del RouteServiceProvider y se
-| asignan al grupo "web" middleware.
+| Rutas principales de la aplicación MindWare
 |
 */
 
@@ -53,9 +51,7 @@ Route::middleware(['auth', 'rol:administrador'])
     ->group(function () {
 
         // 🧭 Dashboard principal del administrador
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
 
         // 👥 CRUD de usuarios
         Route::resource('usuarios', UsuarioController::class);
@@ -63,18 +59,22 @@ Route::middleware(['auth', 'rol:administrador'])
         // 💊 CRUD de medicamentos
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // 📘 CRUD de tutores (nuevo)
+        // 📘 CRUD de tutores
         Route::resource('tutores', TutorController::class)
-            ->names('tutores'); // ✅ cambia nombres internos a tutores.*
+            ->names('tutores');
 
-        // 🧘‍♀️ Actividades terapéuticas (ambos roles)
+        // 🗓️ CRUD de citas (el administrador puede ver todas)
+        Route::resource('citas', App\Http\Controllers\CitaController::class)
+            ->names('citas')
+            ->parameters(['citas' => 'cita']);
+
+        // 🧘‍♀️ Actividades terapéuticas
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
         // 📊 Panel de estadísticas
-        Route::get('/panel-estadisticas', function () {
-            return view('admin.resumen_admin');
-        })->name('panel.estadisticas');
+        Route::get('/panel-estadisticas', fn() => view('admin.resumen_admin'))
+            ->name('panel.estadisticas');
     });
 
 /* 🩺 Sección del MÉDICO */
@@ -83,51 +83,39 @@ Route::middleware(['auth', 'rol:medico'])
     ->name('medico.')
     ->group(function () {
 
-        // Dashboard
+        // 🧭 Dashboard principal del médico
         Route::get('/dashboard', fn() => view('medico.dashboard'))->name('dashboard');
 
-        // CRUD de pacientes
+        // 👩‍⚕️ CRUD de pacientes
         Route::resource('pacientes', PacienteController::class);
 
         // ============================================================
-        // 📄 RECETAS MÉDICAS (cabecera + detalle + ver + pdf)
+        // 💊 RECETAS MÉDICAS
         // ============================================================
         Route::prefix('recetas')->name('recetas.')->group(function () {
-            // Crear CABECERA (viene desde botón en show de paciente: ?paciente=ID)
             Route::get('crear', [RecetaController::class, 'create'])->name('create');
-            Route::post('/',     [RecetaController::class, 'store'])->name('store');
-
-            // DETALLE (agregar líneas de medicamentos a una receta)
-            Route::get('{idReceta}/detalle',                 [RecetaController::class, 'detalle'])->name('detalle');
-            Route::post('{idReceta}/detalle',                [RecetaController::class, 'agregarDetalle'])->name('detalle.agregar');
-            Route::delete('{idReceta}/detalle/{idDetalle}',  [RecetaController::class, 'borrarDetalle'])->name('detalle.borrar');
-
-            // 🧾 PDF (más específico que {idReceta}, por eso va antes)
+            Route::post('/', [RecetaController::class, 'store'])->name('store');
+            Route::get('{idReceta}/detalle', [RecetaController::class, 'detalle'])->name('detalle');
+            Route::post('{idReceta}/detalle', [RecetaController::class, 'agregarDetalle'])->name('detalle.agregar');
+            Route::delete('{idReceta}/detalle/{idDetalle}', [RecetaController::class, 'borrarDetalle'])->name('detalle.borrar');
             Route::get('{idReceta}/pdf', [RecetaController::class, 'pdf'])->name('pdf');
-
-            // 👁️ Ver receta (HTML)
             Route::get('{idReceta}', [RecetaController::class, 'show'])->name('show');
         });
 
         // ============================================================
-        // 💊 ASIGNACIÓN DIRECTA DESDE CATÁLOGO DE MEDICAMENTOS
-        // (usa querystring ?medicamento=ID, no choca con resource)
+        // 💊 ASIGNACIÓN DE MEDICAMENTOS
         // ============================================================
         Route::prefix('medicamentos')->name('medicamentos.')->group(function () {
-            Route::get('asignar',  [AsignacionMedicamentoController::class, 'create'])->name('asignar');
+            Route::get('asignar', [AsignacionMedicamentoController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionMedicamentoController::class, 'store'])->name('asignar.store');
         });
-
-        // CRUD de medicamentos (resource actual)
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // ✅ ASIGNACIÓN de actividades (ya existente)
+        // ✅ ASIGNACIÓN de actividades terapéuticas
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
-            Route::get('asignar',  [AsignacionActividadController::class, 'create'])->name('asignar');
+            Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
         });
-
-        // 🧘‍♀️ Actividades terapéuticas (resource)
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
@@ -135,10 +123,18 @@ Route::middleware(['auth', 'rol:medico'])
         Route::resource('tutores', TutorController::class)
             ->names('tutores')
             ->parameters(['tutores' => 'tutor']);
+
+        // ============================================================
+        // 🗓️ CRUD DE CITAS MÉDICAS
+        // ============================================================
+        Route::resource('citas', App\Http\Controllers\CitaController::class)
+            ->names('citas')
+            ->parameters(['citas' => 'cita']);
+
+        // 🔄 Actualización del estado de la cita
+        Route::patch('citas/{idCita}/estado', [App\Http\Controllers\CitaController::class, 'actualizarEstado'])
+            ->name('citas.actualizarEstado');
     });
-
-
-
 
 /* 💬 Sección del PACIENTE */
 Route::middleware(['auth', 'rol:paciente'])
@@ -164,29 +160,27 @@ Route::middleware(['auth', 'rol:paciente'])
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])
             ->name('notificaciones.markAll');
 
-        // 🧾 📄 RECETAS MÉDICAS (solo las del paciente autenticado)
+        // 🧾 Recetas médicas (solo del paciente)
         Route::prefix('recetas')->name('recetas.')->group(function () {
             Route::get('/', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'index'])->name('index');
             Route::get('/{idReceta}', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'show'])->name('show');
             Route::get('/{idReceta}/pdf', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'pdf'])->name('pdf');
         });
 
-        // ✅ 🧘‍♀️ ACTIVIDADES ASIGNADAS AL PACIENTE
+        // ✅ Actividades asignadas al paciente
         Route::prefix('mis-actividades')->name('actividades.')->group(function () {
-            // Listado (con filtro opcional ?estado=pendiente|completada)
             Route::get('/', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'index'])
                 ->name('index');
-
-            // Marcar una asignación como completada
             Route::patch('/{asignacion}/completar', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'completar'])
                 ->name('completar');
         });
+
+        // 📅 Citas del paciente
+        Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])
+            ->name('citas.index');
+        Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])
+            ->name('citas.cancelar');
     });
 
-
-
-
-/* 🛡️ Incluye las rutas de autenticación de Breeze */
+/* 🛡️ Rutas de autenticación (Breeze) */
 require __DIR__.'/auth.php';
-
-
