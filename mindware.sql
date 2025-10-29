@@ -3,7 +3,7 @@ CREATE DATABASE IF NOT EXISTS mindware;
 USE mindware;
 
 CREATE TABLE Usuarios (
-    idUsuario INT PRIMARY KEY AUTO_INCREMENT,
+    idUsuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50),
     apellido VARCHAR(50),
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -12,7 +12,8 @@ CREATE TABLE Usuarios (
     sexo ENUM('masculino', 'femenino', 'otro'),
     telefono VARCHAR(20),
     tipoUsuario ENUM('administrador', 'medico', 'paciente') NOT NULL,
-    estadoCuenta ENUM('activo', 'inactivo') DEFAULT 'activo'
+    estadoCuenta ENUM('activo', 'inactivo') DEFAULT 'activo',
+    fechaRegistro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- 🔹 Nueva columna, se llena sola
 );
 
 DROP TABLE IF EXISTS Medicos;

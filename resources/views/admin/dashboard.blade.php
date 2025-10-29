@@ -418,12 +418,12 @@
         <p>Visualiza estadísticas y reportes del sistema.</p>
       </a>
 
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="550">
-        <div class="icon-box" style="background: linear-gradient(135deg, #b388ff, #82b1ff);">
-          <i class="fas fa-cog"></i>
+      <a href="{{ route('admin.backups.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="600">
+        <div class="icon-box" style="background: linear-gradient(135deg, #00bfa5, #1de9b6);">
+          <i class="fas fa-database"></i>
         </div>
-        <h4>Configuración</h4>
-        <p>Administra opciones y ajustes del sistema.</p>
+        <h4>Respaldo y restauración</h4>
+        <p>Genera un respaldo .sql o restaura la base de datos del sistema.</p>
       </a>
     </div>
   </section>

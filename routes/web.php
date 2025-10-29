@@ -15,6 +15,10 @@ use App\Http\Controllers\Medico\AsignacionMedicamentoController;
 use App\Http\Controllers\Paciente\NotificacionesController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Medico\ActividadesAsignadasController;
+use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\Admin\ReportePacientesController;
+
 
 Route::pattern('actividad', '[0-9]+');
 
@@ -75,6 +79,17 @@ Route::middleware(['auth', 'rol:administrador'])
         // 📊 Panel de estadísticas
         Route::get('/panel-estadisticas', fn() => view('admin.resumen_admin'))
             ->name('panel.estadisticas');
+        
+        Route::get('/reportes/pacientes-genero', [ReportePacientesController::class, 'pacientesPorGenero'])
+            ->name('reportes.pacientes.genero');
+        Route::get('/reportes/pacientes-genero/data', [ReportePacientesController::class, 'pacientesPorGeneroData'])
+            ->name('reportes.pacientes.genero.data');
+        
+        // 💾 Respaldos y restauración de base de datos
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups/backup', [BackupController::class, 'backup'])->name('backups.backup');
+        Route::post('/backups/restore', [BackupController::class, 'restore'])->name('backups.restore');
+        Route::get('/backups/diag', [BackupController::class,'diag'])->name('admin.backups.diag');
     });
 
 /* 🩺 Sección del MÉDICO */
@@ -115,6 +130,9 @@ Route::middleware(['auth', 'rol:medico'])
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
             Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
+
+              // 👇 Nuevo: listado de actividades que este médico ha asignado
+            Route::get('asignadas', [ActividadesAsignadasController::class, 'index'])->name('asignadas');   
         });
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
@@ -176,11 +194,14 @@ Route::middleware(['auth', 'rol:paciente'])
         });
 
         // 📅 Citas del paciente
-        Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])
-            ->name('citas.index');
-        Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])
-            ->name('citas.cancelar');
+        //Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])
+          //  ->name('citas.index');
+        //Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])
+            //->name('citas.cancelar');
     });
 
 /* 🛡️ Rutas de autenticación (Breeze) */
 require __DIR__.'/auth.php';
+
+
+Route::get('/__diag/backups', [BackupController::class, 'diag']);

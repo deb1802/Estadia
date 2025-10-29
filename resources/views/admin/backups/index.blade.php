@@ -130,73 +130,67 @@
   </div>
 </div>
 
-{{-- Aviso flotante --}}
-<div id="toastBox" class="alert alert-success alert-fixed d-none" role="alert">
-  <div class="d-flex align-items-start">
-    <i class="bi bi-check-circle-fill me-2 mt-1"></i>
-    <div>
-      <strong>¡Respaldo descargado!</strong>
-      <div id="toastMsg" class="mt-1 small"></div>
-    </div>
-  </div>
-</div>
 @endsection
 
-@push('scripts')
+
 <script>
 (function(){
-  const form   = document.getElementById('backupForm');
-  const btn    = document.getElementById('backupBtn');
-  const toast  = document.getElementById('toastBox');
-  const toastMsg = document.getElementById('toastMsg');
+  const form = document.getElementById('backupForm');
+  const btn  = document.getElementById('backupBtn');
+  const toast= document.getElementById('toastBox');
+  const msg  = document.getElementById('toastMsg');
 
-  // Toma CSRF desde meta si tu layout lo tiene; si no, lo leemos del input hidden
-  function getCsrf(){
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    if(meta) return meta.getAttribute('content');
-    const inp = form.querySelector('input[name="_token"]');
-    return inp ? inp.value : '';
+  function csrf(){
+    const m = document.querySelector('meta[name="csrf-token"]');
+    if (m) return m.content;
+    const i = form.querySelector('input[name="_token"]');
+    return i ? i.value : '';
   }
 
-  form.addEventListener('submit', async function(ev){
-    ev.preventDefault();
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generando…';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando…';
 
     try{
       const resp = await fetch(form.action, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': getCsrf(),
+          'X-CSRF-TOKEN': csrf(),
           'Accept': 'application/octet-stream'
         },
-        body: new FormData(form)
+        body: new FormData(form),
+        credentials: 'same-origin'
       });
 
-      if(!resp.ok){
-        throw new Error('Falló la generación del respaldo ('+resp.status+')');
+      const ct = resp.headers.get('Content-Type') || '';
+
+      // Si regresó JSON (nuestro 422 con el motivo), muéstralo
+      if (ct.includes('application/json')) {
+        const data = await resp.json();
+        const text = (data && data.error) ? data.error : 'Error desconocido';
+        console.error('Backup error 422 JSON:', text);
+        throw new Error(text);
       }
 
-      // Leemos el nombre del archivo desde el header personalizado
+      // Si no es SQL, probablemente es HTML (redirección/login/error)
+      if (!ct.includes('application/sql')) {
+        const text = await resp.text();
+        console.error('Backup unexpected response:', text);
+        throw new Error('Respuesta inesperada del servidor. Revisa que estés logueado y la ruta exista.');
+      }
+
       const filename = resp.headers.get('X-Backup-Filename') || 'backup.sql';
       const blob = await resp.blob();
-
-      // Disparar descarga en el navegador
-      const url = window.URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
 
-      // Mostrar aviso bonito con el nombre a buscar
       showToast('El archivo se descargó como <code>'+filename+'</code>. Búscalo en tu carpeta de descargas.');
-
     }catch(err){
-      showToast('No se pudo completar el respaldo: '+ err.message, true);
+      showToast('No se pudo completar el respaldo: ' + err.message, true);
     }finally{
       btn.disabled = false;
       btn.innerHTML = '<i class="bi bi-download me-2"></i> Generar y descargar respaldo';
@@ -206,15 +200,10 @@
   function showToast(html, isError){
     toast.classList.remove('d-none', 'alert-success', 'alert-danger');
     toast.classList.add(isError ? 'alert-danger' : 'alert-success');
-    toastMsg.innerHTML = html;
-    // Mostrar
+    msg.innerHTML = html;
     toast.style.opacity = 1;
-    // Ocultar después de 6s
-    setTimeout(()=>{ 
-      toast.style.opacity = 0; 
-      setTimeout(()=> toast.classList.add('d-none'), 350);
-    }, 6000);
+    setTimeout(()=>{ toast.style.opacity=0; setTimeout(()=>toast.classList.add('d-none'), 350); }, 6000);
   }
 })();
 </script>
-@endpush
+
