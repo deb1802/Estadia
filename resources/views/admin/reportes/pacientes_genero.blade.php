@@ -16,34 +16,60 @@
   }
 
   body { color: var(--ink); }
-  .back-row{ margin-bottom:.5rem; }
-  .btn-ghost{ background:#fff; border:1px solid var(--stroke); color:var(--sub); border-radius:10px; padding:.4rem .8rem; font-weight:600; }
 
+  /* Contenedor centrado y ancho cómodo */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 1rem 1rem 2.5rem; }
+
+  /* Botón volver (centrado) */
+  .back-row{ display:flex; justify-content:center; margin-bottom:.75rem; }
+  .btn-ghost{
+    background:#fff; border:1px solid var(--stroke); color:var(--sub);
+    border-radius:10px; padding:.45rem .9rem; font-weight:600;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);
+  }
+
+  /* Encabezado centrado */
   .page-header{ text-align:center; margin-bottom:1rem; }
   .page-title{ margin:0; font-weight:800; letter-spacing:.2px; color:var(--ink); }
   .page-sub{ color:var(--sub); }
 
+  /* Toolbar/filtros centrados */
   .toolbar {
     background: linear-gradient(180deg, #fbfdff 0%, #f1f6ff 100%);
     border: 1px solid var(--stroke); border-radius: 16px;
-    padding:.8rem; box-shadow:0 6px 18px rgba(0,0,0,.05);
+    padding:1rem; box-shadow:0 6px 18px rgba(0,0,0,.05);
   }
-  .filter-row{ display:flex; align-items:end; gap:.6rem; flex-wrap:wrap; }
-  .filter-chip{ background:#eef4ff; border:1px solid var(--stroke); color:var(--sub); padding:.4rem .8rem; border-radius:999px; font-weight:700; display:inline-flex; gap:.35rem; align-items:center; }
-  .fctl{ display:flex; flex-direction:column; }
+  .filter-row{
+    display:flex; align-items:end; gap:.8rem; flex-wrap:wrap;
+    justify-content:center;  /* ⬅️ centrado */
+  }
+  .filter-chip{
+    background:#eef4ff; border:1px solid var(--stroke); color:var(--sub);
+    padding:.45rem .85rem; border-radius:999px; font-weight:700;
+    display:inline-flex; gap:.35rem; align-items:center;
+  }
+  .fctl{ display:flex; flex-direction:column; align-items:flex-start; }
   .fctl label{ font-size:.8rem; color:var(--sub); margin:0 0 .25rem; font-weight:700; }
   .fctl .form-control, .fctl .form-select{ height:42px; min-width:165px; border-radius:10px; }
+
+  /* Línea de botones de filtros centrada */
+  .btn-row{
+    width:100%;
+    display:flex; justify-content:center; align-items:center; gap:.6rem; margin-top:.6rem;
+  }
 
   .card-soft{ border:1px solid var(--stroke); border-radius:16px; background:#fff; box-shadow:0 10px 26px rgba(19,43,93,.05); }
   .card-soft .card-header{
     background:#f6f9ff; border-bottom:1px solid var(--stroke);
     border-top-left-radius:16px; border-top-right-radius:16px;
-    /* 🔧 Forzar texto oscuro aunque el tema ponga text-white */
     color:var(--ink) !important;
   }
   .card-soft .card-header *{ color:var(--ink) !important; }
 
-  .chip{ display:inline-block; padding:.28rem .6rem; border-radius:999px; background:#eef4ff; border:1px solid var(--stroke); font-size:.85rem; color:var(--sub); }
+  .chip{
+    display:inline-block; padding:.28rem .6rem; border-radius:999px;
+    background:#eef4ff; border:1px solid var(--stroke); font-size:.85rem; color:var(--sub);
+  }
 
   /* Tabla: colores estándar legibles */
   .table thead th{ background:#f1f5fb !important; color:#27364a !important; }
@@ -56,20 +82,21 @@
 @endpush
 
 @section('content')
-<div class="container">
-
+<div class="wrap">
+  <!-- Botón Volver al panel de reportes -->
   <div class="back-row">
-    <a href="{{ url()->previous() }}" class="btn-ghost">
-      <i class="bi bi-arrow-left"></i> Volver
+    <a href="{{ route('admin.reportes.index') }}" class="btn-ghost" title="Volver al panel de reportes">
+      <i class="bi bi-arrow-left"></i> Volver a a reportes
     </a>
   </div>
 
+  <!-- Encabezado centrado -->
   <div class="page-header">
     <h2 class="page-title">Pacientes por género</h2>
     <small class="page-sub">Filtra por sexo, rango de edad y <strong>fecha de registro</strong>. La tabla y la gráfica se actualizan al aplicar.</small>
   </div>
 
-  {{-- Filtros horizontales --}}
+  {{-- Filtros horizontales centrados --}}
   <div class="toolbar mb-4">
     <form id="formFiltros" class="filter-row">
       <span class="filter-chip"><i class="bi bi-funnel"></i> Filtros</span>
@@ -104,7 +131,8 @@
         <input type="date" name="fecha_fin" value="{{ request('fecha_fin') }}" class="form-control">
       </div>
 
-      <div class="ms-auto d-flex align-items-end gap-2">
+      <!-- Botones centrados -->
+      <div class="btn-row">
         <a href="{{ route('admin.reportes.pacientes.genero') }}" class="btn btn-light border">
           <i class="bi bi-x-circle"></i> Limpiar
         </a>
@@ -120,15 +148,15 @@
     <div class="col-12 col-lg-8">
       <div class="card card-soft">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Resultados</h5>
-          <span class="chip">Total: <span id="totalSpan">{{ $total }}</span></span>
+          <h5 class="mb-0">   Resultados</h5>
+          <span class="chip" text-align="center">        Total: <span id="totalSpan">{{ $total }}</span></span>
         </div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped align-middle">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>id</th>
                   <th>Nombre</th>
                   <th>Email</th>
                   <th>Sexo</th>
@@ -170,7 +198,7 @@
             </div>
           </div>
           <button id="btnDownloadPng" class="btn btn-sm btn-outline-primary" type="button" title="Descargar PNG">
-            <i class="bi bi-download"></i> PNG
+            <i class="bi bi-download"></i> Decargar imágen de la gráfica en PNG
           </button>
         </div>
         <div class="card-body d-flex flex-column">
@@ -194,7 +222,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 <script>
 (function(){
-  // Obtener colores reales desde las CSS variables (evita negro en canvas)
+  // Obtener colores desde CSS variables
   const css = getComputedStyle(document.documentElement);
   const cMale = (css.getPropertyValue('--c-male') || '#5B8DEF').trim();
   const cFem  = (css.getPropertyValue('--c-fem')  || '#FF6FB1').trim();

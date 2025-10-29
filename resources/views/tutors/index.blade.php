@@ -77,21 +77,7 @@
   </div>
 </section>
 
-<div class="content px-3">
-    @include('flash::message')
 
-    {{-- 🔍 Barra de búsqueda + botón de agregar --}}
-    <div class="card card-body shadow-sm mb-3 card-search">
-        <div class="search-bar">
-            <div class="search-input-group">
-                <input type="text" id="search-input" class="form-control"
-                       placeholder="Buscar tutores..." autocomplete="off">
-                <select id="search-type" class="form-select">
-                    <option value="nombreCompleto">Por nombre del tutor</option>
-                    <option value="paciente">Por nombre del paciente</option>
-                    <option value="parentesco">Por parentesco</option>
-                </select>
-            </div>
 
             {{-- 🔹 Botón "Agregar nuevo tutor" solo visible para médicos --}}
             @if(Auth::user()->tipoUsuario === 'medico')

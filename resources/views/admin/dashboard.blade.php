@@ -410,7 +410,7 @@
         <p>Consulta y administra expedientes de pacientes.</p>
       </a>
 
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="500">
+      <a href="{{ route('admin.reportes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #00bcd4);">
           <i class="fas fa-chart-bar"></i>
         </div>
@@ -419,7 +419,7 @@
       </a>
 
       <a href="{{ route('admin.backups.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="600">
-        <div class="icon-box" style="background: linear-gradient(135deg, #00bfa5, #1de9b6);">
+        <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #425ac5ff);">
           <i class="fas fa-database"></i>
         </div>
         <h4>Respaldo y restauración</h4>

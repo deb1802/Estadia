@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Medico\ActividadesAsignadasController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ReportePacientesController;
+use App\Http\Controllers\Admin\RecetaAdminController;
 
 
 Route::pattern('actividad', '[0-9]+');
@@ -79,18 +80,29 @@ Route::middleware(['auth', 'rol:administrador'])
         // 📊 Panel de estadísticas
         Route::get('/panel-estadisticas', fn() => view('admin.resumen_admin'))
             ->name('panel.estadisticas');
-        
+
+        // 🧾 Menú de reportes del Administrador
+        Route::get('/reportes', fn() => view('admin.reportes.index'))
+            ->name('reportes.index');
+
+        // 📈 Reporte específico: Pacientes por género
         Route::get('/reportes/pacientes-genero', [ReportePacientesController::class, 'pacientesPorGenero'])
             ->name('reportes.pacientes.genero');
         Route::get('/reportes/pacientes-genero/data', [ReportePacientesController::class, 'pacientesPorGeneroData'])
             ->name('reportes.pacientes.genero.data');
-        
+
         // 💾 Respaldos y restauración de base de datos
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('/backups/backup', [BackupController::class, 'backup'])->name('backups.backup');
         Route::post('/backups/restore', [BackupController::class, 'restore'])->name('backups.restore');
-        Route::get('/backups/diag', [BackupController::class,'diag'])->name('admin.backups.diag');
+        Route::get('/backups/diag', [BackupController::class, 'diag'])->name('admin.backups.diag');
+
+        /* 💊💾 === Módulo de Recetas Médicas*/
+        Route::get('/recetas', [RecetaAdminController::class, 'index'])->name('recetas.index');
+        Route::get('/recetas/{idReceta}', [RecetaAdminController::class, 'show'])->name('recetas.show');
+        Route::get('/recetas/{idReceta}/pdf', [RecetaAdminController::class, 'pdf'])->name('recetas.pdf');
     });
+
 
 /* 🩺 Sección del MÉDICO */
 Route::middleware(['auth', 'rol:medico'])
