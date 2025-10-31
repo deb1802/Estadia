@@ -81,7 +81,7 @@
 
         {{-- 🔙 Botón Volver (ajustado hacia abajo) --}}
         <button type="button" class="btn btn-soft"
-                onclick="window.history.length>1 ? history.back() : window.location='{{ route('medico.dashboard') }}'">
+                onclick="window.location='{{ route('medico.dashboard') }}'">
           <i class="bi bi-arrow-90deg-left me-1"></i> Volver
         </button>
     </div>

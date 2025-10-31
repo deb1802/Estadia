@@ -265,7 +265,7 @@
       </a>
 
       {{-- 4. Tests Psicológicos --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
+      <a href="{{ route('medico.tests.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
         <div class="icon-box" style="background:linear-gradient(135deg,#a29bfe,#74b9ff);">
           <i class="fas fa-brain"></i>
         </div>

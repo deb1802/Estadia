@@ -26,6 +26,8 @@
 
     {{-- CSRF para peticiones fetch --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
@@ -64,7 +66,17 @@
     {{-- ✅ Pila de modales globales (para médico, paciente, etc.) --}}
     @stack('modals')
 
+    <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  });
+</script>
     {{-- ✅ Pila de scripts por vista --}}
     @stack('scripts')
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
