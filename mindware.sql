@@ -113,30 +113,126 @@ CREATE TABLE Detalle_Medicamento (
 );
 
 
-CREATE TABLE Tests (
-    idTest INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100),
-    tipoTrastorno VARCHAR(100),
-    descripcion TEXT,
-    preguntas TEXT,
-    puntajePorRespuesta TEXT,
-    rangoEvaluacion TEXT,
-    estado ENUM('activo', 'inactivo'),
-    fechaCreacion DATE,
-    fkMedico INT,
-    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico)
-);
+/* =========================================================
+   1. TABLA: Tests
+   ---------------------------------------------------------
+   Contiene la información general de cada test creado
+   por un médico (nombre, tipo, descripción, etc.)
+   ========================================================= */
+ CREATE TABLE Tests (
+  idTest INT PRIMARY KEY AUTO_INCREMENT,
+  nombre VARCHAR(150) NOT NULL,
+  tipoTrastorno VARCHAR(120),
+  descripcion TEXT,
+  estado ENUM('activo','inactivo') DEFAULT 'activo',
+  fechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fkMedico INT NOT NULL,
+  FOREIGN KEY (fkMedico) REFERENCES Medicos(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE AsignacionTest (
-    idAsignacionTest INT PRIMARY KEY AUTO_INCREMENT,
-    fkTest INT,
-    fkPaciente INT,
-    fechaAsignacion DATE,
-    fechaRespuesta DATE,
-    resultado TEXT,
-    FOREIGN KEY (fkTest) REFERENCES Tests(idTest),
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
-);
+
+
+/* =========================================================
+   2. TABLA: PreguntasTest
+   ---------------------------------------------------------
+   Contiene las preguntas que pertenecen a un test.
+   ========================================================= */
+CREATE TABLE PreguntasTest (
+  idPregunta INT PRIMARY KEY AUTO_INCREMENT,
+  fkTest INT NOT NULL,
+  texto TEXT NOT NULL,
+  tipo ENUM('opcion_unica','opcion_multiple','abierta') DEFAULT 'opcion_unica',
+  orden INT NOT NULL DEFAULT 1,
+  FOREIGN KEY (fkTest) REFERENCES Tests(idTest) ON DELETE CASCADE,
+  INDEX (fkTest, orden)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+/* =========================================================
+   3. TABLA: OpcionesPregunta
+   ---------------------------------------------------------
+   Guarda las opciones posibles por cada pregunta y su puntaje.
+   ========================================================= */
+CREATE TABLE OpcionesPregunta (
+  idOpcion INT PRIMARY KEY AUTO_INCREMENT,
+  fkPregunta INT NOT NULL,
+  etiqueta VARCHAR(200) NOT NULL,
+  valor VARCHAR(100),
+  puntaje INT NOT NULL DEFAULT 0,
+  orden INT NOT NULL DEFAULT 1,
+  FOREIGN KEY (fkPregunta) REFERENCES PreguntasTest(idPregunta) ON DELETE CASCADE,
+  INDEX (fkPregunta, orden)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+/* =========================================================
+   4. TABLA: RangosTest
+   ---------------------------------------------------------
+   Define los intervalos de puntaje total y diagnóstico sugerido.
+   ========================================================= */
+CREATE TABLE RangosTest (
+  idRango INT PRIMARY KEY AUTO_INCREMENT,
+  fkTest INT NOT NULL,
+  minPuntaje INT NOT NULL,
+  maxPuntaje INT NOT NULL,
+  diagnostico VARCHAR(150) NOT NULL,
+  descripcion TEXT,
+  FOREIGN KEY (fkTest) REFERENCES Tests(idTest) ON DELETE CASCADE,
+  INDEX (fkTest, minPuntaje, maxPuntaje)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+/* =========================================================
+   5. TABLA: AsignacionesTest
+   ---------------------------------------------------------
+   Vincula un test con un paciente. Aquí se guarda el puntaje
+   total, el diagnóstico sugerido y el diagnóstico confirmado
+   por el médico.
+   ========================================================= */
+CREATE TABLE AsignacionesTest (
+  idAsignacionTest INT PRIMARY KEY AUTO_INCREMENT,
+  fkTest INT NOT NULL,
+  fkPaciente INT NOT NULL,
+  fechaAsignacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  fechaRespuesta DATETIME NULL,
+  puntajeTotal INT NULL,
+  diagnosticoSugerido VARCHAR(150) NULL,
+  diagnosticoConfirmado VARCHAR(150) NULL,
+  confirmadoPor INT NULL,
+  fechaConfirmacion DATETIME NULL,
+  notasClinicas TEXT NULL,
+  subescalas JSON NULL,
+  FOREIGN KEY (fkTest) REFERENCES Tests(idTest),
+  FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id),
+  FOREIGN KEY (confirmadoPor) REFERENCES Medicos(id),
+  INDEX (fkTest, fkPaciente)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+/* =========================================================
+   6. TABLA: RespuestasTest
+   ---------------------------------------------------------
+   Guarda las respuestas que el paciente da a cada pregunta
+   de su test asignado, con el puntaje obtenido en cada una.
+   ========================================================= */
+CREATE TABLE RespuestasTest (
+  idRespuesta INT PRIMARY KEY AUTO_INCREMENT,
+  fkAsignacionTest INT NOT NULL,
+  fkPregunta INT NOT NULL,
+  fkOpcion INT NULL,
+  respuestaAbierta TEXT NULL,
+  puntajeObtenido INT NOT NULL DEFAULT 0,
+  FOREIGN KEY (fkAsignacionTest) REFERENCES AsignacionesTest(idAsignacionTest) ON DELETE CASCADE,
+  FOREIGN KEY (fkPregunta) REFERENCES PreguntasTest(idPregunta),
+  FOREIGN KEY (fkOpcion) REFERENCES OpcionesPregunta(idOpcion),
+  INDEX (fkAsignacionTest),
+  INDEX (fkPregunta)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE Actividades (
     idActividad INT PRIMARY KEY AUTO_INCREMENT,

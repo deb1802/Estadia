@@ -31,10 +31,10 @@
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen">
 
-        {{-- Navbar superior común --}}
+        {{-- 🔹 Navbar superior común --}}
         @include('layouts.navigation')
 
-        {{-- Header opcional --}}
+        {{-- 🔹 Header opcional --}}
         @if (isset($header))
             <header class="bg-white shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -43,7 +43,7 @@
             </header>
         @endif
 
-        {{-- Contenido principal --}}
+        {{-- 🔹 Contenido principal --}}
         <main class="py-4">
             @hasSection('content')
                 @yield('content')
@@ -61,7 +61,10 @@
     {{-- SweetAlert2 (si lo usas) --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    {{-- Pila de scripts por vista --}}
+    {{-- ✅ Pila de modales globales (para médico, paciente, etc.) --}}
+    @stack('modals')
+
+    {{-- ✅ Pila de scripts por vista --}}
     @stack('scripts')
 </body>
 </html>

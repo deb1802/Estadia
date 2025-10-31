@@ -46,11 +46,54 @@ class MedicamentoController extends Controller
      * Listado de medicamentos.
      */
     public function index(Request $request)
-    {
-        $medicamentos = $this->medicamentosRepository->paginate(10);
+{
+    // Parámetros de búsqueda
+    $q    = trim((string) $request->get('q', ''));
+    $type = (string) $request->get('type', 'all');
 
-        return view('admin.medicamentos.index', compact('medicamentos'));
+    // Campos válidos para filtrar
+    $map = [
+        'nombre'             => 'nombre',
+        'presentacion'       => 'presentacion',
+        'indicaciones'       => 'indicaciones',
+        'efectosSecundarios' => 'efectosSecundarios',
+    ];
+
+    // Consulta base
+    $query = \App\Models\Medicamento::query();
+
+    if ($q !== '') {
+        if ($type === 'all') {
+            $query->where(function($qq) use ($q) {
+                $qq->where('nombre', 'LIKE', "%{$q}%")
+                   ->orWhere('presentacion', 'LIKE', "%{$q}%")
+                   ->orWhere('indicaciones', 'LIKE', "%{$q}%")
+                   ->orWhere('efectosSecundarios', 'LIKE', "%{$q}%");
+            });
+        } else {
+            if (array_key_exists($type, $map)) {
+                $query->where($map[$type], 'LIKE', "%{$q}%");
+            } else {
+                // Fallback: buscar en todos
+                $query->where(function($qq) use ($q) {
+                    $qq->where('nombre', 'LIKE', "%{$q}%")
+                       ->orWhere('presentacion', 'LIKE', "%{$q}%")
+                       ->orWhere('indicaciones', 'LIKE', "%{$q}%")
+                       ->orWhere('efectosSecundarios', 'LIKE', "%{$q}%");
+                });
+            }
+        }
     }
+
+    $medicamentos = $query
+        ->orderBy('idMedicamento', 'desc')
+        ->paginate(10)
+        ->withQueryString();
+
+    // Nota: mantenemos la misma vista; la barra decide admin/medico por $routeArea
+    return view('admin.medicamentos.index', compact('medicamentos', 'q', 'type'));
+}
+
 
     /**
      * Form de creación.

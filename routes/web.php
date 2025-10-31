@@ -19,6 +19,10 @@ use App\Http\Controllers\Medico\ActividadesAsignadasController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ReportePacientesController;
 use App\Http\Controllers\Admin\RecetaAdminController;
+use App\Http\Controllers\Medico\TestController;
+use App\Http\Controllers\Medico\TestBuilderController;
+use App\Http\Controllers\Medico\AsignacionTestController;
+
 
 
 Route::pattern('actividad', '[0-9]+');
@@ -110,15 +114,13 @@ Route::middleware(['auth', 'rol:medico'])
     ->name('medico.')
     ->group(function () {
 
-        // 🧭 Dashboard principal del médico
+        // 🧭 Dashboard
         Route::get('/dashboard', fn() => view('medico.dashboard'))->name('dashboard');
 
-        // 👩‍⚕️ CRUD de pacientes
+        // 👩‍⚕️ Pacientes
         Route::resource('pacientes', PacienteController::class);
 
-        // ============================================================
-        // 💊 RECETAS MÉDICAS
-        // ============================================================
+        // 💊 Recetas
         Route::prefix('recetas')->name('recetas.')->group(function () {
             Route::get('crear', [RecetaController::class, 'create'])->name('create');
             Route::post('/', [RecetaController::class, 'store'])->name('store');
@@ -129,42 +131,72 @@ Route::middleware(['auth', 'rol:medico'])
             Route::get('{idReceta}', [RecetaController::class, 'show'])->name('show');
         });
 
-        // ============================================================
-        // 💊 ASIGNACIÓN DE MEDICAMENTOS
-        // ============================================================
+        // 💊 Asignación de medicamentos
         Route::prefix('medicamentos')->name('medicamentos.')->group(function () {
             Route::get('asignar', [AsignacionMedicamentoController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionMedicamentoController::class, 'store'])->name('asignar.store');
         });
         Route::resource('medicamentos', MedicamentoController::class);
 
-        // ✅ ASIGNACIÓN de actividades terapéuticas
+        // 🎯 Actividades terapéuticas
         Route::prefix('actividades_terap')->name('actividades_terap.')->group(function () {
             Route::get('asignar', [AsignacionActividadController::class, 'create'])->name('asignar');
             Route::post('asignar', [AsignacionActividadController::class, 'store'])->name('asignar.store');
-
-              // 👇 Nuevo: listado de actividades que este médico ha asignado
-            Route::get('asignadas', [ActividadesAsignadasController::class, 'index'])->name('asignadas');   
+            Route::get('asignadas', [ActividadesAsignadasController::class, 'index'])->name('asignadas');
         });
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
-        // 👨‍⚕️ CRUD de tutores
+        // 👨‍⚕️ Tutores
         Route::resource('tutores', TutorController::class)
             ->names('tutores')
             ->parameters(['tutores' => 'tutor']);
 
-        // ============================================================
-        // 🗓️ CRUD DE CITAS MÉDICAS
-        // ============================================================
+        // 🗓️ Citas
         Route::resource('citas', App\Http\Controllers\CitaController::class)
             ->names('citas')
             ->parameters(['citas' => 'cita']);
-
-        // 🔄 Actualización del estado de la cita
         Route::patch('citas/{idCita}/estado', [App\Http\Controllers\CitaController::class, 'actualizarEstado'])
             ->name('citas.actualizarEstado');
+
+        // 🧠 Tests psicológicos
+        // 1) Asignar
+        Route::get('tests/asignar',  [AsignacionTestController::class, 'index'])->name('tests.asignar.index');
+        Route::post('tests/asignar', [AsignacionTestController::class, 'store'])->name('tests.asignar.store');
+
+        // 2) Builder
+        Route::get('tests/{idTest}/builder', [TestBuilderController::class, 'edit'])->name('tests.builder.edit');
+        Route::put('tests/{idTest}/builder', [TestBuilderController::class, 'update'])->name('tests.builder.update');
+
+        // Evitar conflictos con 'builder/asignar'
+        Route::pattern('idTest', '[0-9]+');
+
+        // 3) CRUD principal
+        Route::resource('tests', TestController::class)
+            ->parameters(['tests' => 'idTest'])
+            ->names('tests');
+
+        // 🔔 Notificaciones del médico
+        Route::prefix('notificaciones')->name('notificaciones.')->group(function () {
+            Route::get('/',        [App\Http\Controllers\Medico\NotificacionesController::class, 'index'])->name('index');
+            Route::post('/{id}/leer',   [App\Http\Controllers\Medico\NotificacionesController::class, 'markRead'])->name('markRead');
+            Route::post('/leertodas',   [App\Http\Controllers\Medico\NotificacionesController::class, 'markAllRead'])->name('markAll');
+            Route::get('/fragment',     [App\Http\Controllers\Medico\NotificacionesController::class, 'fragment'])->name('fragment');
+        });
+
+        // 🧩 Detalle de test respondido (vista completa) + Confirmar diagnóstico
+        Route::get('tests/asignaciones/{idAsignacionTest}', 
+            [App\Http\Controllers\Medico\AsignacionTestController::class, 'showDetalle']
+        )->name('tests.asignaciones.show');
+
+        // ✅ Confirmar diagnóstico (POST desde la vista completa)
+        Route::post('tests/asignaciones/{idAsignacionTest}/confirmar',
+            [App\Http\Controllers\Medico\AsignacionTestController::class, 'confirmar']
+        )->name('tests.asignaciones.confirmar');
+
     });
+
+
 
 /* 💬 Sección del PACIENTE */
 Route::middleware(['auth', 'rol:paciente'])
@@ -205,12 +237,33 @@ Route::middleware(['auth', 'rol:paciente'])
                 ->name('completar');
         });
 
-        // 📅 Citas del paciente
-        //Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])
-          //  ->name('citas.index');
-        //Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])
-            //->name('citas.cancelar');
+        // 🧠 TESTS PSICOLÓGICOS ASIGNADOS AL PACIENTE
+        Route::prefix('tests')->name('tests.')->group(function () {
+            // 📋 Listado de tests asignados
+            Route::get('/', [App\Http\Controllers\Paciente\TestPacienteController::class, 'index'])
+                ->name('index');
+
+            // 📝 Ver y responder test asignado
+            Route::get('/{idAsignacionTest}/responder', [App\Http\Controllers\Paciente\TestPacienteController::class, 'responder'])
+                ->whereNumber('idAsignacionTest')
+                ->name('responder');
+
+            // 💾 Guardar respuestas
+            Route::post('/{idAsignacionTest}/responder', [App\Http\Controllers\Paciente\TestPacienteController::class, 'guardar'])
+                ->whereNumber('idAsignacionTest')
+                ->name('guardar');
+
+            // 📬 Acuse de recibido (sin diagnóstico)
+            Route::get('/{idAsignacionTest}/recibido', [App\Http\Controllers\Paciente\TestPacienteController::class, 'recibido'])
+                ->whereNumber('idAsignacionTest')
+                ->name('recibido');
+        });
+
+        // 📅 Citas del paciente (si se reactivan después)
+        // Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])->name('citas.index');
+        // Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])->name('citas.cancelar');
     });
+
 
 /* 🛡️ Rutas de autenticación (Breeze) */
 require __DIR__.'/auth.php';

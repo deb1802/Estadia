@@ -447,4 +447,5 @@
     });
   });
 </script>
+@include('medico.bottom-navbar')
 @endsection

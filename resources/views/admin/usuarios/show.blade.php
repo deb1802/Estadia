@@ -114,22 +114,6 @@
 
         </div>
 
-        {{-- FOOTER --}}
-        <div class="card-footer bg-white border-top py-3">
-            <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a href="{{ route('admin.usuarios.edit', $usuario->idUsuario) }}" class="btn btn-primary px-4">
-                    <i class="fas fa-edit me-1"></i> Editar
-                </a>
-
-                <form action="{{ route('admin.usuarios.destroy', $usuario->idUsuario) }}"
-                      method="POST" class="form-delete m-0">
-                    @csrf @method('DELETE')
-                    <button type="button" class="btn btn-danger btn-delete px-4">
-                        <i class="fas fa-trash-alt me-1"></i> Eliminar
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 
