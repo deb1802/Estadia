@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Medico;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +37,7 @@ class ExpedienteController extends AppBaseController
         ->orderByDesc('e.fechaActualizacion')
         ->paginate(10);
 
-    return view('expedientes.index', compact('expedientes'));
+    return view('medico.expedientes.index', compact('expedientes'));
 }
 
 
@@ -60,7 +60,7 @@ class ExpedienteController extends AppBaseController
             ->select('p.id as idPaciente', DB::raw("CONCAT(u.nombre, ' ', u.apellido) as nombreCompleto"))
             ->pluck('nombreCompleto', 'idPaciente');
 
-        return view('expedientes.create', compact('pacientes'));
+        return view('medico.expedientes.create', compact('pacientes'));
     }
 
     /**
@@ -156,7 +156,7 @@ $tests = DB::table('AsignacionesTest as a')
     ->get();
 
 
-        return view('expedientes.show', compact(
+        return view('medico.expedientes.show', compact(
             'expediente',
             'citas',
             'tests',
@@ -190,7 +190,7 @@ $tests = DB::table('AsignacionesTest as a')
             ->select('p.id as idPaciente', DB::raw("CONCAT(u.nombre, ' ', u.apellido) as nombreCompleto"))
             ->pluck('nombreCompleto', 'idPaciente');
 
-        return view('expedientes.edit', compact('expediente', 'pacientes'));
+        return view('medico.expedientes.edit', compact('expediente', 'pacientes'));
     }
 
     /**

@@ -23,29 +23,37 @@ class AuthenticatedSessionController extends Controller
      * Manejar una solicitud de autenticación entrante.
      */
     public function store(LoginRequest $request): RedirectResponse
-    {
-        // Adaptar la autenticación al campo 'contrasena' de tu tabla
-        $request->merge(['password' => $request->contrasena]);
+{
+    // ✅ Adaptar a tu formulario (contrasena -> password)
+    $request->merge(['password' => $request->contrasena]);
 
-        $request->authenticate();
-        $request->session()->regenerate();
+    // Autentica (usa LoginRequest::authenticate)
+    $request->authenticate();
 
-        $usuario = Auth::user();
+    // Regenera la sesión
+    $request->session()->regenerate();
 
-        // 🔁 Redirigir según tipo de usuario
-        switch ($usuario->tipoUsuario) {
-            case 'administrador':
-                return redirect()->route('admin.dashboard'); // 👈 Página del administrador
-            case 'medico':
-                return redirect()->route('medico.dashboard'); // 👈 Página del médico
-            case 'paciente':
-                return redirect()->route('paciente.dashboard'); // 👈 Página del paciente
-            default:
-                Auth::logout();
-                return redirect()->route('login')
-                    ->with('mensaje', 'Tu cuenta no tiene un rol asignado. Contacta al administrador.');
-        }
+    $usuario = Auth::user();
+
+    // 🎯 A dónde queremos mandarlo por su rol:
+    $destinoPorRol = match ($usuario->tipoUsuario) {
+        'administrador' => route('admin.dashboard'),
+        'medico'        => route('medico.dashboard'),
+        'paciente'      => route('paciente.dashboard'),
+        default         => null,
+    };
+
+    if (!$destinoPorRol) {
+        Auth::logout();
+        return redirect()
+            ->route('login')
+            ->with('mensaje', 'Tu cuenta no tiene un rol válido. Contacta al administrador.');
     }
+
+    // 🔁 Usa intended para respetar el “querías ir a…”
+    return redirect()->intended($destinoPorRol);
+}
+
 
     /**
      * Cerrar la sesión autenticada (manual o por inactividad).

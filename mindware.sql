@@ -16,7 +16,6 @@ CREATE TABLE Usuarios (
     fechaRegistro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- 🔹 Nueva columna, se llena sola
 );
 
-DROP TABLE IF EXISTS Medicos;
 CREATE TABLE Medicos (
     id INT AUTO_INCREMENT PRIMARY KEY,           -- ID propio del médico
     usuario_id INT NOT NULL UNIQUE,              -- FK hacia Usuarios.idUsuario
@@ -38,7 +37,7 @@ CREATE TABLE Pacientes (
       ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
-
+show tables;
 CREATE TABLE Tutores (
     idTutor INT PRIMARY KEY AUTO_INCREMENT,
     nombreCompleto VARCHAR(100),
@@ -129,7 +128,6 @@ CREATE TABLE Detalle_Medicamento (
   fkMedico INT NOT NULL,
   FOREIGN KEY (fkMedico) REFERENCES Medicos(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 
 
 /* =========================================================
@@ -243,7 +241,7 @@ CREATE TABLE Actividades (
     nivelSeveridad VARCHAR(50),
     recurso TEXT,
     fkMedico INT,
-    FOREIGN KEY (fkMedico) REFERENCES Medicos(idMedico)
+    FOREIGN KEY (fkMedico) REFERENCES Medicos(id)
 );
 
 CREATE TABLE AsignacionActividad (
@@ -283,7 +281,7 @@ CREATE TABLE Emociones (
     intensidad INT, -- escala 1-5
     comentario TEXT,
     FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
 );
 
 CREATE TABLE Expedientes (
@@ -310,7 +308,7 @@ CREATE TABLE Testimonios (
     fkPaciente INT NOT NULL,
     fecha DATE DEFAULT CURRENT_DATE,
     contenido TEXT NOT NULL,
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
       ON UPDATE CASCADE ON DELETE RESTRICT
 );
 
@@ -324,7 +322,7 @@ CREATE TABLE RespuestasTestimonio (
   fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (fkTestimonio) REFERENCES Testimonios(idTestimonio)
     ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+  FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
     ON UPDATE CASCADE ON DELETE RESTRICT,
   INDEX (fkTestimonio),
   INDEX (fkPaciente)

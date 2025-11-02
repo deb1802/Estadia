@@ -22,7 +22,8 @@ use App\Http\Controllers\Admin\RecetaAdminController;
 use App\Http\Controllers\Medico\TestController;
 use App\Http\Controllers\Medico\TestBuilderController;
 use App\Http\Controllers\Medico\AsignacionTestController;
-use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\Medico\ExpedienteController;
+
 
 Route::pattern('actividad', '[0-9]+');
 
