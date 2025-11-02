@@ -9,6 +9,51 @@
   .card-soft{ border:1px solid var(--bd); box-shadow:0 10px 30px rgba(27,59,111,.08); border-radius:16px; }
   .section-title{ font-weight:800; color:var(--ink); }
   .req::after{ content:"*"; color:#dc3545; margin-left:4px; }
+
+  @push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --g-text:#374151;       /* gris oscuro */
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;      /* gris claro borde */
+    --g-borde-2:#9ca3af;    /* gris medio hover */
+    --g-bg:#ffffff;         /* fondo blanco */
+    --g-bg-hover:#f3f4f6;   /* gris claro hover */
+  }
+
+  /* ===== Botón suave reutilizable (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+  }
+
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+
+  .btn-soft:active{
+    transform: scale(.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  .btn-soft i{
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+</style>
+@endpush
+
 </style>
 @endpush
 
@@ -17,7 +62,14 @@
   <div class="page">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="section-title mb-0">Detalle de receta #{{ $receta->idReceta }}</h2>
-      <a href="{{ url()->previous() }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver</a>
+      <div class="mb-3">
+        <button type="button"
+                class="btn btn-soft"
+                onclick="window.history.back()">
+          <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+        </button>
+      </div>
+
     </div>
 
     @if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
@@ -69,7 +121,7 @@
             </div>
             <div class="col-12 col-lg-2">
               <label class="form-label req">Dosis</label>
-              <input type="text" name="dosis" class="form-control" maxlength="100" value="{{ old('dosis') }}" placeholder="Ej. 500 mg" required>
+              <input type="text" name="dosis" class="form-control" maxlength="100" value="{{ old('dosis') }}" placeholder="Ej. Tomar 2 pastillas" required>
             </div>
             <div class="col-12 col-lg-3">
               <label class="form-label req">Frecuencia</label>
@@ -77,7 +129,7 @@
             </div>
             <div class="col-12 col-lg-3">
               <label class="form-label req">Duración</label>
-              <input type="text" name="duracion" class="form-control" maxlength="100" value="{{ old('duracion') }}" placeholder="Ej. 7 días" required>
+              <input type="text" name="duracion" class="form-control" maxlength="100" value="{{ old('duracion') }}" placeholder="Ej. Por 2 meses" required>
             </div>
           </div>
 
@@ -140,4 +192,5 @@
 
   </div>
 </div>
+@include('medico.bottom-navbar')
 @endsection

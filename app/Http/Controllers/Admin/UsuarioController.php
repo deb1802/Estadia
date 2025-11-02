@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\StoreUsuarioRequest;
+use Illuminate\Support\Arr;
+
 
 class UsuarioController extends Controller
 {
@@ -89,32 +92,45 @@ class UsuarioController extends Controller
         return view('admin.usuarios.create');
     }
 
-    public function store(\App\Http\Requests\CreateUsuariosRequest $request)
-    {
-        $data = $request->all();
+  public function store(StoreUsuarioRequest $request)
+{
+    $data = $request->validated();
+    $data['estadoCuenta'] = $data['estadoCuenta'] ?? 'activo';
 
-        $data['estadoCuenta'] = $data['estadoCuenta'] ?? 'activo';
-        if (!empty($data['contrasena'])) {
-            $data['contrasena'] = Hash::make($data['contrasena']);
-        }
+    if (!empty($data['contrasena'])) {
+        $data['contrasena'] = Hash::make($data['contrasena']);
+    }
 
-        DB::transaction(function () use ($data, $request) {
-            $usuario = \App\Models\Usuario::create($data);
+    $usuarioData = \Illuminate\Support\Arr::only($data, [
+        'nombre','apellido','email','contrasena',
+        'fechaNacimiento','sexo','telefono',
+        'tipoUsuario','estadoCuenta',
+    ]);
+
+    try {
+        DB::transaction(function () use ($usuarioData, $data) {
+            $usuario = \App\Models\Usuario::create($usuarioData);
 
             if (($data['tipoUsuario'] ?? null) === 'medico') {
                 Medico::create([
-                    'usuario_id'        => $usuario->idUsuario,
-                    'cedulaProfesional' => $request->cedulaProfesional,
-                    'especialidad'      => $request->especialidad,
+                    'usuario_id'        => $usuario->idUsuario, // ⚠️ si tu PK es id, cambia a $usuario->id
+                    'cedulaProfesional' => $data['cedulaProfesional'] ?? null,
+                    'especialidad'      => $data['especialidad'] ?? null,
                 ]);
             }
         });
 
         return redirect()
-            ->route('admin.usuarios.index')
-            ->with('success', 'Usuario registrado correctamente.');
-    }
+            ->route('admin.usuarios.index')   // ✅ Index
+            ->with('success', 'Usuario creado exitosamente.');
 
+    } catch (\Throwable $e) {
+        Log::error('Crear usuario falló', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return back()
+            ->withInput()
+            ->withErrors(['general' => 'No se pudo crear el usuario. Revisa los campos o intenta de nuevo.']);
+    }
+}
     public function edit($id)
     {
         $usuario = Usuario::findOrFail($id);

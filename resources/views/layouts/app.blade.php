@@ -29,6 +29,33 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
+    {{-- 🔹 Estilos para breadcrumbs --}}
+    <style>
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            color: #6b7280;
+            margin: 0 .3rem;
+        }
+        .breadcrumb-item a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb-item.active {
+            color: #374151;
+            font-weight: 600;
+        }
+    </style>
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
@@ -46,6 +73,17 @@
             </header>
         @endif
 
+        {{-- 🔹 Breadcrumbs (rastro de navegación) --}}
+        @php($crumbName = optional(request()->route())->getName())
+        @if ($crumbName && \Diglactic\Breadcrumbs\Breadcrumbs::exists($crumbName))
+            <nav class="bg-white border-bottom py-2 px-3 shadow-sm">
+                <div class="max-w-7xl mx-auto text-sm text-gray-700">
+                    {{ \Diglactic\Breadcrumbs\Breadcrumbs::render() }}
+                </div>
+            </nav>
+        @endif
+
+
         {{-- 🔹 Contenido principal --}}
         <main class="py-4">
             @hasSection('content')
@@ -54,7 +92,6 @@
                 {{ $slot ?? '' }}
             @endif
         </main>
-
     </div>
 
     {{-- ✅ jQuery + Bootstrap 4 JS (sin CSS para no alterar tu diseño) --}}
@@ -68,16 +105,18 @@
     @stack('modals')
 
     <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-      new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-  });
-</script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+          new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+      });
+    </script>
+
     {{-- ✅ Pila de scripts por vista --}}
     @stack('scripts')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
 </body>
 </html>

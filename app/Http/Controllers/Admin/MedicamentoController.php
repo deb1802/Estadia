@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Medicamento;
 use Flash;
+use App\Http\Requests\StoreMedicamentoRequest;
+
 
 class MedicamentoController extends Controller
 {
@@ -106,24 +108,24 @@ class MedicamentoController extends Controller
     /**
      * Guardar nuevo medicamento (con imagen).
      */
-    public function store(Request $request)
+    public function store(StoreMedicamentoRequest $request)
     {
-        $data = $request->validate([
-            'nombre'             => 'required|string|max:100',
-            'presentacion'       => 'nullable|string|max:50',
-            'indicaciones'       => 'nullable|string',
-            'efectosSecundarios' => 'nullable|string',
-            'imagenMedicamento'  => 'nullable|image|max:2048',
-        ]);
+        // Datos validados por el Form Request
+        $data = $request->validated();
 
+        // Manejo de imagen (opcional)
         if ($request->hasFile('imagenMedicamento')) {
-            $path = $request->file('imagenMedicamento')->store('medicamentos', 'public');
-            $data['imagenMedicamento'] = $path;
+            $data['imagenMedicamento'] = $request->file('imagenMedicamento')
+                ->store('medicamentos', 'public'); // storage/app/public/medicamentos
         }
 
+        // Crea usando tu repositorio
         $this->medicamentosRepository->create($data);
 
-        Flash::success('Medicamento creado correctamente.');
+        // Alerta de éxito (Laracasts Flash)
+        \Flash::success('Medicamento creado correctamente.');
+
+        // Redirige al índice de medicamentos
         return redirect()->route($this->base().'medicamentos.index');
     }
 

@@ -3,6 +3,8 @@
   $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
   $dashboardRoute = $routeArea.'dashboard';
 @endphp
+@php use Illuminate\Support\Str; @endphp
+
 
 @extends('layouts.app')
 
@@ -62,7 +64,7 @@
         {{-- Botón de crear (según policy) --}}
         @can('create', App\Models\Medicamento::class)
           <a class="btn btn-primary" href="{{ route($routeArea.'medicamentos.create') }}">
-            <i class="fas fa-plus"></i> Nuevo Medicamento
+            <i class="fas fa-plus"></i> Crear Nuevo Medicamento
           </a>
         @endcan
       </div>
@@ -72,6 +74,78 @@
 
 <div class="content px-3">
   @include('flash::message')
+  {{-- Estilos y auto-cierre para alerts (Laracasts o session) --}}
+<style>
+  /* ==== Estilo compacto alineado a la izquierda ==== */
+  .alert {
+    position: relative;
+    margin: 1rem 0 1rem 1rem;   /* se separa del borde izquierdo */
+    max-width: 400px;           /* tamaño reducido */
+    border-radius: 6px;
+    padding: 8px 12px;          /* más compacto */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* alinea contenido a la izquierda */
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  }
+
+  /* Éxito */
+  .alert-success {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    border-left: 6px solid #198754;
+  }
+
+  /* Info */
+  .alert-info {
+    background: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+    border-left: 6px solid #0dcaf0;
+  }
+
+  /* Error / Danger */
+  .alert-danger, .alert-error {
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-left: 6px solid #dc3545;
+  }
+
+  /* Warning */
+  .alert-warning {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+    border-left: 6px solid #ffc107;
+  }
+
+  /* Ícono dentro del alert */
+  .alert i {
+    font-size: 1rem;
+    margin-right: 8px;
+  }
+</style>
+
+
+<script>
+  // Desvanece y remueve cualquier .alert (success/info/warn/error) a los 6s
+  (function() {
+    const alerts = document.querySelectorAll('.alert');
+    if (!alerts.length) return;
+    setTimeout(() => {
+      alerts.forEach(el => {
+        el.style.transition = 'opacity .8s ease';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 800);
+      });
+    }, 6000);
+  })();
+</script>
+
 
   {{-- 🔍 Barra de búsqueda (siempre visible para admin y médico) --}}
   <div class="card card-body shadow-sm mb-3 card-search">
@@ -129,39 +203,51 @@
                 <td>{{ Str::limit($medicamento->efectosSecundarios, 60) }}</td>
                 <td>
                   @if($medicamento->imagenMedicamento)
-                    <img src="{{ asset('storage/' . $medicamento->imagenMedicamento) }}" alt="Imagen" width="60" height="60" class="rounded">
+                    <img src="{{ asset('storage/' . $medicamento->imagenMedicamento) }}"
+                        alt="Imagen" width="60" height="60" class="rounded">
                   @else
                     <span class="text-muted">Sin imagen</span>
                   @endif
                 </td>
-                <td>
-                  @can('view', $medicamento)
-                    <a href="{{ route($routeArea.'medicamentos.show', $medicamento->idMedicamento) }}"
-                       class="btn btn-sm btn-info">
-                      <i class="fas fa-eye"></i>
-                    </a>
-                  @endcan
-                  @can('update', $medicamento)
-                    <a href="{{ route($routeArea.'medicamentos.edit', $medicamento->idMedicamento) }}"
-                       class="btn btn-sm btn-warning text-white">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                  @endcan
-                  @can('delete', $medicamento)
-                    {!! Form::open([
-                      'route' => [$routeArea.'medicamentos.destroy', $medicamento->idMedicamento],
-                      'method' => 'delete',
-                      'style' => 'display:inline'
-                    ]) !!}
-                      {!! Form::button('<i class="fas fa-trash-alt"></i>', [
-                        'type' => 'submit',
-                        'class' => 'btn btn-sm btn-danger',
-                        'onclick' => "return confirm('¿Eliminar este medicamento?')"
+
+                <td class="text-center align-middle">
+                  <div class="btn-group btn-group-sm" role="group" aria-label="Acciones">
+                    {{-- Ver --}}
+                    @can('view', $medicamento)
+                      <a href="{{ route($routeArea.'medicamentos.show', $medicamento->idMedicamento) }}"
+                        class="btn btn-outline-info"
+                        title="Ver medicamento">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                    @endcan
+
+                    {{-- Editar --}}
+                    @can('update', $medicamento)
+                      <a href="{{ route($routeArea.'medicamentos.edit', $medicamento->idMedicamento) }}"
+                        class="btn btn-outline-warning"
+                        title="Editar medicamento">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                    @endcan
+
+                    {{-- Eliminar --}}
+                    @can('delete', $medicamento)
+                      {!! Form::open([
+                        'route'  => [$routeArea.'medicamentos.destroy', $medicamento->idMedicamento],
+                        'method' => 'delete',
+                        'class'  => 'form-delete d-inline'
                       ]) !!}
-                    {!! Form::close() !!}
-                  @endcan
+                        <button type="submit"
+                                class="btn btn-outline-danger btn-delete"
+                                title="Eliminar medicamento">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      {!! Form::close() !!}
+                    @endcan
+                  </div>
                 </td>
               </tr>
+
             @endforeach
           </tbody>
         </table>
@@ -169,6 +255,10 @@
     </div>
   </div>
 </div>
+@if (request()->is('medico/*'))
+  @include('medico.bottom-navbar')
+@endif
+
 @endsection
 
 @push('scripts')
@@ -202,3 +292,52 @@
   })();
 </script>
 @endpush
+
+
+@push('scripts')
+  {{-- SweetAlert2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+  // Delegación: muestra el modal ANTES de enviar el form de borrar
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('form.form-delete button[type="submit"]');
+    if (!btn) return;
+
+    e.preventDefault(); // evita que se envíe de inmediato
+    const form = btn.closest('form.form-delete');
+    if (!form) return;
+
+    Swal.fire({
+      title: '¿Eliminar medicamento?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#6c757d',
+      reverseButtons: true,
+      focusCancel: true
+    }).then(result => {
+      if (result.isConfirmed) {
+        // Envío nativo (evita otros handlers que podrían reinterceptar)
+        HTMLFormElement.prototype.submit.call(form);
+      }
+    });
+  }, true); // capture=true por si hay otros listeners
+  </script>
+@endpush
+
+<style>
+  .btn-group-sm .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .35rem .55rem;
+  }
+  .btn-group > form.form-delete {
+    display: inline-flex;
+    margin: 0;
+  }
+</style>

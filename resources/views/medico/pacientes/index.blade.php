@@ -73,13 +73,51 @@
                 <i class="fas fa-users me-2"></i> Gestión de pacientes
             </h1>
 
+           @if (session('success'))
+            <div id="alert-success" class="alert alert-success shadow-sm my-4 py-3" style="border-radius:10px;">
+              <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+              {{ session('success') }}
+            </div>
+
+            <style>
+              #alert-success {
+                background: #d1e7dd;
+                color: #0f5132;
+                border: 1px solid #badbcc;
+                border-left: 6px solid #198754;
+                font-weight: 500;
+                padding: 16px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                max-width: 1200px;
+                margin: 2rem auto;         /* ← espacio arriba y abajo */
+                border-radius: 10px;
+              }
+            </style>
+
+            <script>
+              setTimeout(() => {
+                const el = document.getElementById('alert-success');
+                if (el) {
+                  el.style.transition = 'opacity .8s ease';
+                  el.style.opacity = '0';
+                  setTimeout(() => el.remove(), 800);
+                }
+              }, 6000);
+            </script>
+          @endif
+
+
+
             <a class="btn btn-primary shadow-sm btn-lg d-flex align-items-center"
                href="{{ route('medico.pacientes.create') }}">
                 <i class="fas fa-user-plus me-2"></i> Crear nuevo paciente
             </a>
         </div>
 
-        {{-- 🔙 Botón Volver (ajustado hacia abajo) --}}
+        {{--Botón Volver (ajustado hacia abajo) --}}
         <button type="button" class="btn btn-soft"
                 onclick="window.location='{{ route('medico.dashboard') }}'">
           <i class="bi bi-arrow-90deg-left me-1"></i> Volver
@@ -144,4 +182,5 @@ const debounce=(fn,delay=450)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeou
 })();
 </script>
 @endpush
+@include('medico.bottom-navbar')
 @endsection

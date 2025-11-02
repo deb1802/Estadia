@@ -13,6 +13,14 @@
                 <h1>Editar medicamento</h1>
             </div>
         </div>
+
+        <div class="mb-3">
+                <button type="button"
+                        class="btn btn-soft"
+                        onclick="window.location='{{ route($routeArea . 'medicamentos.index') }}'">
+                    <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+                </button>
+         </div>
     </div>
 </section>
 
@@ -48,4 +56,51 @@
         {!! Form::close() !!}
     </div>
 </div>
+@if (request()->is('medico/*'))
+  @include('medico.bottom-navbar')
+@endif
+
 @endsection
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --g-text:#374151;       /* gris oscuro */
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;      /* gris claro borde */
+    --g-borde-2:#9ca3af;    /* gris medio hover */
+    --g-bg:#ffffff;         /* fondo blanco */
+    --g-bg-hover:#f3f4f6;   /* gris claro hover */
+  }
+
+  /* ===== Botón suave reutilizable (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+  }
+
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+
+  .btn-soft:active{
+    transform: scale(.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  .btn-soft i{
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+</style>
+@endpush

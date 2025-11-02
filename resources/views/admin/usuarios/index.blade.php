@@ -66,6 +66,15 @@
       .search-actions{
         display:flex; gap:10px; align-items:center; flex-wrap:wrap;
       }
+
+      .alert-success {
+      background: #d1e7dd;
+      color: #0f5132;
+      border: 1px solid #badbcc;
+      font-weight: 500;
+      border-left: 5px solid #198754;
+    }
+
     </style>
 @endpush
 
@@ -81,6 +90,19 @@
                 <i class="fas fa-user-plus me-2"></i> Crear nuevo usuario
             </a>
         </div>
+        @if (session('success'))
+          <div id="alert-success" 
+              class="alert alert-success shadow-sm mb-3"
+              style="border-radius:8px; margin-top: 2rem;">  
+              <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+          </div>
+          <script>
+            setTimeout(()=>{const e=document.getElementById('alert-success'); if(e){e.style.transition='opacity .8s'; e.style.opacity='0'; setTimeout(()=>e.remove(),800);} },6000);
+          </script>
+        @endif
+
+
+
 
         {{-- 🔙 Botón Volver (estilo suave y moderno) --}}
         <button type="button" class="btn btn-soft"

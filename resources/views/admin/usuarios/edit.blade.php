@@ -13,11 +13,11 @@
         <a href="{{ route('admin.usuarios.index') }}" class="btn btn-secondary shadow-sm d-flex align-items-center">
             <i class="fas fa-arrow-left me-2"></i> Regresar
         </a>
+        
     </div>
 </section>
 
 <div class="content px-4 py-4" style="background: linear-gradient(180deg, #e7f1ff 0%, #f5f9ff 100%); min-height: 100vh;">
-    @include('adminlte-templates::common.errors')
 
     <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width: 800px;">
         <div class="card-body p-4">

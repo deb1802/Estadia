@@ -31,14 +31,33 @@
 <!-- Email Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('email', 'Email:') !!}
-    {!! Form::email('email', null, ['class' => 'form-control', 'required']) !!}
+    {!! Form::email('email', old('email', $usuario->email ?? null), [
+        'class' => 'form-control' . ($errors->has('email') ? ' is-invalid' : ''),
+        'required' => true,
+        'autocomplete' => 'email',
+        'maxlength' => 150
+    ]) !!}
+    @error('email')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
 </div>
+
 
 <!-- Contraseña Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('contrasena', 'Contraseña:') !!}
-    {!! Form::password('contrasena', ['class' => 'form-control', 'required', 'minlength' => 6]) !!}
+    {!! Form::password('contrasena', [
+        'class' => 'form-control' . ($errors->has('contrasena') ? ' is-invalid' : ''),
+        'required' => true,
+        'minlength' => 6,
+        'autocomplete' => 'new-password',
+    ]) !!}
+    @error('contrasena')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+    <small class="form-text text-muted">Mínimo 6 caracteres.</small>
 </div>
+
 
 
 {{-- Fecha de nacimiento --}}
@@ -145,11 +164,21 @@
 <!-- Estado de Cuenta Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('estadoCuenta', 'Estado de Cuenta:') !!}
-    {!! Form::select('estadoCuenta', [
-        'activo' => 'Activo',
-        'inactivo' => 'Inactivo'
-    ], null, ['class' => 'form-control', 'placeholder' => 'Seleccione estado']) !!}
+    {!! Form::select(
+        'estadoCuenta',
+        ['activo' => 'Activo', 'inactivo' => 'Inactivo'],
+        old('estadoCuenta', $usuario->estadoCuenta ?? null),
+        [
+            'class' => 'form-select' . ($errors->has('estadoCuenta') ? ' is-invalid' : ''),
+            'placeholder' => 'Seleccione estado'
+        ]
+    ) !!}
+    @error('estadoCuenta')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
 </div>
+
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -170,4 +199,47 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleCampos(); // ejecutar al cargar (por si ya es médico)
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Reglas simples de validación HTML5
+  const set = (sel, attrs) => {
+    const el = document.querySelector(`[name="${sel}"]`);
+    if(!el) return;
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+  };
+
+  // Solo letras y espacios (nombre/apellido)
+  const soloLetras = "^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s]+$";
+  set('nombre',   { pattern: soloLetras, title: 'Solo letras y espacios' });
+  set('apellido', { pattern: soloLetras, title: 'Solo letras y espacios' });
+
+  // Email con formato válido
+  set('email', { type: 'email', title: 'Formato: usuario@dominio.com' });
+
+  // Teléfono: exactamente 10 dígitos
+  set('telefono', { pattern: "^\\d{10}$", title: '10 dígitos (sin espacios ni guiones)' });
+
+  // Cédula (si existe)
+  const ced = document.querySelector('[name="cedulaProfesional"]');
+  if(ced){ ced.setAttribute('title','Letras, números o guiones (5 a 20 caracteres)'); }
+
+  // Bloquear envío si hay campos inválidos
+  const form = document.querySelector('form');
+  form?.addEventListener('submit', (e) => {
+    if(!form.checkValidity()){
+      e.preventDefault();
+      e.stopPropagation();
+      form.querySelectorAll(':invalid').forEach(el => el.classList.add('is-invalid'));
+    }
+  });
+
+  // Quita el rojo al corregir
+  document.querySelectorAll('input,select,textarea').forEach(el => {
+    el.addEventListener('input', () => el.classList.remove('is-invalid'));
+    el.addEventListener('change', () => el.classList.remove('is-invalid'));
+  });
+});
+</script>
+
 

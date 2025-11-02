@@ -6,11 +6,52 @@
     <h1 class="fw-bold text-primary mb-0">
       <i class="fas fa-user-circle me-2"></i> Detalle del paciente
     </h1>
+    @if (session('success'))
+      <div id="alert-success" class="alert alert-success shadow-sm my-4 py-3" style="border-radius:10px;">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        {{ session('success') }}
+      </div>
+
+      <style>
+        #alert-success {
+          background: #d1e7dd;
+          color: #0f5132;
+          border: 1px solid #badbcc;
+          border-left: 6px solid #198754;
+          font-weight: 500;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          max-width: 1200px;
+          margin: 2rem auto;         /* ← espacio arriba y abajo */
+          border-radius: 10px;
+        }
+      </style>
+
+      <script>
+        setTimeout(() => {
+          const el = document.getElementById('alert-success');
+          if (el) {
+            el.style.transition = 'opacity .8s ease';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 800);
+          }
+        }, 6000);
+      </script>
+    @endif
+
 
     <div class="d-flex gap-2">
-      <a href="{{ route('medico.pacientes.index') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-1"></i> Volver
-      </a>
+      
+              <div class="mb-3">
+                <button type="button"
+                  class="btn btn-soft"
+                    onclick="window.location='{{ route('medico.pacientes.index') }}'">
+                    <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+                </button>
+              </div>
 
       {{-- Botón principal: generar receta médica para este paciente --}}
       <a href="{{ url('medico/recetas/crear?paciente='.$paciente->id) }}" class="btn btn-primary">
@@ -185,10 +226,56 @@
     <div class="card-footer bg-white border-top py-3">
       <div class="d-flex justify-content-center">
         <a href="{{ route('medico.pacientes.index') }}" class="btn btn-outline-primary">
-          <i class="fas fa-list me-1"></i> Volver al listado
+          <i class="fas fa-list me-1"></i> Volver al listado de pacientes
         </a>
       </div>
     </div>
   </div>
 </div>
+@include('medico.bottom-navbar')
 @endsection
+
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --g-text:#374151;       /* gris oscuro */
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;      /* gris claro borde */
+    --g-borde-2:#9ca3af;    /* gris medio hover */
+    --g-bg:#ffffff;         /* fondo blanco */
+    --g-bg-hover:#f3f4f6;   /* gris claro hover */
+  }
+
+  /* ===== Botón suave reutilizable (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+  }
+
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+
+  .btn-soft:active{
+    transform: scale(.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  .btn-soft i{
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+</style>
+@endpush

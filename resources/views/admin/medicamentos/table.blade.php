@@ -41,14 +41,14 @@
                  href="{{ route('admin.medicamentos.edit', $medicamento->idMedicamento) }}"
                  title="Editar"><i class="fas fa-edit"></i></a>
 
-              {{-- Eliminar con modal SweetAlert --}}
+              {{-- Eliminar con SweetAlert --}}
               {!! Form::open([
-                    'route' => ['admin.medicamentos.destroy', $medicamento->idMedicamento],
-                    'method' => 'delete',
-                    'class' => 'd-inline form-delete'
-                ]) !!}
+                  'route'  => [$routeArea.'medicamentos.destroy', $medicamento->idMedicamento],
+                  'method' => 'delete',
+                  'class'  => 'form-delete d-inline'
+              ]) !!}
                 <button type="button"
-                        class="btn btn-outline-danger btn-delete"
+                        class="btn btn-sm btn-outline-danger btn-delete"
                         title="Eliminar medicamento">
                   <i class="fas fa-trash-alt"></i>
                 </button>
@@ -66,27 +66,75 @@
   </div>
 </div>
 
-{{-- === Modal SweetAlert para eliminar === --}}
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const form = this.closest('form.form-delete');
-      if (!form) return;
 
-      Swal.fire({
-        title: '¿Eliminar medicamento?',
-        text: 'Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) form.submit();
+  <div class="card-footer">
+    {{ $medicamentos->links() }}
+  </div>
+</div>
+
+@push('scripts')
+  {{-- Cargar SweetAlert2 --}}
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  {{-- Tu mismo código (sin cambios) --}}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const form = this.closest('form.form-delete');
+        if (!form) return;
+        Swal.fire({
+          title: '¿Eliminar medicamento?',
+          text: 'Esta acción no se puede deshacer.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, eliminar',
+          cancelButtonText: 'Cancelar'
+        }).then((result) => {
+          if (result.isConfirmed) form.submit();
+        });
       });
     });
   });
-});
-</script>
+  </script>
+@endpush
+@push('styles')
+<style>
+  /* Contenedor con scroll horizontal */
+  .table-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4f7df3 #dbeafe; /* para Firefox */
+  }
+
+  /* Scrollbar para Chrome, Edge y Safari */
+  .table-scroll::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .table-scroll::-webkit-scrollbar-track {
+    background: #dbeafe; /* azul claro */
+    border-radius: 10px;
+  }
+
+  .table-scroll::-webkit-scrollbar-thumb {
+    background-color: #4f7df3; /* azul Mindora */
+    border-radius: 10px;
+    border: 2px solid #dbeafe;
+  }
+
+  .table-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #325bd6;
+  }
+
+  /* Evita que las celdas se rompan */
+  .table-crud th, .table-crud td {
+    white-space: nowrap;
+  }
+
+  /* Ajuste visual del scroll */
+  .table-responsive {
+    border-radius: 0 0 10px 10px;
+  }
+</style>
 @endpush

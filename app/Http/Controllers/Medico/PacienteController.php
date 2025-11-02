@@ -10,6 +10,10 @@ use App\Models\Usuario;
 use App\Models\Paciente;
 use App\Models\Medico;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\StorePacienteUsuarioRequest;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Hash;
+
 
 class PacienteController extends Controller
 {
@@ -97,48 +101,75 @@ class PacienteController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'nombre'          => ['required','string','max:50'],
-            'apellido'        => ['nullable','string','max:50'],
-            'email'           => ['required','email','max:100','unique:Usuarios,email'],
-            'contrasena'      => ['required','string','min:6'],
-            'fechaNacimiento' => ['nullable','date'],
-            'telefono'        => ['nullable','string','max:20'],
-            'padecimientos'   => ['nullable','string'],
+{
+    // 1) Validación mínima, inline
+    $validated = $request->validate([
+        'nombre'          => ['required','string','max:50'],
+        'apellido'        => ['required','string','max:50'],
+        'email'           => ['required','email','max:150',
+            Rule::unique(Usuario::class, 'email')
+        ],
+        'contrasena'      => ['required','string','min:6'],
+        'fechaNacimiento' => ['required','date','before_or_equal:today'],
+        'sexo'            => ['required','in:masculino,femenino,otro'],
+        'telefono'        => ['required','digits:10'],
+        'estadoCuenta'    => ['nullable','in:activo,inactivo'],
+        'padecimientos'   => ['required','string','max:1000'],
+    ], [
+        'apellido.required'        => 'El apellido es obligatorio.',
+        'estadoCuenta.in'          => 'Selecciona un estado válido.',
+        'padecimientos.required'   => 'Describe los padecimientos o antecedentes.',
+    ]);
+
+    // 2) Normalizaciones
+    $email = strtolower(trim($validated['email']));
+
+    // 3) Datos para la tabla Usuarios
+    $usuarioData = [
+        'nombre'          => $validated['nombre'],
+        'apellido'        => $validated['apellido'],
+        'email'           => $email,
+        'contrasena'      => Hash::make($validated['contrasena']),
+        'fechaNacimiento' => $validated['fechaNacimiento'],
+        'sexo'            => $validated['sexo'],
+        'telefono'        => $validated['telefono'],
+        'tipoUsuario'     => 'paciente',
+        'estadoCuenta'    => $validated['estadoCuenta'] ?? 'activo',
+    ];
+
+    // 4) Inserción atómica
+    DB::beginTransaction();
+    try {
+        // Usuario
+        $usuario = Usuario::create($usuarioData);
+
+        // Médico dueño (por el usuario autenticado)
+        $medico = Medico::where('usuario_id', Auth::id())->first();
+        if (!$medico) {
+            throw new \RuntimeException('Médico no encontrado para el usuario actual.');
+        }
+
+        // Paciente
+        Paciente::create([
+            'usuario_id'    => $usuario->getKey(),  // funciona con id o idUsuario
+            'medico_id'     => $medico->getKey(),
+            'padecimientos' => $validated['padecimientos'],
         ]);
 
-        DB::beginTransaction();
-        try {
-            $usuario = Usuario::create([
-                'nombre'          => $validated['nombre'],
-                'apellido'        => $validated['apellido'] ?? null,
-                'email'           => $validated['email'],
-                'contrasena'      => bcrypt($validated['contrasena']),
-                'fechaNacimiento' => $validated['fechaNacimiento'] ?? null,
-                'telefono'        => $validated['telefono'] ?? null,
-                'tipoUsuario'     => 'paciente',
-                'estadoCuenta'    => 'activo',
-            ]);
+        DB::commit();
 
-            $medico = Medico::where('usuario_id', Auth::id())->firstOrFail();
+        return redirect()
+            ->route('medico.pacientes.index')
+            ->with('success', 'Paciente creado correctamente.');
 
-            Paciente::create([
-                'usuario_id'    => $usuario->idUsuario,
-                'medico_id'     => $medico->id,
-                'padecimientos' => $validated['padecimientos'] ?? null,
-            ]);
-
-            DB::commit();
-
-            return redirect()
-                ->route('medico.pacientes.index')
-                ->with('success', 'Paciente creado correctamente.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->with('error', 'Error al crear paciente: '.$e->getMessage());
-        }
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        return back()
+            ->withInput()
+            ->withErrors(['general' => 'Error al crear paciente: '.$e->getMessage()]);
     }
+}
+
 
     public function show($id)
     {

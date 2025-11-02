@@ -4,25 +4,6 @@
     @vite(['resources/css/crud-users.css'])
 @endpush
 
-@if (session('error'))
-  <div class="alert alert-danger">{{ session('error') }}</div>
-@endif
-
-@if (session('success'))
-  <div class="alert alert-success">{{ session('success') }}</div>
-@endif
-
-
-@if ($errors->any())
-  <div class="alert alert-danger">
-    <ul class="mb-0">
-      @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-      @endforeach
-    </ul>
-  </div>
-@endif
-
 @section('content')
 <section class="content-header py-3" style="background: #e7f1ff;">
     <div class="container-fluid d-flex align-items-center gap-3">
@@ -70,6 +51,7 @@
         </div>
     </div>
 </div>
+@include('medico.bottom-navbar')
 @endsection
 
 @push('scripts')

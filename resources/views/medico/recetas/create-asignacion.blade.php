@@ -158,4 +158,5 @@
     </div>
   </div>
 </div>
+@include('medico.bottom-navbar')
 @endsection

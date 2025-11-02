@@ -6,6 +6,18 @@
         <h1 class="fw-bold text-primary mb-0">
             <i class="fas fa-user-circle me-2"></i> Detalle del usuario
         </h1>
+        @if (session('success'))
+        <div id="alert-success" class="alert alert-success shadow-sm alert-floating">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+        </div>
+        <script>
+            setTimeout(()=>{const e=document.getElementById('alert-success');
+            if(e){e.style.transition='opacity .8s'; e.style.opacity='0';
+                setTimeout(()=>e.remove(),800);}
+            },6000);
+        </script>
+        @endif
+
         <a href="{{ route('admin.usuarios.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-1"></i> Volver
         </a>
@@ -156,3 +168,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 @endsection
+
+
+<style>
+    /* ==== Estilo del alerta verde ==== */
+    #alert-success {
+      background-color: #d1e7dd;   /* verde suave */
+      color: #0f5132;              /* texto verde oscuro */
+      border: 1px solid #badbcc;   /* borde claro */
+      border-left: 6px solid #198754; /* línea lateral verde más fuerte */
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    #alert-success i {
+      font-size: 1.1rem;
+    }
+  </style>

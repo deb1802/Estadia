@@ -11,6 +11,51 @@
   .label{ font-size:.85rem; color:var(--muted); }
   .hr{ height:1px; background:var(--bd); margin:.75rem 0 1rem; }
   .logo{ height: 44px; width: auto; }
+
+  @push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --g-text:#374151;       /* gris oscuro */
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;      /* gris claro borde */
+    --g-borde-2:#9ca3af;    /* gris medio hover */
+    --g-bg:#ffffff;         /* fondo blanco */
+    --g-bg-hover:#f3f4f6;   /* gris claro hover */
+  }
+
+  /* ===== Botón suave reutilizable (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+  }
+
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+
+  .btn-soft:active{
+    transform: scale(.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  .btn-soft i{
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+</style>
+@endpush
+
 </style>
 @endpush
 
@@ -23,14 +68,21 @@
         <img class="logo" src="{{ asset('img/logo.png') }}" alt="Mindware">
         <h2 class="title mb-0">Receta médica #{{ $receta->idReceta }}</h2>
       </div>
-      <div class="d-flex gap-2">
-        <a href="{{ route('medico.recetas.pdf', ['idReceta'=>$receta->idReceta]) }}" class="btn btn-outline-secondary">
+      <div class="d-flex align-items-start gap-3 mt-2">
+        {{-- Botón PDF con más espacio arriba --}}
+        <a href="{{ route('medico.recetas.pdf', ['idReceta' => $receta->idReceta]) }}"
+          class="btn btn-outline-secondary mt-3">
           <i class="bi bi-filetype-pdf"></i> PDF
         </a>
-        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left"></i> Volver
-        </a>
+
+        {{-- Botón Volver --}}
+        <button type="button"
+                class="btn btn-soft"
+                onclick="window.history.back()">
+          <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+        </button>
       </div>
+
     </div>
 
     <div class="card card-soft mb-3">
@@ -99,4 +151,5 @@
 
   </div>
 </div>
+@include('medico.bottom-navbar')
 @endsection
