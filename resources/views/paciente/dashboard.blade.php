@@ -235,8 +235,6 @@
                   <option value="respira_circulo.mp3">Respira con ritmo visual</option>
                   <option value="musica_ambiental_relajante.mp3">Música ambiental relajante</option>
                   <option value="afirmacion_positiva_1min.mp3">Afirmación positiva 1 min</option>
-                  <option value="dr_psiquiatra.mp3">Canción motivacional</option>
-                  <option value="dr_psiquiatra_cumbia.mp3">Canción motivacional bailable</option>
                 </select>
               </div>
 
@@ -327,7 +325,7 @@
         </a>
 
         {{-- 4. Citas --}}
-        <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
+        <a href="{{ route('paciente.citas.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
           <div class="icon-box" style="background:linear-gradient(135deg,#74b9ff,#6c63ff);">
             <i class="fas fa-calendar-check" aria-hidden="true"></i>
           </div>

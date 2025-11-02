@@ -75,6 +75,10 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::get('/reportes/pacientes-genero', [ReportePacientesController::class, 'pacientesPorGenero'])->name('reportes.pacientes.genero');
         Route::get('/reportes/pacientes-genero/data', [ReportePacientesController::class, 'pacientesPorGeneroData'])->name('reportes.pacientes.genero.data');
 
+        // Citas
+         Route::resource('citas', App\Http\Controllers\Admin\CitaAdminController::class)
+              ->only(['index', 'show', 'destroy']);
+
         // 💊 Recetas
         Route::get('/recetas', [RecetaAdminController::class, 'index'])->name('recetas.index');
         Route::get('/recetas/{idReceta}', [RecetaAdminController::class, 'show'])->name('recetas.show');
@@ -135,11 +139,11 @@ Route::middleware(['auth', 'rol:medico'])
         Route::resource('tutores', TutorController::class)->names('tutores');
 
         // 🗓️ Citas
-        Route::resource('citas', App\Http\Controllers\CitaController::class)
-            ->names('citas')
-            ->parameters(['citas' => 'cita']);
-        Route::patch('citas/{idCita}/estado', [App\Http\Controllers\CitaController::class, 'actualizarEstado'])
-            ->name('citas.actualizarEstado');
+        // 🗓️ Citas
+Route::resource('citas', App\Http\Controllers\Medico\CitaMedicoController::class)
+    ->names('citas')
+    ->parameters(['citas' => 'idCita']);
+
 
         // 🧠 Tests psicológicos
         Route::get('tests/asignar',  [AsignacionTestController::class, 'index'])->name('tests.asignar.index');
@@ -196,6 +200,14 @@ Route::middleware(['auth', 'rol:paciente'])
             ->name('notificaciones.markRead');
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])
             ->name('notificaciones.markAll');
+
+        
+        // Citas
+        Route::resource('citas', App\Http\Controllers\Paciente\CitaPacienteController::class)
+    ->only(['index', 'show'])
+    ->names('citas')
+    ->parameters(['citas' => 'idCita']);
+
 
         // 🧾 Recetas médicas (solo del paciente)
         Route::prefix('recetas')->name('recetas.')->group(function () {

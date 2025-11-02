@@ -10,7 +10,7 @@
                 <div class="col-sm-6">
                     <a class="btn btn-primary float-right"
                        href="{{ route('medico.citas.create') }}">
-                        Add New
+                        Añadir nueva cita
                     </a>
                 </div>
             </div>
@@ -24,7 +24,7 @@
         <div class="clearfix"></div>
 
         <div class="card">
-            @include('citas.table')
+            @include('medico.citas.table')
         </div>
     </div>
 
