@@ -10,6 +10,9 @@ use App\Policies\MedicamentoPolicy;
 
 use App\Models\ActividadesTerap;
 use App\Policies\ActividadesTerapPolicy;
+use App\Policies\TestimonioPolicy;
+use App\Policies\RespuestaTestimonioPolicy;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,8 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Medicamento::class      => MedicamentoPolicy::class,
         ActividadesTerap::class => ActividadesTerapPolicy::class,
+        Testimonio::class           => TestimonioPolicy::class,
+        RespuestaTestimonio::class  => RespuestaTestimonioPolicy::class,
     ];
 
     /**

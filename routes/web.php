@@ -23,6 +23,9 @@ use App\Http\Controllers\Medico\TestController;
 use App\Http\Controllers\Medico\TestBuilderController;
 use App\Http\Controllers\Medico\AsignacionTestController;
 use App\Http\Controllers\Medico\ExpedienteController;
+use App\Http\Controllers\Medico\TestimonioController as MedicoTestimonioController;
+use App\Http\Controllers\Admin\TestimonioModerationController;
+use App\Http\Controllers\Admin\TestimonioController as AdminTestimonioController;
 
 
 Route::pattern('actividad', '[0-9]+');
@@ -84,15 +87,36 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::get('/recetas/{idReceta}', [RecetaAdminController::class, 'show'])->name('recetas.show');
         Route::get('/recetas/{idReceta}/pdf', [RecetaAdminController::class, 'pdf'])->name('recetas.pdf');
 
+        // 🧠 Reporte: Tests asignados (nuevo)
+        Route::get('/reportes/tests', [ReporteTestsController::class, 'index'])
+            ->name('reportes.tests.index');
+
+        // 📥 Exportar a Excel
+        Route::get('/reportes/tests/export', [ReporteTestsController::class, 'export'])
+            ->name('reportes.tests.export');
+
+
         // 📂 Expedientes clínicos (Administrador)
-Route::get('/expedientes', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'index'])
-    ->name('expedientes.index');
+        Route::get('/expedientes', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'index'])
+            ->name('expedientes.index');
 
-Route::get('/expedientes/{id}', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'show'])
-    ->name('expedientes.show');
+        Route::get('/expedientes/{id}', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'show'])
+            ->name('expedientes.show');
 
-Route::delete('/expedientes/{id}', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'destroy'])
-    ->name('expedientes.destroy');
+        Route::delete('/expedientes/{id}', [App\Http\Controllers\Admin\ExpedienteAdminController::class, 'destroy'])
+            ->name('expedientes.destroy');
+            // 🧩 Moderación de testimonios y respuestas (solo ADMIN)
+
+        // 🗨️ Testimonios (ADMIN - listado solo lectura + moderación)
+        Route::get('/testimonios', [AdminTestimonioController::class, 'index'])
+            ->name('testimonios.index');
+
+        // 🧩 Moderación (ADMIN - borrar)
+        Route::delete('/testimonios/{idTestimonio}', [TestimonioModerationController::class, 'destroyTestimonio'])
+            ->name('testimonios.destroy');
+
+        Route::delete('/testimonios/{idTestimonio}/respuestas/{idRespuesta}', [TestimonioModerationController::class, 'destroyRespuesta'])
+            ->name('testimonios.respuestas.destroy');
 
     });
 
@@ -175,6 +199,11 @@ Route::resource('citas', App\Http\Controllers\Medico\CitaMedicoController::class
         // 📂 EXPEDIENTES CLÍNICOS
         // ============================================================
         Route::resource('expedientes', ExpedienteController::class);
+
+        // Listado de testimonios (solo lectura)
+
+        Route::get('/testimonios', [MedicoTestimonioController::class, 'index'])
+            ->name('testimonios.index');
     });
 
 /* 💬 Sección del PACIENTE */
