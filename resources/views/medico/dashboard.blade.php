@@ -301,7 +301,7 @@
       </a>
 
       {{-- 8. Expediente Clínico --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="450">
+      <a href="{{ route('medico.expedientes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="450">
         <div class="icon-box" style="background:linear-gradient(135deg,#00cec9,#6c5ce7);">
           <i class="fas fa-file-medical-alt"></i>
         </div>

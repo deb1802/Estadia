@@ -33,3 +33,10 @@
         <p>Citas</p>
     </a>
 </li>
+
+<li class="nav-item">
+    <a href="{{ route('expedientes.index') }}" class="nav-link {{ Request::is('expedientes*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-home"></i>
+        <p>Expedientes</p>
+    </a>
+</li>

@@ -288,7 +288,7 @@ CREATE TABLE Emociones (
 
 CREATE TABLE Expedientes (
     idExpediente INT PRIMARY KEY AUTO_INCREMENT,
-    fkPaciente INT,
+    fkPaciente INT NOT NULL,
     antecedentes TEXT,
     diagnosticos TEXT,
     notasClinicas TEXT,
@@ -299,8 +299,9 @@ CREATE TABLE Expedientes (
     medicamentosPrescritos TEXT,
     observaciones TEXT,
     fechaActualizacion DATE,
-    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(idPaciente)
+    FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)
 );
+
 
 
 --testimonios y sus repsuestas 
