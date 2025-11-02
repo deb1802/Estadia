@@ -189,3 +189,6 @@ Route::middleware(['auth', 'rol:paciente'])
     });
 
 require __DIR__.'/auth.php';
+
+/* 🔹 Breadcrumbs */
+require_once __DIR__ . '/breadcrumbs.php';
