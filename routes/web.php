@@ -159,6 +159,13 @@ Route::middleware(['auth', 'rol:medico'])
         Route::resource('actividades_terap', ActividadesTController::class)
             ->parameters(['actividades_terap' => 'actividad']);
 
+        // 💬 Emociones (médico)
+Route::prefix('emociones')->name('emociones.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Medico\EmocionMedicoController::class, 'index'])->name('index');
+    Route::delete('/{id}', [App\Http\Controllers\Medico\EmocionMedicoController::class, 'destroy'])->name('destroy');
+});
+
+        
         // 👨‍⚕️ Tutores
         Route::resource('tutores', TutorController::class)->names('tutores');
 
@@ -253,6 +260,16 @@ Route::middleware(['auth', 'rol:paciente'])
                 ->name('completar');
         });
 
+        // 🧠 Emociones (paciente)
+Route::prefix('emociones')->name('emociones.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'index'])->name('index');
+    Route::get('/crear/{idActividad}', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'create'])->name('create');
+    Route::post('/store', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'store'])->name('store');
+    Route::get('/{id}/editar', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'edit'])->name('edit');
+    Route::patch('/{id}', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'update'])->name('update');
+});
+
+
         // 🧠 TESTS PSICOLÓGICOS ASIGNADOS AL PACIENTE
         Route::prefix('tests')->name('tests.')->group(function () {
             // 📋 Listado de tests asignados
@@ -276,8 +293,6 @@ Route::middleware(['auth', 'rol:paciente'])
         });
 
         // 📅 Citas del paciente (si se reactivan después)
-        // Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])->name('citas.index');
-        // Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])->name('citas.cancelar');
         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])->name('notificaciones.markRead');
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])->name('notificaciones.markAll');
     });

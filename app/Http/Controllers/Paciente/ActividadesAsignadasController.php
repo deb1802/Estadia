@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 class ActividadesAsignadasController extends Controller
 {
-    // GET /paciente/mis-actividades
+    /**
+     * 📋 Mostrar las actividades asignadas al paciente autenticado
+     */
     public function index(Request $request)
     {
-        // 1) Resolver el idPaciente a partir del usuario logueado
+        // 1️⃣ Resolver el idPaciente a partir del usuario logueado
         $usuarioId = Auth::id();
         $pacienteId = DB::table('Pacientes')->where('usuario_id', $usuarioId)->value('id'); // Pacientes.id
 
@@ -20,8 +22,7 @@ class ActividadesAsignadasController extends Controller
             abort(403, 'No se encontró el paciente actual.');
         }
 
-        // 2) Traer asignaciones + datos de la actividad
-        //    Puedes filtrar por estado con ?estado=pendiente|completada
+        // 2️⃣ Traer asignaciones + datos de la actividad
         $estado = $request->query('estado'); // opcional
 
         $query = DB::table('AsignacionActividad as aa')
@@ -31,7 +32,7 @@ class ActividadesAsignadasController extends Controller
                 'aa.estado',
                 'aa.fechaAsignacion',
                 'aa.fechaFinalizacion',
-                'aa.indicaciones',               // 👈 NUEVO: traer indicaciones
+                'aa.indicaciones',
                 'a.idActividad',
                 'a.titulo',
                 'a.tipoContenido',
@@ -44,7 +45,7 @@ class ActividadesAsignadasController extends Controller
             ->orderByRaw("CASE WHEN aa.estado='pendiente' THEN 0 ELSE 1 END") // pendientes primero
             ->orderByDesc('aa.fechaAsignacion');
 
-        if (in_array($estado, ['pendiente','completada'])) {
+        if (in_array($estado, ['pendiente', 'completada'])) {
             $query->where('aa.estado', $estado);
         }
 
@@ -53,10 +54,12 @@ class ActividadesAsignadasController extends Controller
         return view('paciente.actividades.index', compact('asignaciones', 'estado'));
     }
 
-    // PATCH /paciente/mis-actividades/{asignacion}/completar
+    /**
+     * ✅ Marcar una actividad como completada y redirigir al registro emocional
+     */
     public function completar($asignacionId)
     {
-        // 1) Resolver paciente actual
+        // 1️⃣ Identificar paciente actual
         $usuarioId = Auth::id();
         $pacienteId = DB::table('Pacientes')->where('usuario_id', $usuarioId)->value('id');
 
@@ -64,19 +67,31 @@ class ActividadesAsignadasController extends Controller
             abort(403, 'No se encontró el paciente actual.');
         }
 
-        // 2) Asegurar pertenencia y que esté pendiente
-        $afectadas = DB::table('AsignacionActividad')
+        // 2️⃣ Verificar que la asignación pertenece al paciente y está pendiente
+        $asignacion = DB::table('AsignacionActividad')
             ->where('idAsignacionActividad', $asignacionId)
             ->where('fkPaciente', $pacienteId)
             ->where('estado', 'pendiente')
-            ->update([
-                'estado' => 'completada'
-            ]);
+            ->first();
 
-        if ($afectadas === 0) {
+        if (!$asignacion) {
             return back()->with('warning', 'No se pudo marcar como completada (ya estaba completada o no te pertenece).');
         }
 
-        return back()->with('success', 'Actividad marcada como completada.');
+        // 3️⃣ Actualizar el estado a "completada"
+        DB::table('AsignacionActividad')
+            ->where('idAsignacionActividad', $asignacionId)
+            ->update([
+                'estado' => 'completada',
+                'fechaFinalizacion' => now(),
+            ]);
+
+        // 4️⃣ Obtener la actividad asociada
+        $actividadId = $asignacion->fkActividad;
+
+        // 5️⃣ Redirigir directamente al formulario de registro emocional
+        return redirect()
+            ->route('paciente.emociones.create', $actividadId)
+            ->with('success', 'Actividad completada. Ahora registra cómo te sentiste al realizarla.');
     }
 }
