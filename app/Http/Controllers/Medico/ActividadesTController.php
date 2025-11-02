@@ -54,44 +54,62 @@ class ActividadesTController extends Controller
      * Guardar
      */
     public function store(Request $request)
-    {
-        // Validación (ajusta a tus campos reales)
-        $request->validate([
-            'titulo'               => 'required|string|max:255',
-            'tipoContenido'        => 'required|in:audio,video,lectura',
-            'categoriaTerapeutica' => 'required|string|max:255',
-            'diagnosticoDirigido'  => 'required|string|max:255',
-            'nivelSeveridad'       => 'required|string|max:255',
-            'link'                 => 'nullable|url',
-            'archivo'              => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
-        ]);
+{
+    // ✅ Validación con mensajes personalizados en español (sin alterar lógica)
+    $request->validate([
+        'titulo'               => 'required|string|max:255',
+        'tipoContenido'        => 'required|in:audio,video,lectura',
+        'categoriaTerapeutica' => 'required|string|max:255',
+        'diagnosticoDirigido'  => 'required|string|max:255',
+        'nivelSeveridad'       => 'required|string|max:255',
+        'link'                 => 'nullable|url',
+        'archivo'              => 'nullable|file|mimes:pdf,mp3,mp4,avi,mov,jpg,jpeg,png|max:102400',
+    ], [
+        'required' => 'El campo :attribute es obligatorio.',
+        'string'   => 'El campo :attribute debe ser texto.',
+        'max'      => 'El campo :attribute no puede tener más de :max caracteres.',
+        'in'       => 'El campo :attribute debe ser una de las opciones válidas.',
+        'url'      => 'El campo :attribute debe ser una URL válida.',
+        'file'     => 'El campo :attribute debe ser un archivo válido.',
+        'mimes'    => 'El archivo debe ser de tipo: :values.',
+        'archivo.max' => 'El archivo no debe superar los 100 MB.',
+    ], [
+        'titulo'               => 'título',
+        'tipoContenido'        => 'tipo de contenido',
+        'categoriaTerapeutica' => 'categoría terapéutica',
+        'diagnosticoDirigido'  => 'diagnóstico dirigido',
+        'nivelSeveridad'       => 'nivel de severidad',
+        'link'                 => 'enlace',
+        'archivo'              => 'archivo',
+    ]);
 
-        $input = $request->all();
+    $input = $request->all();
 
-        // Buscar el médico asociado al usuario autenticado
-        $medico = \App\Models\Medico::where('usuario_id', auth()->id())->first();
-        if (!$medico) {
-            \Flash::error('No se encontró el perfil del médico asociado al usuario actual.');
-            return back();
-        }
-        $input['fkMedico'] = $medico->id;
-
-        // Recurso (archivo o link)
-        if ($request->hasFile('archivo')) {
-            $ruta = $request->file('archivo')->store('recursos', 'public');
-            $input['recurso'] = $ruta;
-        } elseif (!empty($request->link)) {
-            $input['recurso'] = $request->link;
-        } else {
-            $input['recurso'] = null;
-        }
-
-        $this->actividadesTerapRepository->create($input);
-
-        \Flash::success('Actividad terapéutica registrada correctamente.');
-
-        return redirect()->route($this->routeBase . 'actividades_terap.index');
+    // Buscar el médico asociado al usuario autenticado
+    $medico = \App\Models\Medico::where('usuario_id', auth()->id())->first();
+    if (!$medico) {
+        \Flash::error('No se encontró el perfil del médico asociado al usuario actual.');
+        return back();
     }
+    $input['fkMedico'] = $medico->id;
+
+    // Recurso (archivo o link)
+    if ($request->hasFile('archivo')) {
+        $ruta = $request->file('archivo')->store('recursos', 'public');
+        $input['recurso'] = $ruta;
+    } elseif (!empty($request->link)) {
+        $input['recurso'] = $request->link;
+    } else {
+        $input['recurso'] = null;
+    }
+
+    $this->actividadesTerapRepository->create($input);
+
+    return redirect()
+    ->route($this->routeBase . 'actividades_terap.index')
+    ->with('success', 'Actividad terapéutica registrada correctamente.');
+}
+
 
     /**
      * Ver detalle
@@ -154,9 +172,10 @@ class ActividadesTController extends Controller
         // Usa el id real del modelo (respeta primaryKey idActividad si aplica)
         $this->actividadesTerapRepository->update($input, $actividad->getKey());
 
-        \Flash::success('Actividad terapéutica actualizada correctamente.');
+        return redirect()
+        ->route($this->routeBase . 'actividades_terap.show', $actividad)
+        ->with('success', 'Actividad terapéutica actualizada correctamente.');
 
-        return redirect()->route($this->routeBase . 'actividades_terap.show', $actividad);
     }
 
     /**
@@ -166,8 +185,9 @@ class ActividadesTController extends Controller
     {
         $this->actividadesTerapRepository->delete($actividad->getKey());
 
-        \Flash::success('Actividad terapéutica eliminada correctamente.');
+        return redirect()
+        ->route($this->routeBase . 'actividades_terap.index')
+        ->with('success', 'Actividad terapéutica eliminada correctamente.');
 
-        return redirect()->route($this->routeBase . 'actividades_terap.index');
     }
 }

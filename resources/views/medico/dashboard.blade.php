@@ -274,7 +274,7 @@
       </a>
 
       {{-- 5. Actividades Terapéuticas --}}
-      <a href="{{ route('medico.actividades_terap.asignadas') }}"  class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
+      <a href="{{ route('medico.actividades_terap.index') }}"  class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
         <div class="icon-box" style="background:linear-gradient(135deg,#6c5ce7,#00cec9);">
           <i class="fas fa-heartbeat"></i>
         </div>
@@ -318,19 +318,19 @@
         <p>Monitorea la evolución y progreso terapéutico.</p>
       </a>
 
-      {{-- 10. Asignación de Actividades --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="550">
+      {{-- 10. Asignación de Actividad --}}
+      <a href="{{ route('medico.actividades_terap.asignadas') }}"  class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
         <div class="icon-box" style="background:linear-gradient(135deg,#b388ff,#82b1ff);">
           <i class="fas fa-tasks"></i>
         </div>
-        <h4>Asignación de Actividades</h4>
-        <p>Asigna terapias o ejercicios personalizados.</p>
+        <h4>Actividades asignadas a mis pacientes</h4>
+        <p>Monitorea las actividades que le has asignado a tus pacientes.</p>
       </a>
     </div>
 
     <div class="text-center mt-3">
       <button id="backToWellness" class="btn btn-outline-primary btn-sm">
-        Volver a portada de bienestar
+        Volver al inicio
       </button>
     </div>
   </section>

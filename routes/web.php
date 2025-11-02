@@ -178,15 +178,69 @@ Route::middleware(['auth', 'rol:paciente'])
     ->prefix('paciente')
     ->name('paciente.')
     ->group(function () {
+
+        // 🏠 Dashboard principal
         Route::get('/dashboard', fn() => view('paciente.dashboard'))->name('dashboard');
+
+        // 💬 Foro de testimonios
         Route::get('/testimonios', [TestimonioController::class, 'index'])->name('testimonios.index');
         Route::post('/testimonios', [TestimonioController::class, 'store'])->name('testimonios.store');
         Route::post('/testimonios/{idTestimonio}/respuestas', [RespuestaTestimonioController::class, 'store'])
             ->name('testimonios.respuestas.store');
+
+        // 👨‍🏫 Vista de tutores (solo lectura)
         Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
+
+        // 🔔 Notificaciones
+        Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])
+            ->name('notificaciones.markRead');
+        Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])
+            ->name('notificaciones.markAll');
+
+        // 🧾 Recetas médicas (solo del paciente)
+        Route::prefix('recetas')->name('recetas.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'index'])->name('index');
+            Route::get('/{idReceta}', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'show'])->name('show');
+            Route::get('/{idReceta}/pdf', [App\Http\Controllers\Paciente\RecetaPacienteController::class, 'pdf'])->name('pdf');
+        });
+
+        // ✅ Actividades asignadas al paciente
+        Route::prefix('mis-actividades')->name('actividades.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'index'])
+                ->name('index');
+            Route::patch('/{asignacion}/completar', [App\Http\Controllers\Paciente\ActividadesAsignadasController::class, 'completar'])
+                ->name('completar');
+        });
+
+        // 🧠 TESTS PSICOLÓGICOS ASIGNADOS AL PACIENTE
+        Route::prefix('tests')->name('tests.')->group(function () {
+            // 📋 Listado de tests asignados
+            Route::get('/', [App\Http\Controllers\Paciente\TestPacienteController::class, 'index'])
+                ->name('index');
+
+            // 📝 Ver y responder test asignado
+            Route::get('/{idAsignacionTest}/responder', [App\Http\Controllers\Paciente\TestPacienteController::class, 'responder'])
+                ->whereNumber('idAsignacionTest')
+                ->name('responder');
+
+            // 💾 Guardar respuestas
+            Route::post('/{idAsignacionTest}/responder', [App\Http\Controllers\Paciente\TestPacienteController::class, 'guardar'])
+                ->whereNumber('idAsignacionTest')
+                ->name('guardar');
+
+            // 📬 Acuse de recibido (sin diagnóstico)
+            Route::get('/{idAsignacionTest}/recibido', [App\Http\Controllers\Paciente\TestPacienteController::class, 'recibido'])
+                ->whereNumber('idAsignacionTest')
+                ->name('recibido');
+        });
+
+        // 📅 Citas del paciente (si se reactivan después)
+        // Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])->name('citas.index');
+        // Route::patch('/citas/{idCita}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])->name('citas.cancelar');
         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])->name('notificaciones.markRead');
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])->name('notificaciones.markAll');
     });
+
 
 require __DIR__.'/auth.php';
 

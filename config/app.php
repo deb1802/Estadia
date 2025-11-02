@@ -58,6 +58,10 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL'),
+            'locale' => 'es',
+        'fallback_locale' => 'es',
+        'faker_locale' => 'es_MX',
+
 
     /*
     |--------------------------------------------------------------------------
@@ -186,3 +190,4 @@ return [
     ])->toArray(),
 
 ];
+
