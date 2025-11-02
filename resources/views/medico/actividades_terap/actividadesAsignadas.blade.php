@@ -21,14 +21,16 @@
 <section class="content-header text-center mb-2">
   <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
       <div class="text-start">
-          <h1 class="fw-semibold text-primary" style="font-size:2.2rem;">Actividades asignadas</h1>
+          <h1 class="fw-semibold text-primary" style="font-size:2.2rem;">Actividades asignadas a los pacientes</h1>
           <p class="text-muted mb-0">Consulta el historial de actividades que has asignado a tus pacientes.</p>
       </div>
 
-      {{-- 🔙 Botón para volver al dashboard --}}
-      <a href="{{ route('medico.dashboard') }}" class="btn btn-outline-primary d-flex align-items-center gap-2">
-          <i class="fas fa-home"></i> Volver al Dashboard
-      </a>
+      {{-- Botón Volver --}}
+      <button type="button"
+        class="btn btn-soft"
+        onclick="window.location='{{ route('medico.dashboard') }}'">
+          <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+      </button>
   </div>
 </section>
 
@@ -37,7 +39,7 @@
 
   {{-- ===== FILTROS ===== --}}
   <div class="card card-body shadow-sm mb-3 card-search">
-    <form method="GET" action="{{ route('medico.actividades_terap.asignadas') }}" class="w-100">
+    <form id="search-form" method="GET" action="{{ route('medico.actividades_terap.asignadas') }}" class="w-100">
 
       {{-- Chips de estado --}}
       <div class="mb-2 d-flex align-items-center flex-wrap gap-2">
@@ -53,7 +55,7 @@
            class="chip {{ $estado==='completada' ? 'chip-primary' : 'chip-outline' }}">Completadas</a>
       </div>
 
-      {{-- 🔍 Barra de búsqueda (idéntica a “Gestión de Tutores”) --}}
+      {{-- 🔍 Barra de búsqueda --}}
       <div class="search-bar">
         <div class="search-input-group">
           <input
@@ -240,9 +242,91 @@
   .pagination-wrap{ margin-top:16px; display:flex; justify-content:center; }
 </style>
 
+{{-- ===== Búsqueda dinámica (autosubmit con debounce) ===== --}}
 <script>
-  document.getElementById('search-input')?.addEventListener('keydown', function(e){
-    if(e.key === 'Enter'){ this.form.submit(); }
-  });
+  (function(){
+    const form   = document.getElementById('search-form');
+    if(!form) return;
+
+    const input  = document.getElementById('search-input');
+    const select = document.getElementById('search-type');
+
+    const placeholders = {
+      '': 'Buscar por paciente, diagnóstico o tipo…',
+      'paciente': 'Buscar por nombre/apellido del paciente…',
+      'diagnostico': 'Buscar por diagnóstico (p. ej. ansiedad)…',
+      'tipo': 'Escribe: audio, video o lectura…'
+    };
+
+    const setPlaceholder = () => {
+      const val = (select?.value || '');
+      input.placeholder = placeholders[val] || placeholders[''];
+    };
+    setPlaceholder();
+    select?.addEventListener('change', setPlaceholder);
+
+    // Debounce simple
+    const debounce = (fn, delay = 450) => {
+      let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+    };
+
+    const autoSubmit = debounce(() => {
+      // Evita submit vacío en búsqueda global
+      if (input.value.trim() === '' && (select.value || '') === '') return;
+      form.requestSubmit();
+    }, 450);
+
+    input?.addEventListener('keyup', autoSubmit);
+    select?.addEventListener('change', () => form.requestSubmit());
+
+    // Enter envía inmediatamente
+    input?.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); form.requestSubmit(); }
+    });
+  })();
 </script>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root{
+    --g-text:#374151;       /* gris oscuro */
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;      /* gris claro borde */
+    --g-borde-2:#9ca3af;    /* gris medio hover */
+    --g-bg:#ffffff;         /* fondo blanco */
+    --g-bg-hover:#f3f4f6;   /* gris claro hover */
+  }
+
+  /* ===== Botón suave reutilizable (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+  }
+
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+
+  .btn-soft:active{
+    transform: scale(.98);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  }
+
+  .btn-soft i{
+    font-size: 1rem;
+    vertical-align: middle;
+  }
+</style>
+@endpush

@@ -6,7 +6,7 @@
 @endphp
 
 @section('content')
-    {{-- Mensajes flash y errores --}}
+    {{-- Errores de validación --}}
     @include('adminlte-templates::common.errors')
 
     <section class="content-header">
@@ -54,15 +54,52 @@
         </div>
     </section>
 
+    {{-- 🔍 Barra de búsqueda (ancho completo y un poco más abajo del título) --}}
+    <div class="container-fluid mt-3">
+        <div class="card card-body shadow-sm mb-3 card-search">
+            <form id="search-form" method="GET" action="{{ route($routeArea . 'actividades_terap.index') }}" class="search-bar">
+                <div class="search-input-group">
+                    <input type="text" id="search-input" name="q"
+                           class="form-control"
+                           value="{{ old('q', $q ?? request('q')) }}"
+                           placeholder="Buscar actividades..."
+                           autocomplete="off" aria-label="Buscar actividades">
+
+                    <select id="search-type" name="type" class="form-select" aria-label="Tipo de búsqueda">
+                        @php $typeVal = $type ?? request('type', 'all'); @endphp
+                        <option value="all" {{ $typeVal==='all' ? 'selected' : '' }}>🔎 Buscar en todos</option>
+                        <option value="titulo" {{ $typeVal==='titulo' ? 'selected' : '' }}>Por título</option>
+                        <option value="tipoContenido" {{ $typeVal==='tipoContenido' ? 'selected' : '' }}>Por tipo de contenido</option>
+                        <option value="categoriaTerapeutica" {{ $typeVal==='categoriaTerapeutica' ? 'selected' : '' }}>Por categoría terapéutica</option>
+                        <option value="diagnosticoDirigido" {{ $typeVal==='diagnosticoDirigido' ? 'selected' : '' }}>Por diagnóstico dirigido</option>
+                        <option value="nivelSeveridad" {{ $typeVal==='nivelSeveridad' ? 'selected' : '' }}>Por nivel de severidad</option>
+                    </select>
+                </div>
+
+                <div class="search-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Buscar
+                    </button>
+                    @if(request()->filled('q') || request()->filled('type'))
+                        <a href="{{ route($routeArea . 'actividades_terap.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i> Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="content px-3">
         <div class="card">
             {{-- Pasa $routeArea para que los enlaces apunten a /admin o /medico según corresponda --}}
             @include('medico.actividades_terap.table', ['routeArea' => $routeArea])
         </div>
     </div>
+
     @if (request()->is('medico/*'))
-  @include('medico.bottom-navbar')
-@endif
+        @include('medico.bottom-navbar')
+    @endif
 @endsection
 
 @push('styles')
@@ -118,5 +155,53 @@
       width: fit-content;
       max-width: 600px;
   }
+
+  /* ===== Estilos de búsqueda ===== */
+  .card-search{ background:#f8fbff; border:1px solid #e6eefc; border-radius:14px; }
+  .search-bar{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .search-input-group{ display:flex; align-items:center; gap:10px; flex:1; min-width:260px; }
+  .search-input-group input{ flex:1; border-radius:10px; height:44px; }
+  .search-input-group select{ width:260px; border-radius:10px; height:44px; }
+  .search-actions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+  /* Separación extra bajo el header para que no se vea encimado */
+  .content-header + .container-fluid .card-search,
+  .content-header + .container-fluid.mt-3 .card-search{
+    margin-top: .25rem;
+  }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  // Debounce simple
+  const debounce = (fn, delay = 450) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
+
+  (function(){
+    const form   = document.getElementById('search-form');
+    if(!form) return;
+    const input  = document.getElementById('search-input');
+    const select = document.getElementById('search-type');
+
+    const autoSubmit = debounce(() => {
+      // Evita submit si está vacío y el tipo es "all"
+      if (input.value.trim() === '' && (select.value || 'all') === 'all') return;
+      form.requestSubmit();
+    }, 450);
+
+    input.addEventListener('keyup', autoSubmit);
+    select.addEventListener('change', () => form.requestSubmit());
+
+    const placeholders = {
+      all: 'Buscar por título, tipo, categoría, diagnóstico, severidad…',
+      titulo: 'Ej. Respiración 4-7-8',
+      tipoContenido: 'Ej. audio / video / lectura',
+      categoriaTerapeutica: 'Ej. Relajación',
+      diagnosticoDirigido: 'Ej. Ansiedad',
+      nivelSeveridad: 'Ej. Leve'
+    };
+    const setPh = () => { input.placeholder = placeholders[select.value] || placeholders.all; };
+    setPh(); select.addEventListener('change', setPh);
+  })();
+</script>
 @endpush

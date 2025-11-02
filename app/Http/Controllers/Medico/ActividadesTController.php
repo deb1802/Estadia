@@ -31,14 +31,56 @@ class ActividadesTController extends Controller
      * Listado
      */
     public function index(Request $request)
-    {
-        $actividadesTeraps = $this->actividadesTerapRepository->paginate(10);
+{
+    // Parámetros de búsqueda
+    $q    = trim((string) $request->get('q', ''));
+    $type = (string) $request->get('type', 'all');
 
-        // Reutilizamos las vistas bajo /medico/... como acordaste
-        return view('medico.actividades_terap.index', [
-            'actividadesTeraps' => $actividadesTeraps,
-        ]);
+    // Campos válidos para filtrar
+    $map = [
+        'titulo'               => 'titulo',
+        'tipoContenido'        => 'tipoContenido',
+        'categoriaTerapeutica' => 'categoriaTerapeutica',
+        'diagnosticoDirigido'  => 'diagnosticoDirigido',
+        'nivelSeveridad'       => 'nivelSeveridad',
+    ];
+
+    // Consulta base
+    $query = \App\Models\ActividadesTerap::query();
+
+    if ($q !== '') {
+        if ($type === 'all') {
+            $query->where(function($qq) use ($q) {
+                $qq->where('titulo', 'LIKE', "%{$q}%")
+                   ->orWhere('tipoContenido', 'LIKE', "%{$q}%")
+                   ->orWhere('categoriaTerapeutica', 'LIKE', "%{$q}%")
+                   ->orWhere('diagnosticoDirigido', 'LIKE', "%{$q}%")
+                   ->orWhere('nivelSeveridad', 'LIKE', "%{$q}%");
+            });
+        } else {
+            if (array_key_exists($type, $map)) {
+                $query->where($map[$type], 'LIKE', "%{$q}%");
+            } else {
+                // Fallback: buscar en todos
+                $query->where(function($qq) use ($q) {
+                    $qq->where('titulo', 'LIKE', "%{$q}%")
+                       ->orWhere('tipoContenido', 'LIKE', "%{$q}%")
+                       ->orWhere('categoriaTerapeutica', 'LIKE', "%{$q}%")
+                       ->orWhere('diagnosticoDirigido', 'LIKE', "%{$q}%")
+                       ->orWhere('nivelSeveridad', 'LIKE', "%{$q}%");
+                });
+            }
+        }
     }
+
+    $actividadesTeraps = $query
+        ->orderBy('idActividad', 'desc') // ajusta si tu PK es otra
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('medico.actividades_terap.index', compact('actividadesTeraps', 'q', 'type'));
+}
+
 
     /**
      * Form crear

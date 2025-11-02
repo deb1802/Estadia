@@ -28,6 +28,7 @@
       <i class="fas fa-arrow-left"></i> Volver al Dashboard
     </a>
   </div>
+  
 
   {{-- Filtros --}}
   <div class="card filters-card">

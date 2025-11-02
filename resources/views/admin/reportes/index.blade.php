@@ -100,7 +100,7 @@
     <!-- Pon tus rutas reales en data-href -->
     <div class="reporte-card" data-title="Reporte 1: Tests asignados"
          data-desc="Listado y conteo de tests asignados por periodo, cohorte o usuario."
-         data-href="#">
+            data-href="{{ route('admin.reportes.tests.index') }}">
       <div class="reporte-icon"><i class="bi bi-clipboard-data"></i></div>
       <h3 class="reporte-titulo">Reporte 1: Tests asignados</h3>
       <p class="reporte-desc">Resumen por fechas, docente y grupos.</p>
