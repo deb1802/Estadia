@@ -40,6 +40,11 @@ class Usuario extends Authenticatable
         return $this->contrasena;
     }
 
+     // 🔹 Nombre completo opcional
+    public function getFullNameAttribute()
+    {
+        return "{$this->nombre} {$this->apellido}";
+    }
     /**
      * 🔹 Relación: un usuario puede tener un registro de médico
      * (Usuarios.idUsuario → Medicos.usuario_id)
