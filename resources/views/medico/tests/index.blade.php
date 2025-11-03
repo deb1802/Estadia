@@ -1,3 +1,4 @@
+{{-- resources/views/medico/tests/index.blade.php  (reusada por admin) --}}
 @extends('layouts.app')
 
 @section('title', 'Mis Tests')
@@ -12,37 +13,27 @@
   body{ background: var(--bg); color: var(--ink); }
 
   .btn-soft{
-        background: var(--g-bg);
-        border: 1px solid var(--g-borde);
-        color: var(--g-text);
-        border-radius: 50px;
-        font-weight: 500;
-        padding: .5rem 1.25rem;
-        transition: all .25s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,.04);
-        margin-top: 8px; /* 🔹 Lo baja un poco para que no se encime */
-      }
-
-      .btn-soft:hover{
-        background: var(--g-bg-hover);
-        border-color: var(--g-borde-2);
-        color: var(--g-text-strong);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(0,0,0,.08);
-      }
-
-      .btn-soft:active{
-        transform: scale(.98);
-        box-shadow: 0 2px 6px rgba(0,0,0,.06);
-      }
-
-      .btn-soft i{
-        font-size: 1rem;
-        vertical-align: middle;
-      }
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 50px;
+    font-weight: 500;
+    padding: .5rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.04);
+    margin-top: 8px;
+  }
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  }
+  .btn-soft:active{ transform: scale(.98); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+  .btn-soft i{ font-size: 1rem; vertical-align: middle; }
 
   .page-wrap{ max-width:1200px; margin:0 auto; padding:18px 14px; }
-
   .page-head{
     display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
     margin-bottom:.5rem;
@@ -59,7 +50,7 @@
   }
   .btn-primary-soft:hover{ transform:translateY(-1px); box-shadow:0 10px 20px rgba(0,0,0,.08); }
 
-  /* ===== Barra de búsqueda FULL WIDTH ===== */
+  /* ===== Búsqueda ===== */
   .search-block{ margin:.75rem 0 1rem; }
   .card-search{ background:#fff; border:1px solid var(--stroke); border-radius:16px; }
   .search-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
@@ -99,32 +90,18 @@
     display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px 14px;
   }
 
-  /* ===== Botones de acción (ícono visible con buen contraste) ===== */
   .btn-icon{
-    background:#f7f9fd;
-    border:1px solid #cfd9ea;
-    border-radius:12px;
-    padding:.5rem .6rem;
-    color:#183354;
-    line-height:1;
-    display:inline-flex; align-items:center; justify-content:center;
+    background:#f7f9fd; border:1px solid #cfd9ea; border-radius:12px; padding:.5rem .6rem;
+    color:#183354; line-height:1; display:inline-flex; align-items:center; justify-content:center;
     box-shadow: 0 1px 0 rgba(0,0,0,.02);
   }
-  .btn-icon i{ font-size:1.1rem; color:#183354; } /* fuerza color del ícono */
-  .btn-icon:hover{
-    background:#eef4ff;
-    border-color:#b9c9e4;
-  }
+  .btn-icon i{ font-size:1.1rem; color:#183354; }
+  .btn-icon:hover{ background:#eef4ff; border-color:#b9c9e4; }
   .btn-icon-danger{
-    background:#fff3f3;
-    border:1px solid #f1c3c3;
-    color:#7a1c1c;
+    background:#fff3f3; border:1px solid #f1c3c3; color:#7a1c1c;
   }
   .btn-icon-danger i{ color:#7a1c1c; }
-  .btn-icon-danger:hover{
-    background:#ffe9e9;
-    border-color:#e7a9a9;
-  }
+  .btn-icon-danger:hover{ background:#ffe9e9; border-color:#e7a9a9; }
 
   .status-dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:middle; }
   .on{ background:#22c55e; } .off{ background:#94a3b8; }
@@ -138,9 +115,13 @@
 </style>
 @endpush
 
-
-
 @section('content')
+@php
+  // Detecta área por URL
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+  $isAdmin   = !request()->is('medico/*');
+@endphp
+
 <div class="page-wrap">
   <!-- ===== Header ===== -->
   <section class="content-header">
@@ -149,31 +130,37 @@
         <div>
           <h1 class="page-title h3 mb-1">Tests Psicológicos</h1>
         </div>
-        <a href="{{ route('medico.tests.create') }}" class="btn btn-primary-soft">
-          <i class="bi bi-plus-lg me-1"></i> Crear nuevo test
-        </a>
+
+        {{-- Crear (solo médico) --}}
+        @if(!$isAdmin)
+          <a href="{{ route($routeArea.'tests.create') }}" class="btn btn-primary-soft">
+            <i class="bi bi-plus-lg me-1"></i> Crear nuevo test
+          </a>
+        @endif
       </div>
 
-      {{-- 🔹 Botón Volver (debajo, centrado) --}}
+      {{-- Botón Volver (según área) --}}
       <div class="w-100 text-center mt-3">
         <button type="button" class="btn btn-soft px-4 py-2"
-                onclick="window.location='{{ route('medico.dashboard') }}'">
+                onclick="window.location='{{ $isAdmin ? route('admin.dashboard') : route('medico.dashboard') }}'">
           <i class="bi bi-arrow-90deg-left me-1"></i> Volver
         </button>
       </div>
 
-      {{-- 🔹 Botón Asignar Test a Pacientes (más abajo) --}}
-      <div class="w-100 text-center mt-3">
-        <a href="{{ route('medico.tests.asignar.index') }}" class="btn btn-accent px-4 py-2">
-          <i class="bi bi-people-fill me-1"></i> Asignar test a pacientes
-        </a>
-      </div>
+      {{-- Asignar test a pacientes (solo médico) --}}
+      @if(!$isAdmin && Route::has('medico.tests.asignar.index'))
+        <div class="w-100 text-center mt-3">
+          <a href="{{ route('medico.tests.asignar.index') }}" class="btn btn-accent px-4 py-2">
+            <i class="bi bi-people-fill me-1"></i> Asignar test a pacientes
+          </a>
+        </div>
+      @endif
     </div>
   </section>
 
-  <!-- ===== Barra de búsqueda FULL WIDTH ===== -->
+  <!-- ===== Búsqueda ===== -->
   <div class="search-block">
-    <form id="search-form" method="GET" action="{{ route('medico.tests.index') }}" class="card card-body shadow-sm card-search">
+    <form id="search-form" method="GET" action="{{ route($routeArea.'tests.index') }}" class="card card-body shadow-sm card-search">
       <div class="search-bar">
         <div class="search-input-group">
           <input
@@ -212,9 +199,13 @@
       <div class="empty">
         <div class="mb-2" style="font-weight:800;">No hay tests</div>
         <p class="mb-3">Crea tu primer test para comenzar a agregar preguntas, opciones y rangos.</p>
-        <a href="{{ route('medico.tests.create') }}" class="btn btn-primary-soft">
-          <i class="bi bi-plus-circle me-1"></i> Crear test
-        </a>
+
+        {{-- Crear (solo médico) --}}
+        @if(!$isAdmin)
+          <a href="{{ route($routeArea.'tests.create') }}" class="btn btn-primary-soft">
+            <i class="bi bi-plus-circle me-1"></i> Crear test
+          </a>
+        @endif
       </div>
     @else
       <div class="cards-grid">
@@ -244,20 +235,21 @@
             <div class="footer-actions">
               <div class="d-flex gap-2 flex-wrap">
                 <!-- Íconos con tooltips -->
-                <a href="{{ route('medico.tests.show', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Ver">
+                <a href="{{ route($routeArea.'tests.show', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Ver">
                   <i class="bi bi-eye"></i>
                 </a>
-                <a href="{{ route('medico.tests.edit', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Editar">
+                <a href="{{ route($routeArea.'tests.edit', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Editar">
                   <i class="bi bi-pencil-square"></i>
                 </a>
-                @if(Route::has('medico.tests.builder.edit'))
-                  <a href="{{ route('medico.tests.builder.edit', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Preguntas y rangos">
+
+                @if(Route::has($routeArea.'tests.builder.edit'))
+                  <a href="{{ route($routeArea.'tests.builder.edit', $t->idTest) }}" class="btn-icon" data-bs-toggle="tooltip" data-bs-title="Preguntas y rangos">
                     <i class="bi bi-sliders"></i>
                   </a>
                 @endif
               </div>
 
-              <form action="{{ route('medico.tests.destroy', $t->idTest) }}" method="POST" class="form-delete">
+              <form action="{{ route($routeArea.'tests.destroy', $t->idTest) }}" method="POST" class="form-delete">
                 @csrf
                 @method('DELETE')
                 <button type="button" class="btn-icon btn-icon-danger btn-delete" data-bs-toggle="tooltip" data-bs-title="Eliminar">
@@ -288,14 +280,14 @@
     document.head.appendChild(s);
   })(function initUI(){
 
-    // ====== Tooltips Bootstrap (activa todo lo que tenga data-bs-toggle="tooltip") ======
+    // Tooltips
     const initTooltips = () => {
       const els = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       els.forEach(el => new window.bootstrap.Tooltip(el));
     };
     initTooltips();
 
-    // ====== Búsqueda dinámica + limpiar ======
+    // Búsqueda dinámica + limpiar
     const debounce = (fn, delay = 450) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; };
 
     const form   = document.getElementById('search-form');
@@ -327,15 +319,12 @@
       form.requestSubmit();
     });
 
-    // ====== Confirmación de eliminar (SweetAlert) ======
+    // Confirmación de eliminar (SweetAlert)
     document.querySelectorAll('.btn-delete').forEach(btn => {
       btn.addEventListener('click', function () {
         const form = this.closest('form.form-delete');
         if (!form) return;
-        if (!window.Swal) {
-          console.warn('SweetAlert2 no está cargado.');
-          return form.submit();
-        }
+        if (!window.Swal) { console.warn('SweetAlert2 no está cargado.'); return form.submit(); }
         Swal.fire({
           title: '¿Eliminar test?',
           text: 'Esta acción no se puede deshacer.',
@@ -350,5 +339,9 @@
     });
   });
 </script>
-@include('medico.bottom-navbar')
+
+{{-- Navbar inferior solo para MÉDICO --}}
+@if(!$isAdmin)
+  @include('medico.bottom-navbar')
+@endif
 @endpush

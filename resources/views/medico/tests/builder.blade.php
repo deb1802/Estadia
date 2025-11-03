@@ -1,3 +1,4 @@
+{{-- resources/views/medico/tests/builder.blade.php  (reusada por admin) --}}
 @extends('layouts.app')
 
 @section('title', 'Editor de preguntas y rangos')
@@ -66,10 +67,16 @@
 @endpush
 
 @section('content')
+@php
+  // Detecta área por URL
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+  $isAdmin   = !request()->is('medico/*');
+@endphp
+
 <section class="content-header">
   <div class="page-head">
     <div class="d-flex align-items-center gap-2">
-      <a href="{{ route('medico.tests.edit', $test->idTest) }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i></a>
+      <a href="{{ route($routeArea.'tests.edit', $test->idTest) }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i></a>
       <div>
         <h1 class="page-title h4">Editor del test</h1>
         <span class="chip-help">
@@ -77,7 +84,7 @@
         </span>
       </div>
     </div>
-    <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost"><i class="bi bi-list-ul me-1"></i> Mis tests</a>
+    <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost"><i class="bi bi-list-ul me-1"></i> Listado de tests</a>
   </div>
 </section>
 
@@ -92,7 +99,7 @@
   </div>
 @endif
 
-<form id="builderForm" method="POST" action="{{ route('medico.tests.builder.update', $test->idTest) }}">
+<form id="builderForm" method="POST" action="{{ route($routeArea.'tests.builder.update', $test->idTest) }}">
   @csrf
   @method('PUT')
 
@@ -211,7 +218,7 @@
 
   {{-- ===================== SUBMIT ===================== --}}
   <div class="d-flex justify-content-end gap-2">
-    <a href="{{ route('medico.tests.edit', $test->idTest) }}" class="btn btn-ghost"><i class="bi bi-x-lg me-1"></i> Cancelar</a>
+    <a href="{{ route($routeArea.'tests.edit', $test->idTest) }}" class="btn btn-ghost"><i class="bi bi-x-lg me-1"></i> Cancelar</a>
     <button type="submit" class="btn btn-soft"><i class="bi bi-save2 me-1"></i> Guardar contenido</button>
   </div>
 
@@ -317,7 +324,6 @@
   // ==== Eventos dinámicos ====
   btnAddPregunta.addEventListener('click', () => {
     const node = tplPregunta();
-    // agrega 4 opciones por defecto
     for(let i=0;i<4;i++) node.querySelector('.opcionesList').appendChild(tplOpcion());
     preguntasList.appendChild(node);
   });
@@ -327,8 +333,8 @@
     if(!card) return;
     if(e.target.classList.contains('q-tipo')){
       const wrap = card.querySelector('.opcionesWrap');
-      const isOpen = e.target.value === 'abierta' ? 'none' : '';
-      wrap.style.display = isOpen;
+      const display = e.target.value === 'abierta' ? 'none' : '';
+      wrap.style.display = display;
     }
   });
 
@@ -355,7 +361,7 @@
     }
   });
 
-  // ==== Validación de traslapes de rangos (cliente) & creación de inputs anidados ====
+  // ==== Validación de traslapes + construcción de inputs anidados ====
   builderForm.addEventListener('submit', (e) => {
     dynamicInputs.innerHTML = ''; // reset
 
@@ -386,8 +392,7 @@
       descripcion: r.querySelector('.r-desc').value.trim(),
     }));
 
-    // 3) Validaciones rápidas
-    // 3.1 preguntas
+    // 3) Validaciones
     if(preguntas.length === 0){
       alert('Debes agregar al menos una pregunta.');
       e.preventDefault(); return;
@@ -398,7 +403,6 @@
         alert('Cada pregunta de opción debe tener al menos 2 opciones.'); e.preventDefault(); return;
       }
     }
-    // 3.2 rangos
     if(rangos.length === 0){
       alert('Debes agregar al menos un rango.'); e.preventDefault(); return;
     }
@@ -412,7 +416,6 @@
     rangosAlert.innerHTML = '';
 
     // 4) Construir inputs anidados para Laravel
-    // preguntas[i][texto], preguntas[i][tipo], preguntas[i][orden], preguntas[i][opciones][j][...]
     preguntas.forEach((p,i)=>{
       dynamicInputs.appendChild(el(`<input type="hidden" name="preguntas[${i}][texto]" value="${escapeHTML(p.texto)}">`));
       dynamicInputs.appendChild(el(`<input type="hidden" name="preguntas[${i}][tipo]" value="${escapeHTML(p.tipo)}">`));
@@ -426,7 +429,6 @@
       }
     });
 
-    // rangos[k][minPuntaje], ...
     rangos.forEach((r,k)=>{
       dynamicInputs.appendChild(el(`<input type="hidden" name="rangos[${k}][minPuntaje]" value="${r.minPuntaje}">`));
       dynamicInputs.appendChild(el(`<input type="hidden" name="rangos[${k}][maxPuntaje]" value="${r.maxPuntaje}">`));

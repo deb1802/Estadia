@@ -1,3 +1,4 @@
+{{-- resources/views/medico/tests/show.blade.php  (reusada por admin) --}}
 @extends('layouts.app')
 
 @section('title', 'Detalle del test')
@@ -7,7 +8,7 @@
   :root{
     --bg:#d7dfe9;
     --card:#ffffff;
-    --ink:#1b2a4a;
+    --ink:#1b2a4a;        /* ✅ faltaba */
     --muted:#5b6b84;
     --soft:#b5c8e1;
     --accent:#90aacc;
@@ -52,6 +53,7 @@
     border:1px solid var(--stroke); border-radius:14px; background:#fff; padding:12px; margin-bottom:10px;
   }
   .question h5{ font-weight:700; margin-bottom:6px; }
+  .hint{ color:var(--muted); font-size:.9rem; }
   .option-list{ margin-left:1rem; }
   .option{ background:#f7fbff; border:1px solid var(--stroke); border-radius:10px; padding:4px 10px; margin-bottom:4px; }
   .range-card{
@@ -61,19 +63,25 @@
 @endpush
 
 @section('content')
+@php
+  // Detecta área por URL
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+  $isAdmin   = !request()->is('medico/*');
+@endphp
+
 <section class="content-header">
   <div class="page-head">
     <div class="d-flex align-items-center gap-2">
-      <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i></a>
+      <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost"><i class="bi bi-arrow-left"></i></a>
       <h1 class="page-title h4">Detalle del test</h1>
     </div>
     <div class="d-flex gap-2">
-      @if(Route::has('medico.tests.builder.edit'))
-      <a href="{{ route('medico.tests.builder.edit', $test->idTest) }}" class="btn btn-soft">
-        <i class="bi bi-sliders me-1"></i> Editar contenido
-      </a>
+      @if(Route::has($routeArea.'tests.builder.edit'))
+        <a href="{{ route($routeArea.'tests.builder.edit', $test->idTest) }}" class="btn btn-soft">
+          <i class="bi bi-sliders me-1"></i> Editar contenido
+        </a>
       @endif
-      <a href="{{ route('medico.tests.edit', $test->idTest) }}" class="btn btn-ghost">
+      <a href="{{ route($routeArea.'tests.edit', $test->idTest) }}" class="btn btn-ghost">
         <i class="bi bi-pencil-square me-1"></i> Editar datos
       </a>
     </div>
@@ -144,8 +152,7 @@
   </div>
 
   <div class="mt-3">
-    <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost"><i class="bi bi-arrow-left me-1"></i> Volver al listado</a>
+    <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost"><i class="bi bi-arrow-left me-1"></i> Volver al listado</a>
   </div>
 </section>
 @endsection
-

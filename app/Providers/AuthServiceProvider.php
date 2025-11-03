@@ -3,16 +3,22 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
-// Importa los modelos y sus policies
+// === Modelos y Policies ===
 use App\Models\Medicamento;
 use App\Policies\MedicamentoPolicy;
 
 use App\Models\ActividadesTerap;
 use App\Policies\ActividadesTerapPolicy;
+
+use App\Models\Testimonio;
+use App\Models\RespuestaTestimonio;
 use App\Policies\TestimonioPolicy;
 use App\Policies\RespuestaTestimonioPolicy;
 
+use App\Models\Test;
+use App\Policies\TestPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,10 +28,11 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        Medicamento::class      => MedicamentoPolicy::class,
-        ActividadesTerap::class => ActividadesTerapPolicy::class,
+        Medicamento::class          => MedicamentoPolicy::class,
+        ActividadesTerap::class     => ActividadesTerapPolicy::class,
         Testimonio::class           => TestimonioPolicy::class,
         RespuestaTestimonio::class  => RespuestaTestimonioPolicy::class,
+        Test::class                 => TestPolicy::class, // opcional si ya la creaste
     ];
 
     /**
@@ -35,9 +42,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Gate::before o Gate::after que altere permisos globales, coméntalo aquí.
-        // Gate::before(function ($user, $ability) {
-        //     return null;
-        // });
+        // ✅ Los administradores pasan automáticamente cualquier policy
+        Gate::before(function ($user, $ability) {
+            return in_array($user->tipoUsuario, ['admin', 'administrador']) ? true : null;
+        });
     }
 }

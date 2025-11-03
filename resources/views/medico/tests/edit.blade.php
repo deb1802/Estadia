@@ -1,3 +1,4 @@
+{{-- resources/views/medico/tests/edit.blade.php  (reusada por admin) --}}
 @extends('layouts.app')
 
 @section('title', 'Editar test')
@@ -94,6 +95,12 @@
 @endpush
 
 @section('content')
+@php
+  // Detecta área por URL
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+  $isAdmin   = !request()->is('medico/*');
+@endphp
+
 <div class="page-wrap">
   <div class="container-narrow">
 
@@ -101,7 +108,7 @@
     <section class="content-header">
       <div class="page-head">
         <div class="d-flex align-items-center gap-2">
-          <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost" title="Volver a mis tests">
+          <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost" title="Volver al listado">
             <i class="bi bi-arrow-left"></i>
           </a>
           <div>
@@ -118,13 +125,13 @@
         </div>
 
         <div class="d-flex gap-2">
-          @if(Route::has('medico.tests.builder.edit'))
-            <a href="{{ route('medico.tests.builder.edit', $test->idTest) }}" class="btn btn-soft">
+          @if(Route::has($routeArea.'tests.builder.edit'))
+            <a href="{{ route($routeArea.'tests.builder.edit', $test->idTest) }}" class="btn btn-soft">
               <i class="bi bi-sliders me-1"></i> Editar preguntas y rangos
             </a>
           @endif
-          <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost">
-            <i class="bi bi-list-ul me-1"></i> Mis tests
+          <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost">
+            <i class="bi bi-list-ul me-1"></i> Listado de tests
           </a>
         </div>
       </div>
@@ -132,7 +139,7 @@
 
     <!-- ===== Form ===== -->
     <section class="content-body">
-      <form method="POST" action="{{ route('medico.tests.update', $test->idTest) }}" class="form-card">
+      <form method="POST" action="{{ route($routeArea.'tests.update', $test->idTest) }}" class="form-card">
         @csrf @method('PUT')
 
         <div class="form-head">
@@ -183,7 +190,7 @@
           <!-- Botonera -->
           <div class="actions">
             <div class="left">
-              <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost">
+              <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost">
                 <i class="bi bi-x-lg me-1"></i> Cancelar
               </a>
             </div>

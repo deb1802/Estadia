@@ -7,6 +7,7 @@ use App\Models\Test;
 use App\Models\Medico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class TestController extends Controller
 {
@@ -15,28 +16,62 @@ class TestController extends Controller
         $this->middleware(['auth']); // el rol lo aplica tu Route Group
     }
 
-    /** Resolver id del médico a partir del usuario autenticado */
+    /** ===== Helpers de rol/alcance ===== */
+
+    /** ¿El usuario logueado es admin? */
+    private function isAdmin(): bool
+    {
+        $u = Auth::user();
+        return $u && in_array($u->tipoUsuario, ['admin', 'administrador']);
+    }
+
+    /**
+     * Resolver id del médico a partir del usuario autenticado (solo si no es admin).
+     * Lanza 401/403 si no corresponde.
+     */
     private function medicoIdOrFail(): int
     {
         $user = Auth::user();
         if (!$user) abort(401);
 
-        // Usuarios.idUsuario  -> Medicos.usuario_id  -> Medicos.id
+        // Usuarios.idUsuario -> Medicos.usuario_id -> Medicos.id
         $medicoId = Medico::where('usuario_id', $user->idUsuario)->value('id');
         if (!$medicoId) {
             abort(403, 'Tu cuenta no está vinculada a un perfil de médico.');
         }
-        return (int)$medicoId;
+        return (int) $medicoId;
     }
 
-    /** 🔹 Lista de tests del médico */
+    /**
+     * Para admin devuelve null (sin filtro por fkMedico).
+     * Para médico devuelve su id (para filtrar por fkMedico).
+     */
+    private function medicoIdOrNullIfAdmin(): ?int
+    {
+        return $this->isAdmin() ? null : $this->medicoIdOrFail();
+    }
+
+    /**
+     * Aplica alcance por rol:
+     * - Médico: filtra por fkMedico
+     * - Admin : no filtra
+     */
+    private function scopeByRole(Builder $q): Builder
+    {
+        $medicoId = $this->medicoIdOrNullIfAdmin();
+        return $medicoId ? $q->where('fkMedico', $medicoId) : $q;
+    }
+
+    /** ===== Acciones CRUD ===== */
+
+    /** 🔹 Lista de tests (Admin puede ver todos; Médico solo los suyos) */
     public function index(Request $request)
     {
-        $q = trim((string) $request->get('q', ''));
-        $medicoId = $this->medicoIdOrFail();
+        $this->authorize('viewAny', Test::class);
 
-        $tests = Test::query()
-            ->where('fkMedico', $medicoId)
+        $q = trim((string) $request->get('q', ''));
+
+        $tests = $this->scopeByRole(Test::query())
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('nombre', 'like', "%{$q}%")
@@ -50,15 +85,18 @@ class TestController extends Controller
         return view('medico.tests.index', compact('tests', 'q'));
     }
 
-    /** 🔹 Form crear */
+    /** 🔹 Form crear (solo médico) */
     public function create()
     {
+        $this->authorize('create', Test::class); // bloquea admin
         return view('medico.tests.create');
     }
 
-    /** 🔹 Guardar test */
+    /** 🔹 Guardar test (solo médico) */
     public function store(Request $request)
     {
+        $this->authorize('create', Test::class); // bloquea admin
+
         $request->validate([
             'nombre'        => 'required|string|max:150',
             'tipoTrastorno' => 'nullable|string|max:120',
@@ -81,25 +119,30 @@ class TestController extends Controller
             ->with('success', '✅ Test creado correctamente. Ahora puedes agregar preguntas, opciones y rangos.');
     }
 
-    /** 🔹 Ver detalle */
+    /** 🔹 Ver detalle (admin o médico dueño) */
     public function show($idTest)
     {
-        $medicoId = $this->medicoIdOrFail();
-        $test = Test::where('fkMedico', $medicoId)->findOrFail($idTest);
+        $test = $this->scopeByRole(Test::query())->findOrFail($idTest);
+        $this->authorize('view', $test);
+
         return view('medico.tests.show', compact('test'));
     }
 
-    /** 🔹 Form editar (datos generales) */
+    /** 🔹 Form editar (admin o médico dueño) */
     public function edit($idTest)
     {
-        $medicoId = $this->medicoIdOrFail();
-        $test = Test::where('fkMedico', $medicoId)->findOrFail($idTest);
+        $test = $this->scopeByRole(Test::query())->findOrFail($idTest);
+        $this->authorize('update', $test);
+
         return view('medico.tests.edit', compact('test'));
     }
 
-    /** 🔹 Actualizar (datos generales) */
+    /** 🔹 Actualizar (admin o médico dueño) */
     public function update(Request $request, $idTest)
     {
+        $test = $this->scopeByRole(Test::query())->findOrFail($idTest);
+        $this->authorize('update', $test);
+
         $request->validate([
             'nombre'        => 'required|string|max:150',
             'tipoTrastorno' => 'nullable|string|max:120',
@@ -107,24 +150,23 @@ class TestController extends Controller
             'estado'        => 'required|in:activo,inactivo',
         ]);
 
-        $medicoId = $this->medicoIdOrFail();
-        $test = Test::where('fkMedico', $medicoId)->findOrFail($idTest);
         $test->update($request->only('nombre', 'tipoTrastorno', 'descripcion', 'estado'));
 
         return redirect()
-            ->route('medico.tests.index')
+            ->route($this->isAdmin() ? 'admin.tests.index' : 'medico.tests.index')
             ->with('success', '✅ Test actualizado correctamente.');
     }
 
-    /** 🔹 Eliminar */
+    /** 🔹 Eliminar (admin o médico dueño) */
     public function destroy($idTest)
     {
-        $medicoId = $this->medicoIdOrFail();
-        $test = Test::where('fkMedico', $medicoId)->findOrFail($idTest);
+        $test = $this->scopeByRole(Test::query())->findOrFail($idTest);
+        $this->authorize('delete', $test);
+
         $test->delete();
 
         return redirect()
-            ->route('medico.tests.index')
+            ->route($this->isAdmin() ? 'admin.tests.index' : 'medico.tests.index')
             ->with('success', '🗑️ Test eliminado correctamente.');
     }
 }

@@ -11,12 +11,21 @@ use App\Models\OpcionPregunta;
 use App\Models\RangoTest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class TestBuilderController extends Controller
 {
     public function __construct()
     {
         $this->middleware(['auth']);
+    }
+
+    /** ===== Helpers de rol/alcance ===== */
+
+    private function isAdmin(): bool
+    {
+        $u = Auth::user();
+        return $u && in_array($u->tipoUsuario, ['admin', 'administrador']);
     }
 
     private function medicoIdOrFail(): int
@@ -27,17 +36,31 @@ class TestBuilderController extends Controller
         $medicoId = Medico::where('usuario_id', $user->idUsuario)->value('id');
         if (!$medicoId) abort(403, 'Tu cuenta no está vinculada a un perfil de médico.');
 
-        return (int)$medicoId;
+        return (int) $medicoId;
     }
 
-    /** 🔹 Mostrar editor de contenido del test */
+    /**
+     * Aplica alcance por rol:
+     * - Admin: no filtra por fkMedico
+     * - Médico: filtra por fkMedico
+     */
+    private function scopeByRole(Builder $q): Builder
+    {
+        if ($this->isAdmin()) return $q;
+        return $q->where('fkMedico', $this->medicoIdOrFail());
+    }
+
+    /** ===== Acciones del Builder ===== */
+
+    /** 🔹 Mostrar editor de contenido del test (admin o médico dueño) */
     public function edit($idTest)
     {
-        $medicoId = $this->medicoIdOrFail();
+        $test = $this->scopeByRole(
+            Test::with(['preguntas.opciones', 'rangos'])
+        )->findOrFail($idTest);
 
-        $test = Test::where('fkMedico', $medicoId)
-            ->with(['preguntas.opciones', 'rangos'])
-            ->findOrFail($idTest);
+        // Admin o dueño puede editar el contenido
+        $this->authorize('update', $test);
 
         return view('medico.tests.builder', compact('test'));
     }
@@ -45,16 +68,16 @@ class TestBuilderController extends Controller
     /** 🔹 Guardar TODO (preguntas, opciones y rangos) */
     public function update(TestBuilderRequest $request, $idTest)
     {
-        $medicoId = $this->medicoIdOrFail();
+        $test = $this->scopeByRole(Test::query())->findOrFail($idTest);
+        $this->authorize('update', $test);
 
-        $test = Test::where('fkMedico', $medicoId)->findOrFail($idTest);
         $data = $request->validated();
 
-        // Validación extra: no traslapes
-        $rangos = $data['rangos'];
-        usort($rangos, fn($a, $b) => $a['minPuntaje'] <=> $b['minPuntaje']);
+        // Validación extra: que los rangos no se solapen
+        $rangos = $data['rangos'] ?? [];
+        usort($rangos, fn ($a, $b) => ($a['minPuntaje'] ?? 0) <=> ($b['minPuntaje'] ?? 0));
         for ($i = 1; $i < count($rangos); $i++) {
-            if ($rangos[$i]['minPuntaje'] <= $rangos[$i - 1]['maxPuntaje']) {
+            if (($rangos[$i]['minPuntaje'] ?? 0) <= ($rangos[$i - 1]['maxPuntaje'] ?? -1)) {
                 return back()->withErrors([
                     'rangos' => 'Los rangos no deben solaparse. Corrige los valores min/max.'
                 ])->withInput();
@@ -62,10 +85,12 @@ class TestBuilderController extends Controller
         }
 
         DB::transaction(function () use ($test, $data) {
+            // Reset de contenido actual
             PreguntaTest::where('fkTest', $test->idTest)->delete();
             RangoTest::where('fkTest', $test->idTest)->delete();
 
-            foreach ($data['preguntas'] as $preguntaData) {
+            // Preguntas + opciones
+            foreach (($data['preguntas'] ?? []) as $preguntaData) {
                 $pregunta = PreguntaTest::create([
                     'fkTest' => $test->idTest,
                     'texto'  => $preguntaData['texto'],
@@ -86,7 +111,8 @@ class TestBuilderController extends Controller
                 }
             }
 
-            foreach ($data['rangos'] as $rangoData) {
+            // Rangos/diagnósticos
+            foreach (($data['rangos'] ?? []) as $rangoData) {
                 RangoTest::create([
                     'fkTest'      => $test->idTest,
                     'minPuntaje'  => $rangoData['minPuntaje'],
@@ -98,7 +124,7 @@ class TestBuilderController extends Controller
         });
 
         return redirect()
-            ->route('medico.tests.builder.edit', $test->idTest)
+            ->route($this->isAdmin() ? 'admin.tests.builder.edit' : 'medico.tests.builder.edit', $test->idTest)
             ->with('success', '✅ Contenido del test guardado correctamente.');
     }
 }
