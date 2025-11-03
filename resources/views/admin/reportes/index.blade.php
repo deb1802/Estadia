@@ -116,7 +116,7 @@
 
     <div class="reporte-card" data-title="Reporte 3: Número y porcentaje de citas por mes"
          data-desc="Conteo y porcentaje mensual de citas programadas y atendidas."
-         data-href="#">
+         data-href="{{ route('admin.reportes.citas.mes') }}">
       <div class="reporte-icon"><i class="bi bi-calendar2-week"></i></div>
       <h3 class="reporte-titulo">Reporte 3: Número y porcentaje de citas por mes</h3>
       <p class="reporte-desc">Distribución mensual y comparación.</p>

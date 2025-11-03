@@ -149,6 +149,10 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::get('/reportes/seguimiento/{idPaciente}/excel', [App\Http\Controllers\Admin\ReporteSeguimientoController::class, 'exportarExcel'])
             ->name('reportes.seguimiento.excel');
 
+            // 📆 Reporte visual de citas por mes
+Route::get('/reportes/citas-por-mes', [App\Http\Controllers\Admin\ReporteCitasController::class, 'index'])
+    ->name('reportes.citas.mes');
+
 
     });
 
