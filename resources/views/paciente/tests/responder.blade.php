@@ -239,6 +239,8 @@
     </div>
   </form>
 </div>
+
+@include('paciente.bottom-nabvar')
 @endsection
 
 @push('scripts')

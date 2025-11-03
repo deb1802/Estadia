@@ -16,7 +16,7 @@
         </h1>
 
         <p class="lead text-ink-2 mb-4 pe-lg-5">
-          Tu bienestar emocional comienza con un paso: conocerte, acompañarte y cuidar de tu mente.
+          La salud mental no es un destino que debes recorrer solo.
           En MindWare te ayudamos con herramientas terapéuticas, tests y actividades diseñadas para ti.
         </p>
 

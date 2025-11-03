@@ -2,6 +2,8 @@
 @php
   use App\Models\Notificacion;
   use Illuminate\Support\Facades\Auth;
+  use Illuminate\Support\Facades\Route;
+  use Illuminate\Support\Str;
 
   $__uid    = Auth::id();
   $__unread = Notificacion::where('fkUsuario', $__uid)->where('leida', 0)->count();
@@ -11,7 +13,7 @@
   $__isNoti     = request()->is('paciente/notificaciones*');
   $__isHome     = request()->routeIs('paciente.dashboard') || request()->is('paciente') || request()->is('paciente/');
   $__isRecetas  = request()->routeIs('paciente.recetas.*');
-  $__isActs     = request()->is('paciente/actividades*');
+  $__isActs     = request()->is('paciente/actividades*') || request()->routeIs('paciente.actividades_terap.*');
 @endphp
 
 <style>
@@ -65,6 +67,7 @@
 
   .btn{ display:inline-block; font-weight:600; padding:.28rem .65rem; border:1px solid #cbd5e1;
         border-radius:.5rem; background:#fff; color:#374151; font-size:.85rem; }
+  .btn-sm{ padding:.22rem .55rem; font-size:.82rem; }
   .btn-outline-secondary{ border-color:#cbd5e1; color:#334155; }
   .btn-outline-secondary:hover{ background:#f3f4f6; }
   .btn-outline-primary{ border-color:#3b82f6; color:#1d4ed8; }
@@ -90,29 +93,30 @@
   <div class="pbn-wrap">
 
     {{-- Notificaciones (modal) --}}
-    <a href="#" class="pbn-link {{ $__isNoti ? 'active' : '' }}" data-toggle="modal" data-target="#pbnNotiModal" aria-label="Notificaciones">
-      <i class="fas fa-bell fa-lg"></i>
+    <a href="#" class="pbn-link {{ $__isNoti ? 'active' : '' }}"
+       data-toggle="modal" data-target="#pbnNotiModal" aria-label="Notificaciones">
+      <i class="fas fa-bell fa-lg" aria-hidden="true"></i>
       <span>Notificaciones</span>
       <span class="pbn-badge" id="pbn-noti-badge">{{ $__unread > 99 ? '99+' : $__unread }}</span>
     </a>
 
     {{-- Inicio --}}
     <a href="{{ route('paciente.dashboard') }}" class="pbn-link {{ $__isHome ? 'active' : '' }}" aria-label="Inicio">
-      <i class="fas fa-home fa-lg"></i>
+      <i class="fas fa-home fa-lg" aria-hidden="true"></i>
       <span>Inicio</span>
     </a>
 
     {{-- Mis Recetas --}}
     <a href="{{ route('paciente.recetas.index') }}" class="pbn-link {{ $__isRecetas ? 'active' : '' }}" aria-label="Mis Recetas">
-      <i class="fas fa-file-medical fa-lg"></i>
+      <i class="fas fa-file-medical fa-lg" aria-hidden="true"></i>
       <span>Mis Recetas</span>
     </a>
 
-    {{-- Actividades --}}
-    <a href="{{ route('paciente.actividades.index') }}"
-      class="pbn-link {{ $__isActs ? 'active' : '' }}"
-      aria-label="Actividades">
-      <i class="fas fa-clipboard-list fa-lg"></i>
+    {{-- Actividades / Actividades terapéuticas --}}
+    <a href="{{ Route::has('paciente.actividades_terap.index') ? route('paciente.actividades_terap.index') : route('paciente.actividades.index') }}"
+       class="pbn-link {{ $__isActs ? 'active' : '' }}"
+       aria-label="Actividades">
+      <i class="fas fa-clipboard-list fa-lg" aria-hidden="true"></i>
       <span>Actividades</span>
     </a>
 
@@ -135,7 +139,7 @@
         </h5>
 
         {{-- Marcar todas (POST clásico) --}}
-        <form method="POST" action="{{ url('/paciente/notificaciones/leertodas') }}" class="ml-auto">
+        <form method="POST" action="{{ url('/paciente/notificaciones/leertodas') }}" class="ml-auto" aria-label="Marcar todas como leídas">
           @csrf
           <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar todas</button>
         </form>
@@ -151,19 +155,39 @@
             <li class="list-group-item text-muted">Sin notificaciones.</li>
           @else
             @foreach($__items as $n)
+              @php
+                // Detecta "asignación de actividad" por tipo o por texto
+                $textoNoti   = Str::lower(trim(($n->titulo ?? '').' '.($n->mensaje ?? '')));
+                $esAsignAct  = ($n->tipo ?? null) === 'asignacion_actividad'
+                               || Str::contains($textoNoti, ['asignación de actividad', 'actividad asignada', 'nueva actividad']);
+
+                // Ruta destino: prioriza actividades_terap si existe; si no, cae a actividades
+                $rutaActiv   = Route::has('paciente.actividades_terap.index')
+                                    ? route('paciente.actividades_terap.index')
+                                    : (Route::has('paciente.actividades.index') ? route('paciente.actividades.index') : '#');
+              @endphp
+
               <li class="list-group-item {{ $n->leida ? '' : 'font-weight-bold' }}">
                 <div class="small">{{ $n->titulo ?? 'Notificación' }}</div>
                 <div class="text-muted small">{{ $n->mensaje ?? '' }}</div>
 
-                <div class="d-flex justify-content-between align-items-center mt-1">
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mt-1">
                   <span class="text-muted small">{{ optional($n->fecha)->format('d/m/Y H:i') }}</span>
 
-                  @unless($n->leida)
-                    <form method="POST" action="{{ url('/paciente/notificaciones/'.$n->idNotificacion.'/leer') }}">
-                      @csrf
-                      <button type="submit" class="btn btn-sm btn-outline-primary">Marcar leída</button>
-                    </form>
-                  @endunless
+                  <div class="d-flex gap-2">
+                    @if($esAsignAct && $rutaActiv !== '#')
+                      <a href="{{ $rutaActiv }}" class="btn btn-sm btn-outline-primary" title="Ver actividades">
+                        Ir a actividades
+                      </a>
+                    @endif
+
+                    @unless($n->leida)
+                      <form method="POST" action="{{ url('/paciente/notificaciones/'.$n->idNotificacion.'/leer') }}" aria-label="Marcar notificación como leída">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar leída</button>
+                      </form>
+                    @endunless
+                  </div>
                 </div>
               </li>
             @endforeach
