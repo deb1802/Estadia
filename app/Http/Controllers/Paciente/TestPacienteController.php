@@ -69,7 +69,7 @@ class TestPacienteController extends Controller
         abort_unless($asignacion, 404, 'Asignación no encontrada.');
 
         if (!empty($asignacion->fechaRespuesta)) {
-            return redirect()->route('paciente.tests.resultado', $idAsignacionTest);
+            return redirect()->route('paciente.tests.recibido', $idAsignacionTest);
         }
 
         $preguntas = DB::table('PreguntasTest')

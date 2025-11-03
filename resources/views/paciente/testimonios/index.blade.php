@@ -2,11 +2,11 @@
 
 @section('content')
 <style>
-  body { background: #e9f4ff; }
+  body { background: #e9f4ff; }  
 
   .foro-wrapper { display:flex; justify-content:center; padding:3rem 1rem; }
   .foro-container {
-    width:100%; max-width:800px; background:#fff; border-radius:18px;
+    width:100%; max-width:800px; background:#fff; bord@include('paciente.bottom-nabvar')er-radius:18px;
     padding:2rem 2rem 1rem; box-shadow:0 8px 20px rgba(0,0,0,.05);
   }
   .foro-header { font-weight:700; color:#1b3b6f; font-size:1.8rem; margin-bottom:1.5rem; }
