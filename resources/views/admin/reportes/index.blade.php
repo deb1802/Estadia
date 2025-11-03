@@ -132,7 +132,7 @@
 
     <div class="reporte-card" data-title="Reporte 5: Estado emocional"
          data-desc="Distribución de emociones registradas por periodo."
-         data-href="#">
+         data-href="{{ route('admin.reportes.emocional') }}">
       <div class="reporte-icon"><i class="bi bi-activity"></i></div>
       <h3 class="reporte-titulo">Reporte 5: Estado emocional</h3>
       <p class="reporte-desc">Tendencias e intensidad.</p>

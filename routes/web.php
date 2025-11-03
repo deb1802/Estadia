@@ -52,6 +52,15 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+    ->middleware('guest')
+    ->name('password.request');
+
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+    ->middleware('guest')
+    ->name('password.email');
+
+
 /* 👑 Sección del ADMINISTRADOR */
 Route::middleware(['auth', 'rol:administrador'])
     ->prefix('admin')
@@ -152,6 +161,12 @@ Route::middleware(['auth', 'rol:administrador'])
             // 📆 Reporte visual de citas por mes
 Route::get('/reportes/citas-por-mes', [App\Http\Controllers\Admin\ReporteCitasController::class, 'index'])
     ->name('reportes.citas.mes');
+
+    // 📊 Reporte de clasificación emocional
+Route::get('/reportes/emocional', [App\Http\Controllers\Admin\ReporteEmocionalController::class, 'index'])
+    ->name('reportes.emocional');
+Route::get('/reportes/emocional/export', [App\Http\Controllers\Admin\ReporteEmocionalController::class, 'export'])
+    ->name('reportes.emocional.export');
 
 
     });
