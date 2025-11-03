@@ -8,6 +8,8 @@ use App\Models\Medico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use App\Http\Requests\StoreTestRequest;
+
 
 class TestController extends Controller
 {
@@ -93,32 +95,27 @@ class TestController extends Controller
     }
 
     /** 🔹 Guardar test (solo médico) */
-    public function store(Request $request)
+    public function store(StoreTestRequest $request)
     {
-        $this->authorize('create', Test::class); // bloquea admin
+        // Datos ya validados y normalizados por el Form Request
+        $data = $request->validated();
 
-        $request->validate([
-            'nombre'        => 'required|string|max:150',
-            'tipoTrastorno' => 'nullable|string|max:120',
-            'descripcion'   => 'nullable|string',
-            'estado'        => 'required|in:activo,inactivo',
-        ]);
-
+        // FK del médico autenticado
         $medicoId = $this->medicoIdOrFail();
 
-        $test = Test::create([
-            'nombre'        => $request->nombre,
-            'tipoTrastorno' => $request->tipoTrastorno,
-            'descripcion'   => $request->descripcion,
-            'estado'        => $request->estado,
-            'fkMedico'      => $medicoId, // ✅ FK correcta
+        // Crear test
+        $test = \App\Models\Test::create([
+            'nombre'        => $data['nombre'],
+            'tipoTrastorno' => $data['tipoTrastorno'] ?? null,
+            'descripcion'   => $data['descripcion']   ?? null,
+            'estado'        => $data['estado'],
+            'fkMedico'      => $medicoId,
         ]);
 
         return redirect()
             ->route('medico.tests.edit', $test->idTest)
             ->with('success', '✅ Test creado correctamente. Ahora puedes agregar preguntas, opciones y rangos.');
     }
-
     /** 🔹 Ver detalle (admin o médico dueño) */
     public function show($idTest)
     {

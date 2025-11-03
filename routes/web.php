@@ -117,6 +117,32 @@ Route::middleware(['auth', 'rol:administrador'])
 
         Route::delete('/testimonios/{idTestimonio}/respuestas/{idRespuesta}', [TestimonioModerationController::class, 'destroyRespuesta'])
             ->name('testimonios.respuestas.destroy');
+        
+        // 🧠 TESTS (Administrador)
+        Route::get('/tests', [\App\Http\Controllers\Medico\TestController::class, 'index'])
+            ->name('tests.index');
+
+        Route::get('/tests/{idTest}', [\App\Http\Controllers\Medico\TestController::class, 'show'])
+            ->name('tests.show');
+
+        Route::get('/tests/{idTest}/edit', [\App\Http\Controllers\Medico\TestController::class, 'edit'])
+            ->name('tests.edit');
+
+        Route::put('/tests/{idTest}', [\App\Http\Controllers\Medico\TestController::class, 'update'])
+            ->name('tests.update');
+
+        Route::delete('/tests/{idTest}', [\App\Http\Controllers\Medico\TestController::class, 'destroy'])
+            ->name('tests.destroy');
+
+        // 🎯 Builder (Editor completo de preguntas/opciones/rangos)
+        Route::get('/tests/{idTest}/builder', [\App\Http\Controllers\Medico\TestBuilderController::class, 'edit'])
+            ->name('tests.builder.edit');
+
+        Route::put('/tests/{idTest}/builder', [\App\Http\Controllers\Medico\TestBuilderController::class, 'update'])
+            ->name('tests.builder.update');
+
+
+        
 
     });
 
