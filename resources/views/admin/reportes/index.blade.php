@@ -108,7 +108,7 @@
 
     <div class="reporte-card" data-title="Reporte 2: Seguimiento de pacientes"
          data-desc="Avances y estatus de cada paciente por periodo."
-         data-href="#">
+         data-href="{{ route('admin.reportes.seguimiento') }}">
       <div class="reporte-icon"><i class="bi bi-people-fill"></i></div>
       <h3 class="reporte-titulo">Reporte 2: Seguimiento de pacientes</h3>
       <p class="reporte-desc">Estatus, progreso y tendencias.</p>

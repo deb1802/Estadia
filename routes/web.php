@@ -141,8 +141,14 @@ Route::middleware(['auth', 'rol:administrador'])
         Route::put('/tests/{idTest}/builder', [\App\Http\Controllers\Medico\TestBuilderController::class, 'update'])
             ->name('tests.builder.update');
 
+        // 📊 Reporte de seguimiento de pacientes (nuevo)
+        Route::get('/reportes/seguimiento', [App\Http\Controllers\Admin\ReporteSeguimientoController::class, 'index'])
+            ->name('reportes.seguimiento');
+        Route::post('/reportes/seguimiento/generar', [App\Http\Controllers\Admin\ReporteSeguimientoController::class, 'generar'])
+            ->name('reportes.seguimiento.generar');
+        Route::get('/reportes/seguimiento/{idPaciente}/excel', [App\Http\Controllers\Admin\ReporteSeguimientoController::class, 'exportarExcel'])
+            ->name('reportes.seguimiento.excel');
 
-        
 
     });
 
