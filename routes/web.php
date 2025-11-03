@@ -219,6 +219,12 @@ Route::resource('citas', App\Http\Controllers\Medico\CitaMedicoController::class
             Route::post('/leertodas', [App\Http\Controllers\Medico\NotificacionesController::class, 'markAllRead'])->name('markAll');
             Route::get('/fragment', [App\Http\Controllers\Medico\NotificacionesController::class, 'fragment'])->name('fragment');
         });
+        
+        // 📊 Seguimiento de Pacientes
+Route::prefix('seguimiento')->name('seguimiento.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Medico\SeguimientoController::class, 'index'])->name('index');
+    Route::get('/{idPaciente}', [App\Http\Controllers\Medico\SeguimientoController::class, 'show'])->name('show');
+});
 
         // 🧩 Detalle de test respondido + Confirmar diagnóstico
         Route::get('tests/asignaciones/{idAsignacionTest}', 

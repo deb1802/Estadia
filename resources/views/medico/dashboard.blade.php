@@ -310,7 +310,7 @@
       </a>
 
       {{-- 9. Seguimiento de Pacientes --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="500">
+      <a href="{{ route('medico.seguimiento.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="500">
         <div class="icon-box" style="background:linear-gradient(135deg,#6c63ff,#00bcd4);">
           <i class="fas fa-stethoscope"></i>
         </div>
