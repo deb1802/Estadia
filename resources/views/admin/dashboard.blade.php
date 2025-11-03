@@ -13,6 +13,7 @@
     --male:#3a86ff; --female:#ff6ea7; --other:#8b8dbb;
     --emerald:#00c48c; --amber:#ffb703;
     --violet:#8b80f9; --teal:#00bcd4;
+    --slate:#334155;
   }
 
   .wrap{
@@ -42,7 +43,6 @@
   .segmented .seg.active{ background:#e7f1ff; color:#113869; box-shadow: 0 6px 16px rgba(27,59,111,.08) inset; }
   input[type="date"].form-control-sm{ border-radius:10px; border:1px solid var(--stroke); background:#fff; }
 
-  /* ===== GRID CHARTS ===== */
   .dashboard-grid{
     display:grid;
     grid-template-columns: repeat(12, minmax(0,1fr));
@@ -53,19 +53,20 @@
   .grid-l4{ grid-column: span 8; grid-row: span 2; }
   .grid-m3t{ grid-column: span 4; grid-row: span 3; }
   .grid-full{ grid-column: 1 / -1; grid-row: span 1; }
+  .grid-l4-row{ grid-column: span 8; grid-row: span 2; }
+  .grid-m3{ grid-column: span 4; grid-row: span 2; }
 
   @media (max-width: 1200px){
     .dashboard-grid{ grid-template-columns: repeat(8,1fr); grid-auto-rows: 120px; }
     .grid-s1{ grid-column: span 2; }
-    .grid-l4{ grid-column: span 8; grid-row: span 2; }
-    .grid-m3t{ grid-column: span 8; grid-row: span 3; }
+    .grid-l4, .grid-l4-row{ grid-column: span 8; grid-row: span 2; }
+    .grid-m3t, .grid-m3{ grid-column: span 8; grid-row: span 3; }
   }
   @media (max-width: 768px){
     .dashboard-grid{ grid-template-columns: repeat(4,1fr); grid-auto-rows: 120px; }
-    .grid-s1,.grid-l4,.grid-m3t,.grid-full{ grid-column: 1 / -1; }
+    .grid-s1,.grid-l4,.grid-m3t,.grid-full,.grid-l4-row,.grid-m3{ grid-column: 1 / -1; }
   }
 
-  /* ===== Tarjetas KPIs y charts ===== */
   .mf-card{
     background:linear-gradient(180deg,#ffffff, #fbfdff);
     border:1px solid var(--stroke); border-radius:16px; padding:12px;
@@ -118,7 +119,6 @@
   .mf-card.compact .legend-pill{ padding:4px 8px; font-size:.82rem; }
   .mf-card.compact .fs-4{ font-size:1.1rem !important; }
 
-  /* ===== CTA Botón Gestionar ===== */
   .manage-cta{ display:flex; justify-content:center; }
   .btn-gradient{
     --g1:#7a9cc6; --g2:#8b80f9;
@@ -131,23 +131,15 @@
   .btn-gradient:hover{ transform: translateY(-2px); filter: brightness(1.03); box-shadow: 0 14px 32px rgba(139,128,249,.35); }
   .btn-gradient:active{ transform: translateY(0); }
 
-  /* ===== Sección de Gestión ===== */
-  .dashboard-bg {
-    position: absolute; inset: 0;
+  .dashboard-bg { position: absolute; inset: 0;
     background: radial-gradient(circle at 20% 20%, #f0f4ff 0%, transparent 70%),
                 radial-gradient(circle at 80% 80%, #e8f7ff 0%, transparent 70%);
     z-index: 0; animation: float 10s ease-in-out infinite alternate;
   }
-  @keyframes float {
-    0% { background-position: 0% 0%, 100% 100%; }
-    100% { background-position: 50% 50%, 50% 50%; }
-  }
+  @keyframes float { 0%{background-position:0% 0%,100% 100%} 100%{background-position:50% 50%,50% 50%} }
 
-  .gestion-head{ position:relative; z-index:1; } /* <- asegura que el botón cierre esté encima */
-  .gestion-grid{
-    position: relative; z-index: 1;
-    display:flex; flex-wrap:wrap; justify-content:center; gap:30px 40px;
-  }
+  .gestion-head{ position:relative; z-index:1; }
+  .gestion-grid{ position: relative; z-index: 1; display:flex; flex-wrap:wrap; justify-content:center; gap:30px 40px; }
   .gestion-card{
     display:block; text-align:center; background:#fff;
     border-radius:16px; padding:25px 15px; width:220px; margin:15px;
@@ -157,38 +149,18 @@
   .gestion-card:hover{ transform: translateY(-8px) rotateX(4deg) rotateY(-4deg); box-shadow:0 8px 25px rgba(0,0,0,.2); }
   .gestion-card h4{ font-weight:700; color:#374151; font-size:1.1rem; }
   .gestion-card p{ font-size:.85rem; color:#6b7280; }
-
-  .gestion-card::after{
-    content:""; position:absolute; top:-75%; left:-75%; width:50%; height:200%;
-    background:rgba(255,255,255,.3); transform:rotate(25deg); transition:.6s;
-  }
+  .gestion-card::after{ content:""; position:absolute; top:-75%; left:-75%; width:50%; height:200%; background:rgba(255,255,255,.3); transform:rotate(25deg); transition:.6s; }
   .gestion-card:hover::after{ left:125%; }
-
-  .icon-box{
-    position:relative; width:80px; height:80px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    margin:0 auto 15px; font-size:2.2rem;
-    background: linear-gradient(135deg, #6c63ff, #00bcd4); color:#fff;
-    transition: transform .4s ease, box-shadow .4s ease;
-    box-shadow:0 0 15px rgba(108,99,255,.4); animation: pulseGlow 3s ease-in-out infinite;
+  .icon-box{ position:relative; width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    margin:0 auto 15px; font-size:2.2rem; background: linear-gradient(135deg, #6c63ff, #00bcd4); color:#fff;
+    transition: transform .4s ease, box-shadow .4s ease; box-shadow:0 0 15px rgba(108,99,255,.4); animation: pulseGlow 3s ease-in-out infinite;
   }
-  @keyframes pulseGlow{
-    0%{ box-shadow:0 0 15px rgba(108,99,255,.4), 0 0 25px rgba(0,188,212,.3); transform:scale(1);}
-    50%{ box-shadow:0 0 30px rgba(139,128,249,.6), 0 0 45px rgba(0,188,212,.5); transform:scale(1.05);}
-    100%{ box-shadow:0 0 15px rgba(108,99,255,.4), 0 0 25px rgba(0,188,212,.3); transform:scale(1);}
-  }
-
-  .btn-outline-pill{
-    border:1px solid var(--stroke);
-    background:#fff;
-    color:#284a85;
-    border-radius:999px;
-    padding:.55rem 1rem;
-    font-weight:800;
-  }
+  @keyframes pulseGlow{ 0%{box-shadow:0 0 15px rgba(108,99,255,.4),0 0 25px rgba(0,188,212,.3); transform:scale(1)}
+    50%{box-shadow:0 0 30px rgba(139,128,249,.6),0 0 45px rgba(0,188,212,.5); transform:scale(1.05)}
+    100%{box-shadow:0 0 15px rgba(108,99,255,.4),0 0 25px rgba(0,188,212,.3); transform:scale(1)} }
+  .btn-outline-pill{ border:1px solid var(--stroke); background:#fff; color:#284a85; border-radius:999px; padding:.55rem 1rem; font-weight:800; }
   .btn-outline-pill:hover{ background:#eef6ff; }
 
-  /* estado visible/oculto del panel */
   .gestion-panel{ display:none; }
   .gestion-panel.is-open{ display:block; }
 </style>
@@ -211,6 +183,13 @@
     <input type="date" id="fromDate" class="form-control form-control-sm" style="max-width:160px">
     <input type="date" id="toDate"   class="form-control form-control-sm" style="max-width:160px">
 
+    <select id="estadoCita" class="form-select form-select-sm" style="max-width:200px">
+      <option value="">Todas las citas</option>
+      <option value="programada">Programadas</option>
+      <option value="realizada">Realizadas</option>
+      <option value="cancelada">Canceladas</option>
+    </select>
+
     <div class="actions">
       <button class="btn btn-outline-primary btn-sm" id="btnReload"><i class="bi bi-arrow-repeat"></i> Recargar</button>
       <div class="form-check form-switch d-flex align-items-center ms-1">
@@ -222,58 +201,27 @@
     </div>
   </div>
 
-  {{-- CTA centrado para gestionar --}}
+  {{-- CTA --}}
   <div class="manage-cta mb-3">
     <button id="btnGestionar" type="button" class="btn btn-gradient btn-lg px-4">
       <i class="bi bi-grid-3x3-gap-fill"></i> Gestionar recursos y más
     </button>
   </div>
 
-  {{-- GRID de KPIs y CHARTS (siempre visible) --}}
+  {{-- GRID --}}
   <div id="dashboardGrid" class="dashboard-grid">
 
     {{-- KPIs --}}
-    <div class="mf-card grid-s1">
-      <div class="kpi">
-        <div class="ico"><i class="bi bi-people-fill" aria-hidden="true"></i></div>
-        <div>
-          <div class="sub">Total de usuarios</div>
-          <div id="usuarios_total" class="val">0</div>
-        </div>
-      </div>
-    </div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-people-fill"></i></div><div><div class="sub">Total de usuarios</div><div id="usuarios_total" class="val">0</div></div></div></div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-person-hearts"></i></div><div><div class="sub">Pacientes</div><div id="pacientes_total" class="val">0</div></div></div></div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-stethoscope"></i></div><div><div class="sub">Médicos</div><div id="medicos_total" class="val">0</div></div></div></div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-heart-pulse"></i></div><div><div class="sub">Actividades terapéuticas</div><div id="actividades_total" class="val">0</div></div></div></div>
 
-    <div class="mf-card grid-s1">
-      <div class="kpi">
-        <div class="ico"><i class="bi bi-person-hearts" aria-hidden="true"></i></div>
-        <div>
-          <div class="sub">Pacientes</div>
-          <div id="pacientes_total" class="val">0</div>
-        </div>
-      </div>
-    </div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-calendar-event"></i></div><div><div class="sub">Citas programadas</div><div id="citas_prog" class="val">0</div></div></div></div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-check2-circle"></i></div><div><div class="sub">Citas realizadas</div><div id="citas_real" class="val">0</div></div></div></div>
+    <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-x-circle"></i></div><div><div class="sub">Citas canceladas</div><div id="citas_canc" class="val">0</div></div></div></div>
 
-    <div class="mf-card grid-s1">
-      <div class="kpi">
-        <div class="ico"><i class="bi bi-stethoscope" aria-hidden="true"></i></div>
-        <div>
-          <div class="sub">Médicos</div>
-          <div id="medicos_total" class="val">0</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mf-card grid-s1">
-      <div class="kpi">
-        <div class="ico"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div>
-        <div>
-          <div class="sub">Actividades terapéuticas</div>
-          <div id="actividades_total" class="val">0</div>
-        </div>
-      </div>
-    </div>
-
-    {{-- Barras --}}
+    {{-- Barras sexo --}}
     <div class="mf-card chart-card grid-l4">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <span class="mf-title">Pacientes por sexo</span>
@@ -284,29 +232,23 @@
       <div class="mt-3">
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--male);display:inline-block"></span> Masculino</span>
-          <div class="flex-grow-1">
-            <div class="progress sex"><div id="barH" class="progress-bar" style="width:0%"></div></div>
-          </div>
+          <div class="flex-grow-1"><div class="progress sex"><div id="barH" class="progress-bar" style="width:0%"></div></div></div>
           <span id="pctH" class="tiny">0%</span>
         </div>
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--female);display:inline-block"></span> Femenino</span>
-          <div class="flex-grow-1">
-            <div class="progress sex"><div id="barM" class="progress-bar" style="width:0%"></div></div>
-          </div>
+          <div class="flex-grow-1"><div class="progress sex"><div id="barM" class="progress-bar" style="width:0%"></div></div></div>
           <span id="pctM" class="tiny">0%</span>
         </div>
         <div class="d-flex align-items-center gap-2">
           <span class="legend-pill"><span style="width:10px;height:10px;border-radius:50%;background:var(--other);display:inline-block"></span> Otro</span>
-          <div class="flex-grow-1">
-            <div class="progress sex"><div id="barO" class="progress-bar" style="width:0%"></div></div>
-          </div>
+          <div class="flex-grow-1"><div class="progress sex"><div id="barO" class="progress-bar" style="width:0%"></div></div></div>
           <span id="pctO" class="tiny">0%</span>
         </div>
       </div>
     </div>
 
-    {{-- Dona --}}
+    {{-- Dona roles --}}
     <div class="mf-card chart-card grid-m3t">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <span class="mf-title">Usuarios por rol</span>
@@ -323,20 +265,46 @@
     {{-- Test --}}
     <div class="mf-card compact grid-full">
       <div class="d-flex align-items-center gap-3 flex-wrap">
-        <i class="bi bi-emoji-smile fs-4 text-primary" aria-hidden="true"></i>
+        <i class="bi bi-emoji-smile fs-4 text-primary"></i>
         <div class="fw-bold me-2">Test psicológicos</div>
         <span class="legend-pill">Respondidos: <span id="tests_total">0</span></span>
         <span class="legend-pill">Comentarios: <span id="respuestas_test">0</span></span>
       </div>
     </div>
 
+    {{-- Citas --}}
+    <div class="mf-card chart-card grid-l4">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="mf-title">Citas por estado</span>
+        <button class="btn btn-light btn-sm badge-soft" data-export="citas"><i class="bi bi-download"></i> Exportar PNG</button>
+      </div>
+      <div class="hbox"><canvas id="citasChart"></canvas></div>
+    </div>
+
+    {{-- Emociones --}}
+    <div class="mf-card chart-card grid-m3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="mf-title">Estado emocional (pastel)</span>
+        <button class="btn btn-light btn-sm badge-soft" data-export="emociones"><i class="bi bi-download"></i> Exportar PNG</button>
+      </div>
+      <div class="hbox"><canvas id="emocionesChart"></canvas></div>
+    </div>
+
+    {{-- Medicamentos --}}
+    <div class="mf-card chart-card grid-m3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="mf-title">Medicamentos más recetados</span>
+        <button class="btn btn-light btn-sm badge-soft" data-export="meds"><i class="bi bi-download"></i> Exportar PNG</button>
+      </div>
+      <div class="hbox"><canvas id="medsChart"></canvas></div>
+    </div>
+
   </div>
 
-  {{-- =================== SECCIÓN GESTIÓN =================== --}}
+  {{-- Gestión --}}
   <section id="gestionPanel" class="gestion-panel mt-5">
     <div class="position-relative w-100" style="background: transparent;">
       <div class="dashboard-bg"></div>
-
       <div class="d-flex justify-content-between align-items-center mb-3 gestion-head">
         <h2 class="fw-semibold mt-2 mb-0" style="font-size: 2rem; color: #5c6ac4;">Centro de gestión</h2>
         <button type="button" class="btn btn-outline-pill" data-close-gestion>
@@ -353,7 +321,6 @@
         <h4>Usuarios</h4>
         <p>Administra todas las cuentas registradas.</p>
       </a>
-
       <a href="{{ route('admin.tutores.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="150">
         <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #a29bfe);">
           <i class="fas fa-chalkboard-teacher"></i>
@@ -361,7 +328,6 @@
         <h4>Tutores</h4>
         <p>Gestiona la información de tutores asignados.</p>
       </a>
-
       <a href="{{ route('admin.medicamentos.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
         <div class="icon-box" style="background: linear-gradient(135deg, #00bcd4, #6c63ff);">
           <i class="fas fa-capsules"></i>
@@ -369,7 +335,6 @@
         <h4>Medicamentos</h4>
         <p>Controla el catálogo de tratamientos.</p>
       </a>
-
       <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="250">
         <div class="icon-box" style="background: linear-gradient(135deg, #a29bfe, #74b9ff);">
           <i class="fas fa-brain"></i>
@@ -377,7 +342,6 @@
         <h4>Tests Psicológicos</h4>
         <p>Administra los tests aplicados a pacientes.</p>
       </a>
-
       <a href="{{ route($base.'actividades_terap.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c5ce7, #00cec9);">
           <i class="fas fa-heart"></i>
@@ -385,7 +349,6 @@
         <h4>Actividades Terapéuticas</h4>
         <p>Registra y supervisa terapias personalizadas.</p>
       </a>
-
       <a href="{{ route('admin.citas.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="350">
         <div class="icon-box" style="background: linear-gradient(135deg, #74b9ff, #6c63ff);">
           <i class="fas fa-calendar-check"></i>
@@ -393,7 +356,6 @@
         <h4>Citas</h4>
         <p>Agenda, modifica o cancela citas médicas.</p>
       </a>
-
       <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="400">
         <div class="icon-box" style="background: linear-gradient(135deg, #81ecec, #a29bfe);">
           <i class="fas fa-smile-beam"></i>
@@ -401,7 +363,6 @@
         <h4>Emociones</h4>
         <p>Analiza los registros emocionales de los pacientes.</p>
       </a>
-
       <a href="{{ route('admin.expedientes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="450">
         <div class="icon-box" style="background: linear-gradient(135deg, #00cec9, #6c5ce7);">
           <i class="fas fa-file-medical-alt"></i>
@@ -409,7 +370,6 @@
         <h4>Expediente Clínico</h4>
         <p>Consulta y administra expedientes de pacientes.</p>
       </a>
-
       <a href="{{ route('admin.reportes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #00bcd4);">
           <i class="fas fa-chart-bar"></i>
@@ -417,7 +377,6 @@
         <h4>Reportes</h4>
         <p>Visualiza estadísticas y reportes del sistema.</p>
       </a>
-
       <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="600">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #425ac5ff);">
           <i class="fas fa-database"></i>
@@ -427,7 +386,6 @@
       </a>
     </div>
   </section>
-  {{-- =================== FIN SECCIÓN GESTIÓN =================== --}}
 
 </div>
 @endsection
@@ -442,13 +400,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "{{ url('/api/dashboard/summary') }}";
 
-  const sexoCtx  = document.getElementById("sexoChart");
-  const rolesCtx = document.getElementById("rolesChart");
-  let sexoChart, rolesChart, timer = null;
+  const sexoCtx   = document.getElementById("sexoChart");
+  const rolesCtx  = document.getElementById("rolesChart");
+  const citasCtx  = document.getElementById("citasChart");
+  const emoCtx    = document.getElementById("emocionesChart");
+  const medsCtx   = document.getElementById("medsChart");
+
+  let sexoChart, rolesChart, citasChart, emoChart, medsChart, timer = null;
 
   const lastUpdate = document.getElementById("lastUpdate");
   const autoBadge  = document.getElementById("autoBadge");
   const autoToggle = document.getElementById("autoRefresh");
+  const estadoSel  = document.getElementById("estadoCita");
 
   const sexoGroup = document.getElementById("sexoGroup");
   let sexoActual = "";
@@ -460,6 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cargar();
     });
   });
+  estadoSel.addEventListener("change", cargar);
 
   document.getElementById("btnReload").addEventListener("click", cargar);
   autoToggle.addEventListener("change", (e) => toggleAuto(e.target.checked));
@@ -468,11 +432,11 @@ document.addEventListener("DOMContentLoaded", () => {
     else   { autoBadge.classList.add("d-none"); clearInterval(timer); timer = null; }
   }
 
-  // Export PNG
   document.querySelectorAll("[data-export]").forEach(b=>{
     b.addEventListener("click", ()=>{
       const which = b.getAttribute("data-export");
-      const canvas = which === "sexo" ? sexoCtx : rolesCtx;
+      const map = { sexo: sexoCtx, roles: rolesCtx, citas: citasCtx, emociones: emoCtx, meds: medsCtx };
+      const canvas = map[which] || sexoCtx;
       const a = document.createElement("a");
       a.href = canvas.toDataURL("image/png");
       a.download = `${which}-chart.png`;
@@ -500,27 +464,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = {
       sexo: sexoActual,
       from: document.getElementById("fromDate").value || "",
-      to:   document.getElementById("toDate").value   || ""
+      to:   document.getElementById("toDate").value   || "",
+      estado_cita: estadoSel.value || ""
     };
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}?${query}`);
     const data = await res.json();
 
-    actualizarTarjetas(data.cards || {});
+    actualizarTarjetas(data.cards || {}, data.charts || {});
     actualizarPorcentajes(data.charts?.pacientes_por_sexo?.porcentaje || {});
     renderCharts(data.charts || {}, data.cards || {});
 
-    const t = new Date();
-    lastUpdate && (lastUpdate.textContent = `Última actualización: ${t.toLocaleTimeString()}`);
+    lastUpdate && (lastUpdate.textContent = `Última actualización: ${new Date().toLocaleTimeString()}`);
   }
 
-  function actualizarTarjetas(cards){
+  function actualizarTarjetas(cards, charts){
     document.getElementById("usuarios_total").textContent    = cards.usuarios_total ?? 0;
     document.getElementById("pacientes_total").textContent   = cards.pacientes_total ?? 0;
     document.getElementById("medicos_total").textContent     = cards.medicos_total ?? 0;
     document.getElementById("actividades_total").textContent = cards.actividades_total ?? 0;
     document.getElementById("tests_total").textContent       = cards.tests_total ?? 0;
     document.getElementById("respuestas_test").textContent   = cards.respuestas_test ?? 0;
+
+    const ce = charts.citas_por_estado || {};
+    document.getElementById("citas_prog").textContent = ce.programada ?? 0;
+    document.getElementById("citas_real").textContent = ce.realizada ?? 0;
+    document.getElementById("citas_canc").textContent = ce.cancelada ?? 0;
   }
 
   function actualizarPorcentajes(pct){
@@ -534,13 +503,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderCharts(charts, cards){
+    // ===== Pacientes por sexo (barras) — AHORA RESPETA EL FILTRO =====
     const pacSexoAbs = charts?.pacientes_por_sexo?.absolutos || {};
-    const labelsSexo = Object.keys(pacSexoAbs);
-    const dataSexo   = Object.values(pacSexoAbs);
+    const all = ['masculino','femenino','otro'];
+    const labelsSexo = (sexoActual && all.includes(sexoActual)) ? [sexoActual] : all; // solo el filtro, o todos
+    const dataSexo   = labelsSexo.map(k => pacSexoAbs[k] ?? 0);
 
-    const colorList = mapSexoColors(labelsSexo);
-    const bgList    = colorList.map(c => makeVerticalGradient(sexoCtx.getContext('2d'), c));
-    const barT      = calcBarThickness(sexoCtx, Math.max(1, labelsSexo.length));
+    const colorList  = mapSexoColors(labelsSexo);
+    const bgList     = colorList.map(c => makeVerticalGradient(sexoCtx.getContext('2d'), c));
+    const barT       = calcBarThickness(sexoCtx, labelsSexo.length);
 
     if (sexoChart) sexoChart.destroy();
     sexoChart = new Chart(sexoCtx, {
@@ -565,14 +536,22 @@ document.addEventListener("DOMContentLoaded", () => {
         hover: { mode:'index', intersect:false },
         plugins:{
           legend:{ display:false },
-          tooltip:{ mode:'index', intersect:false, backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          tooltip:{
+            mode:'index', intersect:false,
+            callbacks:{ title: (items)=> items.map(i => i.label.charAt(0).toUpperCase()+i.label.slice(1)) },
+            backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true
+          },
           datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
         },
-        scales:{ x:{ grid:{ display:false }, ticks:{ font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
+        scales:{
+          x:{ grid:{ display:false }, ticks:{ font:{ weight:700 }, callback:(v,i)=> labelsSexo[i][0].toUpperCase()+labelsSexo[i].slice(1) } },
+          y:{ beginAtZero:true, ticks:{ precision:0 } }
+        }
       },
       plugins: [ChartDataLabels]
     });
 
+    // ===== Roles (dona) =====
     const rolesObj = cards?.usuarios_por_rol || {};
     const rolLabels = Object.keys(rolesObj);
     const rolData   = Object.values(rolesObj);
@@ -595,19 +574,111 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       plugins: [ChartDataLabels]
     });
+
+    // ===== Citas por estado (barras) =====
+    const citasObj = charts?.citas_por_estado || {};
+    const cKeys = ['programada','realizada','cancelada'];
+    const citasData   = cKeys.map(k => citasObj[k] ?? 0);
+    const citasColors = [getCSS('--violet'), getCSS('--emerald'), getCSS('--amber')];
+
+    if (citasChart) citasChart.destroy();
+    citasChart = new Chart(citasCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Programada', 'Realizada', 'Cancelada'],
+        datasets:[{
+          label: 'Citas',
+          data: citasData,
+          backgroundColor: citasColors.map(c => makeVerticalGradient(citasCtx.getContext('2d'), c)),
+          borderColor: citasColors,
+          borderWidth: 1.2,
+          borderRadius: 10,
+          barThickness: calcBarThickness(citasCtx, 3)
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
+        },
+        scales:{ x:{ grid:{ display:false }, ticks:{ font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // ===== Emociones (dona) =====
+    const emoObj = charts?.emocion_pastel || {};
+    const emoLabels = Object.keys(emoObj);
+    const emoData   = Object.values(emoObj);
+
+    if (emoChart) emoChart.destroy();
+    emoChart = new Chart(emoCtx, {
+      type: 'doughnut',
+      data: {
+        labels: emoLabels,
+        datasets:[{
+          data: emoData,
+          borderWidth:1,
+          backgroundColor: emoLabels.map((_,i)=> {
+            const palette = [getCSS('--violet'), getCSS('--teal'), getCSS('--emerald'), getCSS('--amber'), getCSS('--male'), getCSS('--female'), getCSS('--other')];
+            return palette[i % palette.length];
+          })
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false, cutout:"58%",
+        plugins:{
+          legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, font:{ weight:700 } } },
+          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          datalabels:{ display:false }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // ===== Top Medicamentos (columnas) =====
+    const medsArr = charts?.top_medicamentos || [];
+    const medsLabels = medsArr.map(x => x.nombre);
+    const medsData   = medsArr.map(x => x.total);
+    const medsColor  = getCSS('--slate');
+
+    if (medsChart) medsChart.destroy();
+    medsChart = new Chart(medsCtx, {
+      type:'bar',
+      data:{
+        labels: medsLabels,
+        datasets:[{
+          label:'Recetas',
+          data: medsData,
+          backgroundColor: medsLabels.map(()=> makeVerticalGradient(medsCtx.getContext('2d'), medsColor)),
+          borderColor: medsLabels.map(()=> medsColor),
+          borderWidth: 1.2,
+          borderRadius: 10,
+          barThickness: calcBarThickness(medsCtx, Math.max(1, medsLabels.length)),
+          maxBarThickness: 60
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
+          datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
+        },
+        scales:{ x:{ grid:{ display:false }, ticks:{ maxRotation: 45, minRotation: 0, font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
+      },
+      plugins: [ChartDataLabels]
+    });
   }
 
-  // ======== Gestión simple ========
   const gestionPanel = document.getElementById('gestionPanel');
   const btnGestionar = document.getElementById('btnGestionar');
-
-  // abrir siempre (no oculta dashboard)
   btnGestionar.addEventListener('click', () => {
     gestionPanel.classList.add('is-open');
     gestionPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
-
-  // Cerrar con delegación en todo el documento (por si re-renderiza)
   document.addEventListener('click', (ev) => {
     const closeBtn = ev.target.closest('[data-close-gestion]');
     if (closeBtn && gestionPanel.classList.contains('is-open')) {
@@ -615,8 +686,6 @@ document.addEventListener("DOMContentLoaded", () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, true);
-
-  // Cerrar con ESC
   document.addEventListener('keydown', (ev) => {
     if (ev.key === 'Escape' && gestionPanel.classList.contains('is-open')) {
       gestionPanel.classList.remove('is-open');
@@ -624,7 +693,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ======== Init ========
   AOS.init({ duration: 900, once: true, easing: 'ease-out-back' });
   cargar();
   toggleAuto(autoToggle.checked);
