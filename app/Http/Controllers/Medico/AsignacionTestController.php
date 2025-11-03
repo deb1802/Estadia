@@ -171,7 +171,7 @@ class AsignacionTestController extends Controller
         ====================================================== */
         return redirect()
             ->route('medico.tests.asignar.index')
-            ->with('success', '✅ Test(s) asignado(s) correctamente y correo enviado al paciente.');
+            ->with('success', ' Test(s) asignado(s) correctamente y correo enviado al paciente.');
     }
 
     public function detalle($idAsignacionTest)

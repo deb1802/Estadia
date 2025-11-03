@@ -39,16 +39,32 @@
     margin-bottom:.5rem;
   }
   .page-title{ font-weight:800; letter-spacing:.3px; margin:0; }
-  .badge-soft{
-    background:linear-gradient(180deg, var(--soft), #cbd9ea);
-    color:#1f3b5a; border:1px solid var(--stroke); padding:.35rem .6rem; border-radius:999px;
-    font-size:.85rem; font-weight:600;
-  }
+
   .btn-primary-soft{
     background:var(--accent); color:#0d223d; font-weight:700; border:none; border-radius:12px; padding:.6rem .9rem;
     transition:transform .15s ease, box-shadow .15s ease;
   }
   .btn-primary-soft:hover{ transform:translateY(-1px); box-shadow:0 10px 20px rgba(0,0,0,.08); }
+
+  /* ===== Botón ASIGNAR más grande y destacado (no toca estilos globales) ===== */
+  .btn-assign-cta{
+    display:inline-flex; align-items:center; gap:.55rem;
+    background: linear-gradient(90deg, var(--soft), var(--accent));
+    color:#0d223d; border:1px solid var(--stroke);
+    border-radius:16px;
+    padding:.85rem 1.3rem;
+    font-weight:900; letter-spacing:.2px;
+    font-size:1rem;
+    box-shadow:0 10px 24px rgba(20,40,70,.10);
+    transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  }
+  .btn-assign-cta i{ font-size:1.15rem; }
+  .btn-assign-cta:hover{
+    filter:brightness(1.03);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px rgba(20,40,70,.12);
+    color:#0d223d; text-decoration:none;
+  }
 
   /* ===== Búsqueda ===== */
   .search-block{ margin:.75rem 0 1rem; }
@@ -150,13 +166,53 @@
       {{-- Asignar test a pacientes (solo médico) --}}
       @if(!$isAdmin && Route::has('medico.tests.asignar.index'))
         <div class="w-100 text-center mt-3">
-          <a href="{{ route('medico.tests.asignar.index') }}" class="btn btn-accent px-4 py-2">
-            <i class="bi bi-people-fill me-1"></i> Asignar test a pacientes
+          <a href="{{ route('medico.tests.asignar.index') }}" class="btn-assign-cta">
+            <i class="bi bi-people-fill"></i> Asignar test a pacientes
           </a>
         </div>
       @endif
     </div>
   </section>
+
+    {{-- ===== Flash global (éxito / error) ===== --}}
+    @if (session('success') || session('error'))
+      <div id="page-flash" 
+          class="alert {{ session('success') ? 'alert-success' : 'alert-danger' }} shadow-sm mt-3"
+          style="border-radius:8px;">
+        <i class="bi {{ session('success') ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-2 fs-5"></i>
+        {{ session('success') ?? session('error') }}
+      </div>
+
+      <style>
+        #page-flash{
+          position: relative;
+          background: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+          color:      {{ session('success') ? '#0f5132' : '#842029' }};
+          border:1px solid {{ session('success') ? '#badbcc' : '#f5c2c7' }};
+          border-left:5px solid {{ session('success') ? '#198754' : '#dc3545' }};
+          font-weight:500;
+          padding:10px 14px;
+          display:flex;
+          align-items:center;
+          justify-content:flex-start;
+          max-width:480px;      /* 🔹 más angosto */
+          margin-left: 1rem;    /* 🔹 alineado a la izquierda */
+          box-shadow:0 2px 8px rgba(0,0,0,.05);
+        }
+      </style>
+
+      <script>
+        setTimeout(() => {
+          const el=document.getElementById('page-flash');
+          if(el){
+            el.style.transition='opacity .8s ease';
+            el.style.opacity='0';
+            setTimeout(()=>el.remove(),800);
+          }
+        }, 5000);
+      </script>
+    @endif
+
 
   <!-- ===== Búsqueda ===== -->
   <div class="search-block">

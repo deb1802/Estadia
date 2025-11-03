@@ -77,7 +77,6 @@
 
   .hint{ font-size:.86rem; color:var(--muted); }
   .req{ color:#be123c; }
-  .invalid-feedback{ display:block; }
 
   /* Botonera */
   .actions{
@@ -90,6 +89,32 @@
     padding:.55rem .95rem; font-weight:700;
   }
   .btn-cancel:hover{ background:#f7fbff; }
+
+  /* ===== Alertas compactas (estilo “anteriores”) ===== */
+  .alert{
+    margin-top:.5rem;
+    width: fit-content;
+    max-width: 640px;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+  .alert-danger{
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-left: 5px solid #dc3545;
+  }
+  .alert-success{
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    border-left: 5px solid #198754;
+  }
+
+  /* Forzar que los mensajes de error por campo se vean siempre debajo del input */
+  .invalid-feedback{ display:block; }
 
   @media (max-width: 576px){
     .page-row-top{ flex-direction:column; align-items:flex-start; }
@@ -112,7 +137,7 @@
         <!-- Fila superior: título + Mis tests -->
         <div class="page-row-top">
           <div class="title-block">
-            <h1 class="page-title h3 mb-0">Crear Nuevo test</h1>
+            <h1 class="page-title h3 mb-0">Crear nuevo test</h1>
             <a href="{{ route('medico.tests.index') }}" class="btn btn-ghost">
               <i class="bi bi-list-ul me-1"></i> Mis tests
             </a>
@@ -126,12 +151,38 @@
             <i class="bi bi-arrow-90deg-left me-1"></i> Volver
           </button>
         </div>
+
+        {{-- 🔴 Resumen de errores (compacto, como las alertas anteriores) --}}
+        @if ($errors->any())
+          <div class="alert alert-danger mt-2">
+            <i class="bi bi-exclamation-octagon me-2"></i>
+            Corrige los siguientes campos:
+            <ul class="mb-0 mt-2">
+              @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
+
+        {{-- 🟢 (Opcional) Mensaje verde si llegaras a usar esta vista tras éxito --}}
+        @if (session('success'))
+          <div id="alert-success" class="alert alert-success mt-2">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            {{ session('success') }}
+          </div>
+          <script>
+            setTimeout(()=>{const el=document.getElementById('alert-success');
+              if(el){ el.style.transition='opacity .8s ease'; el.style.opacity='0'; setTimeout(()=>el.remove(),800); }
+            },6000);
+          </script>
+        @endif
       </div>
     </section>
 
     <!-- ===== Body ===== -->
     <section class="content-body">
-      <form method="POST" action="{{ route('medico.tests.store') }}" class="form-card">
+      <form method="POST" action="{{ route('medico.tests.store') }}" class="form-card" novalidate>
         @csrf
 
         <div class="form-head">
@@ -147,9 +198,8 @@
               <input
                 type="text" name="nombre" value="{{ old('nombre') }}"
                 class="form-control @error('nombre') is-invalid @enderror"
-                placeholder="Ej. GAD-7, PHQ-9, PSS-10" required
-                aria-describedby="helpNombre"
-              >
+                placeholder="Ej. GAD-7, PHQ-9, PSS-10"
+                aria-describedby="helpNombre">
               @error('nombre') <div class="invalid-feedback">{{ $message }}</div> @enderror
               <div id="helpNombre" class="hint mt-1">Nombre visible para ti y tus pacientes.</div>
             </div>
@@ -160,15 +210,14 @@
               <input
                 type="text" name="tipoTrastorno" value="{{ old('tipoTrastorno') }}"
                 class="form-control @error('tipoTrastorno') is-invalid @enderror"
-                placeholder="Ansiedad, Depresión, Estrés"
-              >
+                placeholder="Ansiedad, Depresión, Estrés">
               @error('tipoTrastorno') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
             <!-- Estado -->
             <div class="col-12 col-md-4">
               <label class="form-label">Estado <span class="req">*</span></label>
-              <select name="estado" class="form-select @error('estado') is-invalid @enderror" required>
+              <select name="estado" class="form-select @error('estado') is-invalid @enderror">
                 <option value="inactivo" {{ old('estado','inactivo')==='inactivo'?'selected':'' }}>
                   Inactivo (recomendado mientras lo editas)
                 </option>
@@ -182,14 +231,15 @@
 
             <!-- Descripción -->
             <div class="col-12">
-              <label class="form-label">Descripción (opcional)</label>
+              <label class="form-label">Descripción <span class="req">*</span></label>
               <textarea
                 name="descripcion" rows="4"
                 class="form-control @error('descripcion') is-invalid @enderror"
-                placeholder="Describe brevemente el objetivo del test, población, instrucciones, etc."
-              >{{ old('descripcion') }}</textarea>
+                placeholder="Describe brevemente el objetivo del test, población, instrucciones, etc.">{{ old('descripcion') }}</textarea>
               @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+              <div class="hint mt-1">Incluye al menos una breve descripción del propósito del test.</div>
             </div>
+
           </div>
 
           <!-- Botonera -->

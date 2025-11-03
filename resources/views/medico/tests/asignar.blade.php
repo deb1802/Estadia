@@ -147,6 +147,7 @@
       <button type="submit" class="btn-soft" id="btn-assign" disabled>
         <i class="bi bi-plus-lg me-1"></i> Asignar test
       </button>
+      
 
       {{-- Select paciente --}}
       <select name="paciente_id" class="select-nice" id="paciente_id" required>
@@ -156,6 +157,44 @@
         @endforeach
       </select>
     </div>
+        {{-- ===== Flash global (éxito / error) ===== --}}
+    @if (session('success') || session('error'))
+      <div id="page-flash" 
+          class="alert {{ session('success') ? 'alert-success' : 'alert-danger' }} shadow-sm mt-3"
+          style="border-radius:8px;">
+        <i class="bi {{ session('success') ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }} me-2 fs-5"></i>
+        {{ session('success') ?? session('error') }}
+      </div>
+
+      <style>
+        #page-flash{
+          position: relative;
+          background: {{ session('success') ? '#d1e7dd' : '#f8d7da' }};
+          color:      {{ session('success') ? '#0f5132' : '#842029' }};
+          border:1px solid {{ session('success') ? '#badbcc' : '#f5c2c7' }};
+          border-left:5px solid {{ session('success') ? '#198754' : '#dc3545' }};
+          font-weight:500;
+          padding:10px 14px;
+          display:flex;
+          align-items:center;
+          justify-content:flex-start;
+          max-width:480px;      /* 🔹 más angosto */
+          margin-left: 1rem;    /* 🔹 alineado a la izquierda */
+          box-shadow:0 2px 8px rgba(0,0,0,.05);
+        }
+      </style>
+
+      <script>
+        setTimeout(() => {
+          const el=document.getElementById('page-flash');
+          if(el){
+            el.style.transition='opacity .8s ease';
+            el.style.opacity='0';
+            setTimeout(()=>el.remove(),800);
+          }
+        }, 5000);
+      </script>
+    @endif
 
     {{-- ======= Listado de tests disponibles ======= --}}
     <div class="panel mb-3">

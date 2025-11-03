@@ -1,5 +1,11 @@
 {{-- resources/views/medico/tests/edit.blade.php  (reusada por admin) --}}
 @extends('layouts.app')
+@php
+  // Detecta área por URL
+  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
+  $isAdmin   = !request()->is('medico/*');
+  $isOn = ($test->estado === 'activo');
+@endphp
 
 @section('title', 'Editar test')
 
@@ -15,27 +21,53 @@
   .page-wrap{ padding:18px 14px; }
   .container-narrow{ max-width: 980px; margin: 0 auto; }
 
-  /* ===== Header ===== */
-  .page-head{
-    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    margin-bottom:.75rem;
+  /* ===== Chips/Meta ===== */
+  .meta-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .chip{
+    background:#f2f6fb; border:1px solid var(--stroke); border-radius:999px; padding:.25rem .6rem;
+    font-size:.83rem; color:#1f3b5a; font-weight:600;
   }
-  .page-title{ font-weight:800; letter-spacing:.3px; margin:0; }
+  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .on{ background:#22c55e; } .off{ background:#94a3b8; }
 
   /* ===== Botones ===== */
-  .btn-soft{
+  /* Botón suave — “Volver al dashboard” */
+  .btn-soft {
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #333;
+    border-radius: 50px;
+    padding: .5rem 1.25rem;
+    transition: .2s ease;
+    white-space: nowrap;
+  }
+  .btn-soft:hover {
+    background: #f2f2f2;
+    color: #000;
+  }
+
+  /* Botón principal */
+  .btn-accent{
     background: var(--accent); color:#0d223d; font-weight:700; border:none; border-radius:14px;
     padding:.6rem 1rem; transition: transform .15s ease, box-shadow .15s ease;
+    white-space: nowrap;
   }
-  .btn-soft:hover{ transform: translateY(-1px); box-shadow:0 10px 20px rgba(0,0,0,.08); }
+  .btn-accent:hover{ transform: translateY(-1px); box-shadow:0 10px 20px rgba(0,0,0,.08); }
 
   .btn-ghost{
     background:#fff; border:1px solid var(--stroke); border-radius:14px;
-    padding:.55rem .9rem; font-weight:700; color:#1c3455;
+    padding:.55rem .9rem; font-weight:700; color:#1c3455; white-space: nowrap;
   }
   .btn-ghost:hover{ background:#f7fbff; }
 
-  /* ===== Card ===== */
+  /* Contenedores de acciones */
+  .btn-wrap{ display:flex; flex-wrap:wrap; gap:10px; }
+  .btn-wrap-right{ justify-content:flex-end; }
+  @media (max-width: 576px){
+    .btn-wrap, .btn-wrap-right{ display:grid; grid-template-columns: 1fr; }
+  }
+
+  /* ===== Card / Form ===== */
   .form-card{
     background:var(--card); border:1px solid var(--stroke); border-radius:20px;
     box-shadow:0 6px 20px rgba(10,30,60,.06); overflow:hidden;
@@ -46,7 +78,7 @@
   }
   .form-body{ padding:20px; }
 
-  /* ===== Inputs largos + redondeados (forzado) ===== */
+  /* Inputs redondeados */
   .form-label{ font-weight:700; }
   .form-control, .form-select{
     border-radius:20px !important;
@@ -61,80 +93,90 @@
     border-color: var(--accent); outline: none; box-shadow: 0 0 0 4px rgba(144,170,204,.25);
   }
   textarea.form-control{ border-radius:22px !important; }
-
-  /* Campos “largos” en desktop */
-  .col-long{ flex:0 0 100%; max-width:100%; }
-  @media (min-width: 992px){
-    .col-long{ flex:0 0 75%; max-width:75%; }      /* ~3/4 del contenedor */
-    .col-mid { flex:0 0 50%; max-width:50%; }      /* mitad */
-    .col-smx { flex:0 0 33.333%; max-width:33.333%;}
-  }
-
   .invalid-feedback{ display:block; }
   .hint{ font-size:.85rem; color:var(--muted); }
   .req{ color:#be123c; }
 
-  .meta-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-  .chip{
-    background:#f2f6fb; border:1px solid var(--stroke); border-radius:999px; padding:.25rem .6rem;
-    font-size:.83rem; color:#1f3b5a; font-weight:600;
+  /* Campos “largos” en desktop */
+  .col-long{ flex:0 0 100%; max-width:100%; }
+  @media (min-width: 992px){
+    .col-long{ flex:0 0 75%; max-width:75%; }
+    .col-mid { flex:0 0 50%; max-width:50%; }
+    .col-smx { flex:0 0 33.333%; max-width:33.333%;}
   }
-  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
-  .on{ background:#22c55e; } .off{ background:#94a3b8; }
 
-  /* ===== Botonera alineada ===== */
+  /* ===== Botonera del form ===== */
   .actions{
-    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
     margin-top: 12px;
   }
   @media (max-width: 576px){
     .actions{ flex-direction:column-reverse; align-items:stretch; }
     .actions a, .actions button{ width:100%; justify-content:center; }
   }
+
+  /* Alert éxito */
+  .alert-success {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    font-weight: 500;
+    border-left: 5px solid #198754;
+  }
 </style>
 @endpush
 
 @section('content')
-@php
-  // Detecta área por URL
-  $routeArea = request()->is('medico/*') ? 'medico.' : 'admin.';
-  $isAdmin   = !request()->is('medico/*');
-@endphp
-
 <div class="page-wrap">
   <div class="container-narrow">
 
-    <!-- ===== Header ===== -->
-    <section class="content-header">
-      <div class="page-head">
-        <div class="d-flex align-items-center gap-2">
-          <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost" title="Volver al listado">
-            <i class="bi bi-arrow-left"></i>
-          </a>
-          <div>
-            <h1 class="page-title h3">Editar test</h1>
-            <div class="meta-row mt-1">
-              @php $isOn = ($test->estado === 'activo'); @endphp
-              <span class="chip"><span class="dot {{ $isOn ? 'on' : 'off' }}"></span>{{ ucfirst($test->estado) }}</span>
-              <span class="chip"><i class="bi bi-hash me-1"></i>ID {{ $test->idTest }}</span>
-              @if($test->fechaCreacion)
-                <span class="chip"><i class="bi bi-calendar-event me-1"></i>{{ \Illuminate\Support\Carbon::parse($test->fechaCreacion)->format('d/m/Y') }}</span>
-              @endif
-            </div>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2">
-          @if(Route::has($routeArea.'tests.builder.edit'))
-            <a href="{{ route($routeArea.'tests.builder.edit', $test->idTest) }}" class="btn btn-soft">
-              <i class="bi bi-sliders me-1"></i> Editar preguntas y rangos
-            </a>
-          @endif
-          <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost">
-            <i class="bi bi-list-ul me-1"></i> Listado de tests
-          </a>
-        </div>
+    <!-- ===== Header: título arriba, botón volver debajo ===== -->
+    <section class="content-header mb-2">
+      <!-- Título -->
+      <h1 class="h3 mb-1">Editar test psicológico</h1>
+      <!-- Botón volver (debajo del título) -->
+      <div class="btn-wrap mb-2">
+        <button type="button" class="btn btn-soft"
+                onclick="window.location='{{ route($routeArea.'tests.index') }}'">
+          <i class="bi bi-arrow-90deg-left me-1"></i> Volver 
+        </button>
       </div>
+
+      <!-- Chips -->
+      <div class="meta-row mb-2">
+        <span class="chip"><span class="dot {{ $isOn ? 'on' : 'off' }}"></span>{{ ucfirst($test->estado) }}</span>
+        <span class="chip"><i class="bi bi-hash me-1"></i>ID {{ $test->idTest }}</span>
+        @if($test->fechaCreacion)
+          <span class="chip"><i class="bi bi-calendar-event me-1"></i>{{ \Illuminate\Support\Carbon::parse($test->fechaCreacion)->format('d/m/Y') }}</span>
+        @endif
+      </div>
+
+
+
+      <!-- Acciones a la derecha -->
+      <div class="btn-wrap btn-wrap-right">
+        @if(Route::has($routeArea.'tests.builder.edit'))
+          <a href="{{ route($routeArea.'tests.builder.edit', $test->idTest) }}" class="btn btn-accent">
+            <i class="bi bi-sliders me-1"></i> Editar y agregar preguntas y rangos
+          </a>
+        @endif
+        <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost">
+          <i class="bi bi-list-ul me-1"></i> Listado de tests
+        </a>
+      </div>
+
+      {{-- Alert success (auto-hide) --}}
+      @if (session('success'))
+        <div id="alert-success" class="alert alert-success shadow-sm mt-3 mb-0" style="border-radius:8px;">
+          <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+        </div>
+        <script>
+          setTimeout(()=>{
+            const e=document.getElementById('alert-success');
+            if(e){ e.style.transition='opacity .8s'; e.style.opacity='0'; setTimeout(()=>e.remove(),800); }
+          },6000);
+        </script>
+      @endif
     </section>
 
     <!-- ===== Form ===== -->
@@ -187,7 +229,7 @@
             </div>
           </div>
 
-          <!-- Botonera -->
+          <!-- Botonera del form -->
           <div class="actions">
             <div class="left">
               <a href="{{ route($routeArea.'tests.index') }}" class="btn btn-ghost">
@@ -195,7 +237,7 @@
               </a>
             </div>
             <div class="right">
-              <button type="submit" class="btn btn-soft">
+              <button type="submit" class="btn btn-accent">
                 <i class="bi bi-save2 me-1"></i> Guardar cambios
               </button>
             </div>
@@ -211,4 +253,9 @@
 
   </div>
 </div>
+
+{{-- Navbar inferior solo para MÉDICO --}}
+@if(!$isAdmin)
+  @include('medico.bottom-navbar')
+@endif
 @endsection

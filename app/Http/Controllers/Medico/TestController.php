@@ -114,7 +114,7 @@ class TestController extends Controller
 
         return redirect()
             ->route('medico.tests.edit', $test->idTest)
-            ->with('success', '✅ Test creado correctamente. Ahora puedes agregar preguntas, opciones y rangos.');
+            ->with('success', 'Test creado correctamente. Ahora puedes agregar preguntas, opciones y rangos.');
     }
     /** 🔹 Ver detalle (admin o médico dueño) */
     public function show($idTest)
@@ -164,6 +164,6 @@ class TestController extends Controller
 
         return redirect()
             ->route($this->isAdmin() ? 'admin.tests.index' : 'medico.tests.index')
-            ->with('success', '🗑️ Test eliminado correctamente.');
+            ->with('success', ' Test eliminado correctamente.');
     }
 }
