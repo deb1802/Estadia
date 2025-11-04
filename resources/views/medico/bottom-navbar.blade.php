@@ -5,7 +5,7 @@
 
   $__uid    = Auth::id();
   $__unread = Notificacion::where('fkUsuario', $__uid)->where('leida', 0)->count();
-  $__items  = Notificacion::where('fkUsuario', $__uid)->orderBy('fecha','desc')->limit(10)->get();
+  $__items  = Notificacion::where('fkUsuario', $__uid)->orderBy('fecha','desc')->limit(30)->get();
 
   // Activo por ruta (para resaltar el ítem actual)
   $__isNoti   = request()->is('medico/notificaciones*');
@@ -15,9 +15,7 @@
 @endphp
 
 <style>
-  /* ===== SCOPE: todo lo del navbar queda dentro de .dbn-scope ===== */
-
-  /* ===== Barra inferior médico ===== */
+  /* ===== SCOPE ===== */
   .dbn-scope .doctor-bottom-navbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 1040;
     background: #fff; border-top: 1px solid #e5e7eb;
@@ -36,7 +34,7 @@
     transition: color .18s ease, transform .18s ease;
   }
   .dbn-scope .doctor-bottom-navbar .dbn-link:hover { color: #111827; transform: translateY(-2px); }
-  .dbn-scope .doctor-bottom-navbar .dbn-link.active { color: #1d4ed8; } /* azul activo */
+  .dbn-scope .doctor-bottom-navbar .dbn-link.active { color: #1d4ed8; }
   .dbn-scope .doctor-bottom-navbar .dbn-badge {
     position: absolute; top: -4px; right: -2px;
     min-width: 18px; height: 18px; padding: 0 5px;
@@ -47,27 +45,45 @@
   }
   .dbn-scope .dbn-spacer { height: calc(62px + env(safe-area-inset-bottom)); }
 
-  /* ===== Modal Notificaciones (scoped por ID para no tocar otros modales) ===== */
-  #dbnNotiModal.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050; display: none; }
-  #dbnNotiModal.modal.show { display: block; }
-  #dbnNotiModal .modal-dialog {
+  /* ===== Bottom-sheet base (común) ===== */
+  .dbn-bottomsheet.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1050; display: none; }
+  .dbn-bottomsheet.modal.show { display: block; }
+  .dbn-bottomsheet .modal-dialog {
     position: absolute; left: 0; right: 0; bottom: 14px; margin: 0 auto;
-    pointer-events: none; max-width: 480px; width: calc(100% - 24px);
+    pointer-events: none; width: calc(100% - 24px);
   }
-  #dbnNotiModal .modal-content {
+  .dbn-bottomsheet .modal-content {
     pointer-events: auto; background: #fff; border: 0; border-radius: 16px;
     box-shadow: 0 24px 60px rgba(2,6,23,.22); overflow: hidden;
+    display: flex; flex-direction: column;
   }
-  #dbnNotiModal .modal-header {
+  .dbn-bottomsheet .modal-header {
     display: flex; align-items: center; gap: 8px;
     background: linear-gradient(180deg, #eaf2ff, #ffffff 70%);
     border-bottom: 1px solid #e6efff; padding: .6rem .85rem;
   }
-  #dbnNotiModal .modal-title { margin: 0; font-size: 1rem; font-weight: 800; color: #1e40af; }
-  #dbnNotiModal .close { padding: .25rem .5rem; background: transparent; border: 0; font-size: 1.25rem; line-height: 1; color: #334155; }
-  #dbnNotiModal .modal-body { padding: 0; }
+  .dbn-bottomsheet .modal-title { margin: 0; font-size: 1rem; font-weight: 800; color: #1e40af; }
+  .dbn-bottomsheet .close { padding: .25rem .5rem; background: transparent; border: 0; font-size: 1.25rem; line-height: 1; color: #334155; }
 
-  /* ===== Estilos SOLO dentro de este modal (no globales) ===== */
+  /* ===== Notificaciones: altura fija + scroll interno ===== */
+  #dbnNotiModal .modal-dialog { max-width: 480px; }
+  /* Altura fija: en móviles 65vh, en pantallas medianas 60vh, en grandes 50vh */
+  #dbnNotiModal .modal-content { 
+    max-height: 65vh; 
+  }
+  @media (min-width: 576px){
+    #dbnNotiModal .modal-content { max-height: 60vh; }
+  }
+  @media (min-width: 992px){
+    #dbnNotiModal .modal-content { max-height: 50vh; }
+  }
+  /* El cuerpo es el que scrollea */
+  #dbnNotiModal .modal-body { 
+    overflow: auto; 
+    padding: 0;
+  }
+
+  /* Estilos internos de la lista (scoped) */
   #dbnNotiModal .list-group { list-style: none; margin: 0; padding: 0; }
   #dbnNotiModal .list-group-item { padding: .75rem .95rem; border-bottom: 1px solid #eff2f8; background: #ffffff; }
   #dbnNotiModal .list-group-item:last-child { border-bottom: 0; }
@@ -86,31 +102,13 @@
   #dbnNotiModal .btn-outline-primary{ border-color:#3b82f6; color:#1d4ed8; }
   #dbnNotiModal .btn-outline-primary:hover{ background:#eff6ff; }
 
-  /* ===== Modal DETALLE (mismo comportamiento bottom-sheet que el de notificaciones) ===== */
-#dbnDetalleModal.modal { 
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-  z-index: 1050; display: none; 
-}
-#dbnDetalleModal.modal.show { display: block; }
-
-#dbnDetalleModal .modal-dialog {
-  position: absolute; left: 0; right: 0; bottom: 14px; margin: 0 auto;
-  pointer-events: none; max-width: 640px; width: calc(100% - 24px);
-}
-
-#dbnDetalleModal .modal-content {
-  pointer-events: auto; background: #fff; border: 0; border-radius: 16px;
-  box-shadow: 0 24px 60px rgba(2,6,23,.22); overflow: hidden;
-}
-
-#dbnDetalleModal .modal-header {
-  display: flex; align-items: center; gap: 8px;
-  background: linear-gradient(180deg, #eaf2ff, #ffffff 70%);
-  border-bottom: 1px solid #e6efff; padding: .6rem .85rem;
-}
-#dbnDetalleModal .modal-title { margin: 0; font-size: 1rem; font-weight: 800; color: #1e40af; }
-#dbnDetalleModal .close { padding: .25rem .5rem; background: transparent; border: 0; font-size: 1.25rem; line-height: 1; color: #334155; }
-
+  /* ===== Detalle: altura fija + scroll interno ===== */
+  #dbnDetalleModal .modal-dialog { max-width: 640px; }
+  #dbnDetalleModal .modal-content { max-height: 70vh; }
+  @media (min-width: 992px){
+    #dbnDetalleModal .modal-content { max-height: 60vh; }
+  }
+  #dbnDetalleModal .modal-body { overflow: auto; }
 </style>
 
 <div class="dbn-scope">
@@ -147,8 +145,8 @@
 
   <div class="dbn-spacer" aria-hidden="true"></div>
 
-  {{-- Modal de notificaciones --}}
-  <div class="modal fade" id="dbnNotiModal" tabindex="-1" role="dialog" aria-labelledby="dbnNotiLabel" aria-hidden="true">
+  {{-- Modal de notificaciones (bottom-sheet con altura fija y scroll) --}}
+  <div class="modal fade dbn-bottomsheet" id="dbnNotiModal" tabindex="-1" role="dialog" aria-labelledby="dbnNotiLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -177,12 +175,10 @@
             @else
               @foreach($__items as $n)
                 @php
-                  // Extraer AID=### del mensaje (si existe)
                   $aid = null;
                   if (preg_match('/AID=(\d+)/', (string)$n->mensaje, $m)) {
                       $aid = (int)$m[1];
                   }
-                  // Mensaje sin el marcador AID
                   $mensajeLimpio = preg_replace('/AID=\d+/', '', (string)$n->mensaje);
                 @endphp
 
@@ -219,8 +215,8 @@
     </div>
   </div>
 
-  {{-- Modal de DETALLE (se llenará en el siguiente paso) --}}
-  <div class="modal fade" id="dbnDetalleModal" tabindex="-1" role="dialog" aria-hidden="true">
+  {{-- Modal de DETALLE (bottom-sheet con altura fija y scroll) --}}
+  <div class="modal fade dbn-bottomsheet" id="dbnDetalleModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable" role="document" style="max-width:640px;">
       <div class="modal-content">
         <div class="modal-header">
@@ -230,8 +226,7 @@
           </button>
         </div>
         <div class="modal-body" id="dbnDetalleBody">
-          {{-- Aquí inyectaremos el detalle vía AJAX en el siguiente paso --}}
-          <div class="text-muted">Cargando detalle…</div>
+          <div class="text-muted p-2">Cargando detalle…</div>
         </div>
       </div>
     </div>
@@ -245,19 +240,19 @@
 
     if (window.$) { $('#dbnDetalleModal').modal('show'); }
     const body = document.getElementById('dbnDetalleBody');
-    body.innerHTML = '<div class="text-muted">Cargando detalle…</div>';
+    body.innerHTML = '<div class="text-muted p-2">Cargando detalle…</div>';
 
     try{
       const url = "{{ route('medico.tests.asignaciones.show', ['idAsignacionTest' => 'AID']) }}".replace('AID', aid);
       const resp = await fetch(url, { headers: { 'X-Requested-With':'XMLHttpRequest' }});
       const text = await resp.text();
       if(!resp.ok){
-        body.innerHTML = `<div class="text-danger">Error ${resp.status}: ${text}</div>`;
+        body.innerHTML = `<div class="text-danger p-2">Error ${resp.status}: ${text}</div>`;
         return;
       }
       body.innerHTML = text;
     }catch(e){
-      body.innerHTML = '<div class="text-danger">No se pudo cargar el detalle (conexión).</div>';
+      body.innerHTML = '<div class="text-danger p-2">No se pudo cargar el detalle (conexión).</div>';
       console.error(e);
     }
   }
@@ -297,4 +292,4 @@
   }
 </script>
 
-@include('medico.partials.modal-detalle')
+@includeIf('medico.partials.modal-detalle')

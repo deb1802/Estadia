@@ -2,94 +2,107 @@
   use Illuminate\Support\Str;
   use Illuminate\Support\Carbon;
 
-  // Normaliza variables y formatos:
   $pacienteNombre       = Str::title($pacienteNombre      ?? 'Paciente');
   $medicoNombre         = $medicoNombre ? Str::title($medicoNombre) : null;
   $actividadNombre      = $actividadNombre     ?? 'Actividad terapéutica';
   $actividadDescripcion = $actividadDescripcion?? null;
   $fechaAsignacion      = Carbon::parse($fechaAsignacion ?? now())->locale('es')->isoFormat('DD [de] MMMM [de] YYYY');
   $fechaLimite          = isset($fechaLimite) && $fechaLimite ? Carbon::parse($fechaLimite)->locale('es')->isoFormat('DD [de] MMMM [de] YYYY') : null;
-  $urlAccion            = $urlAccion ?? url('/paciente/actividades');
-  $logoUrl              = rtrim(config('app.url'), '/') . '/img/logo.png';
 @endphp
 
-{{-- ======= ENCABEZADO CON LOGO ======= --}}
-<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom: 25px;">
-  <tr>
-    <td align="center">
-      <a href="{{ config('app.url') }}" target="_blank">
-        <img src="{{ $logoUrl }}" alt="Mindware" style="height:70px; margin-top:10px; border-radius:10px;">
-      </a>
-    </td>
-  </tr>
-</table>
-
-{{-- ======= ESTILOS PERSONALIZADOS ======= --}}
+@component('mail::message')
 <style>
-  /* Colores y tipografía personalizados */
-  body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: #1e293b;
+  :root{
+    --ink:#1b2a4a;
+    --muted:#5b6b84;
+    --stroke:#e7eef7;
+    --lav:#bea4d2;     /* morado */
+    --soft:#b5c8e1;    /* azul suave */
+    --accent:#90aacc;  /* azul verdoso */
+    --bg:#eef3f9;      /* fondo suave */
   }
-
-  h1, h2, h3 {
-    color: #14532d !important; /* Verde Mindware */
+  /* Reset básico */
+  *{ box-sizing:border-box; }
+  h1,h2,h3,p,ul{ margin:0 0 10px 0; }
+  /* Contenedor visual del cuerpo */
+  .mw-wrap{
+    background: linear-gradient(180deg, #ffffff, var(--bg));
+    border:1px solid var(--stroke);
+    border-radius:14px;
+    padding:18px 18px 6px;
   }
-
-  .panel {
-    background-color: #f0fdf4 !important;
-    border-left: 4px solid #16a34a !important;
-    color: #064e3b;
+  .mw-head{
+    background: linear-gradient(90deg, var(--lav), var(--soft));
+    border-radius:10px;
+    padding:14px 16px;
+    color:#0f2240;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:.2px;
+    margin-bottom:12px;
   }
-
-  .button-success {
-    background-color: #16a34a !important;
-    border-color: #16a34a !important;
-    color: #ffffff !important;
-    border-radius: 8px !important;
-    padding: 10px 18px !important;
+  .mw-sub{
+    color:var(--muted);
+    margin:-6px 0 12px 2px;
+    font-size:14px;
   }
-
-  .subcopy p {
-    color: #64748b !important;
+  .panel{
+    background: #fff;
+    border:1px solid var(--stroke);
+    border-left:4px solid var(--accent);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--ink);
+    margin:12px 0;
   }
+  .hint{
+    background: linear-gradient(180deg, #fff, #f7faff);
+    border:1px solid var(--stroke);
+    border-left:4px solid var(--lav);
+    border-radius:10px;
+    padding:12px 14px;
+    color:var(--muted);
+    margin-top:12px;
+  }
+  .divider{
+    height:1px; background:linear-gradient(90deg, transparent, var(--stroke), transparent);
+    border:0; margin:18px 0 10px;
+  }
+  .ink{ color:var(--ink); }
+  .muted{ color:var(--muted); }
+  .link{ color:var(--accent); text-decoration:underline; }
 </style>
 
-{{-- ======= CUERPO DEL MENSAJE ======= --}}
-@component('mail::message')
-# Nueva actividad asignada
+<div class="mw-wrap">
+  <div class="mw-head">Nueva actividad asignada</div>
+  <p class="ink">Hola <strong>{{ $pacienteNombre }}</strong>,</p>
 
-Hola **{{ $pacienteNombre }}**,  
-@if($medicoNombre)
-tu médico **{{ $medicoNombre }}** te ha asignado una nueva actividad terapéutica.
-@else
-te han asignado una nueva actividad terapéutica.
-@endif
+  @if($medicoNombre)
+    <p class="ink">Tu médico <strong>{{ $medicoNombre }}</strong> te ha asignado una nueva actividad terapéutica.</p>
+  @else
+    <p class="ink">Se te ha asignado una nueva actividad terapéutica.</p>
+  @endif
 
-@component('mail::panel')
-**Actividad:** {{ $actividadNombre }}  
-**Asignada el:** {{ $fechaAsignacion }}  
-@if($fechaLimite)
-**Fecha límite:** {{ $fechaLimite }}
-@endif
-@endcomponent
+  <div class="panel">
+    <p><strong>Actividad:</strong> {{ $actividadNombre }}<br>
+    <strong>Asignada el:</strong> {{ $fechaAsignacion }}<br>
+    @if($fechaLimite)
+      <strong>Fecha límite:</strong> {{ $fechaLimite }}
+    @endif
+    </p>
+  </div>
 
-@if($actividadDescripcion)
-**Descripción:**  
-{{ $actividadDescripcion }}
-@endif
+  @if($actividadDescripcion)
+    <p class="ink"><strong>Descripción:</strong><br>{{ $actividadDescripcion }}</p>
+  @endif
 
-@component('mail::button', ['url' => $urlAccion, 'color' => 'success'])
-Ver mis actividades
-@endcomponent
+  <div class="hint">
+    <strong>¿Dónde consultarla?</strong> Ingresa a tu cuenta en 
+    <a href="{{ config('app.url') }}" class="link" target="_blank" rel="noopener">MindWare</a>
+    y abre la sección <em>“Mis actividades”</em> para revisarla y completarla.
+  </div>
 
-> 🌿 Sugerencia: completa la actividad dentro del periodo indicado para aprovechar al máximo tu proceso terapéutico.
-
-Gracias,  
-**Equipo Mindware**
-
-@slot('subcopy')
-Si el botón no funciona, copia y pega esta URL en tu navegador:  
-{{ $urlAccion }}
-@endslot
+  <hr class="divider">
+  <p class="muted">Gracias,<br><strong>Equipo MindWare</strong></p>
+</div>
 @endcomponent

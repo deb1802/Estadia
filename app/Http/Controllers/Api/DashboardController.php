@@ -137,7 +137,7 @@ class DashboardController extends Controller
             ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id');
 
         if ($sexo !== '' && in_array($sexo, ['masculino','femenino','otro'], true)) {
-            $q->where('u.sexo', $sexo);
+            $q->whereRaw('LOWER(TRIM(u.sexo)) = ?', [$sexo]);
         }
         if ($from) $q->where('u.fechaRegistro', '>=', $from);
         if ($to)   $q->where('u.fechaRegistro', '<=', $to);
@@ -145,40 +145,46 @@ class DashboardController extends Controller
         return (int) $q->count();
     }
 
+
     private function pacientesPorSexo(?Carbon $from, ?Carbon $to): array
-    {
-        if (!Schema::hasTable('Pacientes') || !Schema::hasTable('Usuarios')) {
-            $abs = ['masculino'=>0,'femenino'=>0,'otro'=>0];
-            return [$abs, $abs];
-        }
-
-        $q = DB::table('Pacientes as p')
-            ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id');
-
-        if ($from) $q->where('u.fechaRegistro', '>=', $from);
-        if ($to)   $q->where('u.fechaRegistro', '<=', $to);
-
-        $rows = $q->select('u.sexo', DB::raw('COUNT(*) as total'))
-                  ->groupBy('u.sexo')
-                  ->pluck('total', 'u.sexo')
-                  ->toArray();
-
-        $h = (int)($rows['masculino'] ?? 0);
-        $m = (int)($rows['femenino']  ?? 0);
-        $o = (int)($rows['otro']      ?? 0);
-
-        $abs = ['masculino'=>$h, 'femenino'=>$m, 'otro'=>$o];
-        $sum = $h + $m + $o;
-        $sum = $sum > 0 ? $sum : 1;
-
-        $pct = [
-            'masculino' => (int) round(($h / $sum) * 100),
-            'femenino'  => (int) round(($m / $sum) * 100),
-            'otro'      => (int) round(($o / $sum) * 100),
-        ];
-
-        return [$abs, $pct];
+{
+    if (!Schema::hasTable('Pacientes') || !Schema::hasTable('Usuarios')) {
+        $abs = ['masculino'=>0,'femenino'=>0,'otro'=>0];
+        return [$abs, $abs];
     }
+
+    $q = DB::table('Pacientes as p')
+        ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id');
+
+    if ($from) $q->where('u.fechaRegistro', '>=', $from);
+    if ($to)   $q->where('u.fechaRegistro', '<=', $to);
+
+    // 🔑 Normaliza también en el filtro (evita perder registros por "Masculino"/" femenino ")
+    $q->whereRaw("LOWER(TRIM(COALESCE(u.sexo, ''))) IN ('masculino','femenino','otro')");
+
+    // 🔑 Y agrupa por el mismo valor normalizado
+    $rows = $q->selectRaw("LOWER(TRIM(u.sexo)) as sexo_norm, COUNT(*) as total")
+              ->groupBy('sexo_norm')
+              ->pluck('total', 'sexo_norm')
+              ->toArray();
+
+    $h = (int)($rows['masculino'] ?? 0);
+    $m = (int)($rows['femenino']  ?? 0);
+    $o = (int)($rows['otro']      ?? 0);
+
+    $abs = ['masculino'=>$h, 'femenino'=>$m, 'otro'=>$o];
+    $sum = $h + $m + $o;
+
+    $pct = [
+        'masculino' => $sum ? (int) round(($h / $sum) * 100) : 0,
+        'femenino'  => $sum ? (int) round(($m / $sum) * 100) : 0,
+        'otro'      => $sum ? (int) round(($o / $sum) * 100) : 0,
+    ];
+
+    return [$abs, $pct];
+}
+
+
 
     private function citasPorEstado(?Carbon $from, ?Carbon $to, string $estado, string $sexo): array
     {
@@ -219,20 +225,14 @@ class DashboardController extends Controller
         if ($from) $q->where('e.fechaHoraRegistro', '>=', $from);
         if ($to)   $q->where('e.fechaHoraRegistro', '<=', $to);
 
-        // Filtro por sexo del paciente (Emociones -> Pacientes -> Usuarios)
-        if ($sexo !== '' && in_array($sexo, ['masculino','femenino','otro'], true) &&
-            Schema::hasTable('Pacientes') && Schema::hasTable('Usuarios')) {
-            $q->join('Pacientes as p', 'p.id', '=', 'e.fkPaciente')
-              ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
-              ->where('u.sexo', $sexo);
-        }
+        // SIN filtro por sexo: no se hacen joins con Pacientes/Usuarios
 
         // Tomamos el PRIMER elemento del arreglo JSON en emocionesExperimentadas (guardado como TEXT).
         // Si no es JSON válido o viene vacío -> '(sin_dato)'
         $rows = $q->selectRaw("
                     CASE
                         WHEN JSON_VALID(e.emocionesExperimentadas)
-                          THEN COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.emocionesExperimentadas, '$[0]')), ''), '(sin_dato)')
+                        THEN COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(e.emocionesExperimentadas, '$[0]')), ''), '(sin_dato)')
                         ELSE '(sin_dato)'
                     END as emocion,
                     COUNT(*) as total
@@ -243,6 +243,7 @@ class DashboardController extends Controller
 
         return $rows;
     }
+
 
     private function topMedicamentos(?Carbon $from, ?Carbon $to): array
     {
@@ -269,24 +270,26 @@ class DashboardController extends Controller
         return $rows->map(fn($r) => ['nombre' => $r->nombre, 'total' => (int)$r->total])->toArray();
     }
 
-    private function testsRespondidos(?Carbon $from, ?Carbon $to, string $sexo): int
+        private function testsRespondidos(?Carbon $from, ?Carbon $to, string $sexo): int
     {
         if (!Schema::hasTable('AsignacionesTest')) return 0;
 
-        $q = DB::table('AsignacionesTest as a')->whereNotNull('a.fechaRespuesta');
+        // Solo cuenta asignaciones con respuesta (sin filtro de fechas).
+        $q = DB::table('AsignacionesTest as a')
+            ->whereNotNull('a.fechaRespuesta');
 
-        // Rango por fecha de respuesta
-        if ($from) $q->where('a.fechaRespuesta', '>=', $from);
-        if ($to)   $q->where('a.fechaRespuesta', '<=', $to);
-
-        // Filtro por sexo del paciente (AsignacionesTest -> Pacientes -> Usuarios)
-        if ($sexo !== '' && in_array($sexo, ['masculino','femenino','otro'], true) &&
-            Schema::hasTable('Pacientes') && Schema::hasTable('Usuarios')) {
+        // Si se pide por sexo, une con Pacientes y Usuarios para filtrar por u.sexo.
+        if ($sexo !== '' 
+            && in_array($sexo, ['masculino','femenino','otro'], true)
+            && Schema::hasTable('Pacientes') 
+            && Schema::hasTable('Usuarios')) 
+        {
             $q->join('Pacientes as p', 'p.id', '=', 'a.fkPaciente')
-              ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
-              ->where('u.sexo', $sexo);
+            ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
+            ->where('u.sexo', $sexo);
         }
 
         return (int) $q->count();
     }
+
 }
