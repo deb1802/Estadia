@@ -1,8 +1,15 @@
-<!-- NombreCompleto Field -->
+<!-- Nombre Field -->
 <div class="form-group col-sm-6">
-    {!! Form::label('nombreCompleto', 'Nombre completo:') !!}
-    {!! Form::text('nombreCompleto', null, ['class' => 'form-control', 'maxlength' => 100]) !!}
-    @error('nombreCompleto') <small class="text-danger">{{ $message }}</small> @enderror
+    {!! Form::label('nombre', 'Nombre:') !!}
+    {!! Form::text('nombre', null, ['class' => 'form-control', 'maxlength' => 50, 'required']) !!}
+    @error('nombre') <small class="text-danger">{{ $message }}</small> @enderror
+</div>
+
+<!-- Apellido Field -->
+<div class="form-group col-sm-6">
+    {!! Form::label('apellido', 'Apellido:') !!}
+    {!! Form::text('apellido', null, ['class' => 'form-control', 'maxlength' => 50, 'required']) !!}
+    @error('apellido') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
 <!-- Parentesco Field -->
@@ -12,7 +19,7 @@
     @error('parentesco') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
-<!-- Telefono Field -->
+<!-- Teléfono Field -->
 <div class="form-group col-sm-6">
     {!! Form::label('telefono', 'Teléfono:') !!}
     {!! Form::text('telefono', null, ['class' => 'form-control', 'maxlength' => 20]) !!}
@@ -21,26 +28,26 @@
 
 <!-- Correo Field -->
 <div class="form-group col-sm-6">
-    {!! Form::label('correo', 'Correo:') !!}
+    {!! Form::label('correo', 'Correo electrónico:') !!}
     {!! Form::email('correo', null, ['class' => 'form-control', 'maxlength' => 100]) !!}
     @error('correo') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
-<!-- Direccion Field -->
-<div class="form-group col-sm-12 col-lg-12">
+<!-- Dirección Field -->
+<div class="form-group col-sm-12">
     {!! Form::label('direccion', 'Dirección:') !!}
     {!! Form::textarea('direccion', null, ['class' => 'form-control']) !!}
     @error('direccion') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
 <!-- Observaciones Field -->
-<div class="form-group col-sm-12 col-lg-12">
+<div class="form-group col-sm-12">
     {!! Form::label('observaciones', 'Observaciones:') !!}
     {!! Form::textarea('observaciones', null, ['class' => 'form-control']) !!}
     @error('observaciones') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
-{{-- Paciente asignado (fkPaciente) --}}
+<!-- Paciente asignado -->
 <div class="form-group col-sm-6">
     {!! Form::label('fkPaciente', 'Paciente asignado:') !!}
     <select name="fkPaciente" id="fkPaciente" class="form-control" required>

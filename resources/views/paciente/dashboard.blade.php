@@ -283,7 +283,7 @@
     </div>
   </section>
 
-  {{-- ===== B) DASHBOARD ===== --}}
+  {{-- ===== DASHBOARD ===== --}}
   <section id="patientDashboard" class="mw-hidden">
     <div class="dashboard-surface"></div>
 
@@ -297,13 +297,13 @@
     <div class="min-h-screen d-flex flex-column align-items-center justify-content-start pt-2">
       <div class="dashboard-grid">
 
-        {{-- 1. Perfil --}}
-        <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="100">
+        {{-- 1. Tutores --}}
+        <a href="{{ route('paciente.tutores.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="100">
           <div class="icon-box" style="background:linear-gradient(135deg,#7a9cc6,#8b80f9);">
             <i class="fas fa-user-circle" aria-hidden="true"></i>
           </div>
-          <h4>Perfil</h4>
-          <p>Consulta y actualiza tu información personal.</p>
+          <h4>Tutores</h4>
+          <p>Consulta tus tutores.</p>
         </a>
 
         {{-- 2. Tests Psicológicos --}}

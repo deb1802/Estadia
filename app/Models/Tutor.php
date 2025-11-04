@@ -17,7 +17,8 @@ class Tutor extends Model
 
     // Campos asignables
     protected $fillable = [
-        'nombreCompleto',
+        'nombre',
+        'apellido',
         'parentesco',
         'telefono',
         'correo',
@@ -28,25 +29,27 @@ class Tutor extends Model
 
     // Tipos de datos
     protected $casts = [
-        'idTutor'        => 'integer',
-        'fkPaciente'     => 'integer',
-        'nombreCompleto' => 'string',
-        'parentesco'     => 'string',
-        'telefono'       => 'string',
-        'correo'         => 'string',
-        'direccion'      => 'string',
-        'observaciones'  => 'string',
+        'idTutor'      => 'integer',
+        'fkPaciente'   => 'integer',
+        'nombre'       => 'string',
+        'apellido'     => 'string',
+        'parentesco'   => 'string',
+        'telefono'     => 'string',
+        'correo'       => 'string',
+        'direccion'    => 'string',
+        'observaciones'=> 'string',
     ];
 
     // Reglas de validación
     public static array $rules = [
-        'nombreCompleto' => 'nullable|string|max:100',
-        'parentesco'     => 'nullable|string|max:50',
-        'telefono'       => 'nullable|string|max:20',
-        'correo'         => 'nullable|string|max:100',
-        'direccion'      => 'nullable|string',
-        'observaciones'  => 'nullable|string',
-        'fkPaciente'     => 'required|exists:Pacientes,id',
+        'nombre'       => 'required|string|max:50',
+        'apellido'     => 'required|string|max:50',
+        'parentesco'   => 'nullable|string|max:50',
+        'telefono'     => 'nullable|string|max:20',
+        'correo'       => 'nullable|email|max:100',
+        'direccion'    => 'nullable|string',
+        'observaciones'=> 'nullable|string',
+        'fkPaciente'   => 'required|exists:Pacientes,id',
     ];
 
     /**
@@ -64,5 +67,13 @@ class Tutor extends Model
     public function getRouteKeyName()
     {
         return 'idTutor';
+    }
+
+    /**
+     * 🔹 Accesor para mostrar nombre completo fácilmente
+     */
+    public function getNombreCompletoAttribute()
+    {
+        return trim("{$this->nombre} {$this->apellido}");
     }
 }

@@ -71,7 +71,9 @@ Route::middleware(['auth', 'rol:administrador'])
 
         Route::resource('usuarios', UsuarioController::class);
         Route::resource('medicamentos', MedicamentoController::class);
-        Route::resource('tutores', TutorController::class)->names('tutores');
+        // Tutores
+        Route::resource('tutores', App\Http\Controllers\Admin\TutorAdminController::class)
+    ->names('tutores');
 
         Route::resource('citas', App\Http\Controllers\CitaController::class)
             ->names('citas')
@@ -218,7 +220,8 @@ Route::prefix('emociones')->name('emociones.')->group(function () {
 
         
         // 👨‍⚕️ Tutores
-        Route::resource('tutores', TutorController::class)->names('tutores');
+        Route::resource('tutores', App\Http\Controllers\Medico\TutorMedicoController::class)
+    ->names('tutores');
 
         // 🗓️ Citas
         // 🗓️ Citas
@@ -286,7 +289,13 @@ Route::middleware(['auth', 'rol:paciente'])
             ->name('testimonios.respuestas.store');
 
         // 👨‍🏫 Vista de tutores (solo lectura)
-        Route::get('/tutores', [TutorController::class, 'index'])->name('tutores.index');
+Route::get('/tutores', [App\Http\Controllers\Paciente\TutorPacienteController::class, 'index'])
+    ->name('tutores.index');
+
+// 👁️ Ver detalles de un tutor específico
+Route::get('/tutores/{id}', [App\Http\Controllers\Paciente\TutorPacienteController::class, 'show'])
+    ->name('tutores.show');
+
 
         // 🔔 Notificaciones
         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])

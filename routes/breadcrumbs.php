@@ -257,6 +257,14 @@ if (!Breadcrumbs::exists('paciente.tutores.index')) {
         $t->parent('paciente.dashboard')->push('Tutores', route('paciente.tutores.index')));
 }
 
+/** Tutores */
+if (!Breadcrumbs::exists('paciente.tutores.show')) {
+    Breadcrumbs::for('paciente.tutores.show', function ($trail, $tutor) {
+        $trail->parent('paciente.tutores.index');
+        $trail->push('Detalles');
+    });
+}
+
 /** Paciente → Recetas */
 if (!Breadcrumbs::exists('paciente.recetas.index')) {
     Breadcrumbs::for('paciente.recetas.index', fn(Trail $t) =>
