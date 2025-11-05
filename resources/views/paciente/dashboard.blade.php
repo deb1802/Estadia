@@ -334,12 +334,12 @@
         </a>
 
         {{-- 5. Emociones --}}
-        <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
+        <a href="{{ route('paciente.emociones.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="300">
           <div class="icon-box" style="background:linear-gradient(135deg,#81ecec,#a29bfe);">
             <i class="fas fa-smile-beam" aria-hidden="true"></i>
           </div>
           <h4>Emociones</h4>
-          <p>Registra y reflexiona sobre tu estado emocional.</p>
+          <p>Reflexiona sobre tu estado emocional.</p>
         </a>
 
         {{-- 6. Testimonios --}}

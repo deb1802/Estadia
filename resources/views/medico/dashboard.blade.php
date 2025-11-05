@@ -292,7 +292,7 @@
       </a>
 
       {{-- 7. Emociones --}}
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="400">
+      <a href="{{ route('medico.emociones.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="400">
         <div class="icon-box" style="background:linear-gradient(135deg,#81ecec,#a29bfe);">
           <i class="fas fa-smile-beam"></i>
         </div>

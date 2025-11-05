@@ -277,8 +277,8 @@ CREATE TABLE Emociones (
     fkActividad INT,
     fkPaciente INT,
     fechaHoraRegistro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    emocionesExperimentadas TEXT, -- ejemplo: JSON con ["feliz", "confundido"]
-    intensidad INT, -- escala 1-5
+    emocionesExperimentadas JSON,
+    intensidades JSON,
     comentario TEXT,
     FOREIGN KEY (fkActividad) REFERENCES Actividades(idActividad),
     FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id)

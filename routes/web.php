@@ -326,14 +326,18 @@ Route::get('/tutores/{id}', [App\Http\Controllers\Paciente\TutorPacienteControll
                 ->name('completar');
         });
 
-        // 🧠 Emociones (paciente)
+       // 🧠 Emociones (paciente)
 Route::prefix('emociones')->name('emociones.')->group(function () {
     Route::get('/', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'index'])->name('index');
     Route::get('/crear/{idActividad}', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'create'])->name('create');
     Route::post('/store', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'store'])->name('store');
     Route::get('/{id}/editar', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'edit'])->name('edit');
-    Route::patch('/{id}', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'update'])->name('update');
+    Route::match(['patch','put'], '/{id}', [App\Http\Controllers\Paciente\EmocionPacienteController::class, 'update'])
+        ->name('update');
+
 });
+
+
 
 
         // 🧠 TESTS PSICOLÓGICOS ASIGNADOS AL PACIENTE

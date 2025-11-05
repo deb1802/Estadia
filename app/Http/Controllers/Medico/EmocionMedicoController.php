@@ -30,7 +30,7 @@ class EmocionMedicoController extends Controller
                 'a.titulo as actividad',
                 'e.fechaHoraRegistro',
                 'e.emocionesExperimentadas',
-                'e.intensidad',
+                'e.intensidades', // ✅ Antes: e.intensidad (ya no existe)
                 'e.comentario'
             )
             ->where('p.medico_id', $medico->id);
