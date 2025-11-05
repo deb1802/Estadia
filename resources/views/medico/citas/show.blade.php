@@ -1,92 +1,88 @@
 @extends('layouts.app')
 
 @section('content')
-<section class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1><i class="fas fa-calendar-check"></i> Detalles de la Cita</h1>
-            </div>
-            <div class="col-sm-6 text-right">
-                <a class="btn btn-outline-secondary" href="{{ route('medico.citas.index') }}">
-                    <i class="fas fa-arrow-left"></i> Volver al listado
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
+<style>
+  body {
+    background: linear-gradient(180deg, #f4f9ff 0%, #e8f0ff 100%);
+  }
+  .cita-container {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .cita-card {
+    width: 95%;
+    max-width: 800px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    transition: all 0.3s ease;
+  }
+  .cita-card:hover {
+    transform: scale(1.01);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+</style>
 
-<div class="content px-3">
-    <div class="card shadow-sm border-0">
-        <div class="card-header text-white" style="background: linear-gradient(135deg, #74b9ff, #6c63ff);">
-            <h5 class="mb-0"><i class="fas fa-user-md"></i> Información de la cita</h5>
-        </div>
+<div class="cita-container">
+  <div class="cita-card">
 
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <strong><i class="fas fa-user"></i> Paciente:</strong><br>
-                    {{ $cita->paciente_nombre }} {{ $cita->paciente_apellido }}
-                </div>
-                <div class="col-md-6">
-                    <strong><i class="fas fa-map-marker-alt"></i> Ubicación:</strong><br>
-                    {{ $cita->ubicacion }}
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <strong><i class="fas fa-calendar-alt"></i> Fecha y hora:</strong><br>
-                    {{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}
-                </div>
-                <div class="col-md-6">
-                    <strong><i class="fas fa-info-circle"></i> Motivo:</strong><br>
-                    {{ $cita->motivo }}
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <strong><i class="fas fa-clipboard-check"></i> Estado actual:</strong><br>
-                    @switch($cita->estado)
-                        @case('programada')
-                            <span class="badge bg-warning text-dark">Programada</span>
-                            @break
-                        @case('realizada')
-                            <span class="badge bg-success">Realizada</span>
-                            @break
-                        @case('cancelada')
-                            <span class="badge bg-danger">Cancelada</span>
-                            @break
-                        @default
-                            <span class="badge bg-secondary">Desconocido</span>
-                    @endswitch
-                </div>
-
-                <div class="col-md-6">
-                    <strong><i class="fas fa-clock"></i> Última actualización:</strong><br>
-                    {{ $cita->updated_at ?? '—' }}
-                </div>
-            </div>
-        </div>
+    {{-- 🔹 Encabezado --}}
+    <div class="text-center mb-4">
+      <h3 class="fw-bold text-primary mb-1">
+        <i class="bi bi-calendar3"></i> Detalles de la Cita
+      </h3>
+      <p class="text-secondary mb-0">ID de cita: #{{ $cita->idCita }}</p>
     </div>
 
-    {{-- 🔹 Opciones del médico --}}
-    <div class="card mt-4 shadow-sm border-0">
-        <div class="card-body text-center">
-            <a href="{{ route('medico.citas.edit', $cita->idCita) }}" class="btn btn-outline-primary mx-1">
-                <i class="fas fa-edit"></i> Editar Cita
-            </a>
+    {{-- 🔹 Información de la cita --}}
+    <div class="row g-4">
+      <div class="col-md-6">
+        <h6 class="text-muted"><i class="bi bi-person-fill me-1"></i> Paciente</h6>
+        <p class="fs-5 text-dark fw-semibold">{{ $cita->paciente_nombre }} {{ $cita->paciente_apellido }}</p>
+      </div>
 
-            <form action="{{ route('medico.citas.destroy', $cita->idCita) }}" method="POST" class="d-inline"
-                  onsubmit="return confirm('¿Deseas eliminar esta cita definitivamente?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-outline-danger mx-1">
-                    <i class="fas fa-trash-alt"></i> Eliminar
-                </button>
-            </form>
-        </div>
+      <div class="col-md-6">
+        <h6 class="text-muted"><i class="bi bi-clock-fill me-1"></i> Fecha y Hora</h6>
+        <p class="fs-5 text-dark fw-semibold">{{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}</p>
+      </div>
+
+      <div class="col-md-6">
+        <h6 class="text-muted"><i class="bi bi-info-circle-fill me-1"></i> Motivo</h6>
+        <p class="fs-6 text-dark">{{ $cita->motivo }}</p>
+      </div>
+
+      <div class="col-md-6">
+        <h6 class="text-muted"><i class="bi bi-geo-alt-fill me-1"></i> Ubicación</h6>
+        <p class="fs-6 text-dark">{{ $cita->ubicacion }}</p>
+      </div>
+
+      <div class="col-md-6">
+        <h6 class="text-muted"><i class="bi bi-tags-fill me-1"></i> Estado</h6>
+        @php
+          $color = match($cita->estado) {
+            'programada' => 'info',
+            'realizada' => 'success',
+            'cancelada' => 'danger',
+            default => 'secondary',
+          };
+        @endphp
+        <span class="badge bg-{{ $color }} px-3 py-2 text-capitalize">{{ $cita->estado }}</span>
+      </div>
     </div>
+
+    {{-- 🔹 Botón regresar --}}
+    <div class="text-center mt-5">
+      <a href="{{ route('medico.citas.index') }}" class="btn btn-outline-primary px-5 py-2 fw-semibold shadow-sm">
+        <i class="bi bi-arrow-left-circle me-1"></i> Regresar
+      </a>
+    </div>
+
+  </div>
 </div>
+
+@include('medico.bottom-navbar')
 @endsection
+

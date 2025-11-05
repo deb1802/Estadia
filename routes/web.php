@@ -361,6 +361,16 @@ Route::prefix('emociones')->name('emociones.')->group(function () {
         // 📅 Citas del paciente (si se reactivan después)
         Route::post('/notificaciones/{id}/leer', [NotificacionesController::class, 'markRead'])->name('notificaciones.markRead');
         Route::post('/notificaciones/leertodas', [NotificacionesController::class, 'markAllRead'])->name('notificaciones.markAll');
+        // 📅 Citas — solo lectura + cancelación
+    Route::get('/citas', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'index'])
+        ->name('citas.index');
+
+    Route::get('/citas/{id}', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'show'])
+        ->name('citas.show');
+
+    // ❌ Cancelar cita
+    Route::get('/citas/{id}/cancelar', [App\Http\Controllers\Paciente\CitaPacienteController::class, 'cancelar'])
+        ->name('citas.cancelar');
     });
 
 

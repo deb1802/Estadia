@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Cita extends Model
 {
@@ -10,38 +11,44 @@ class Cita extends Model
     protected $primaryKey = 'idCita';
     public $timestamps = false;
 
-    public $fillable = [
+    protected $fillable = [
         'fkMedico',
         'fkPaciente',
         'fechaHora',
         'motivo',
         'ubicacion',
-        'estado'
+        'estado',
     ];
 
     protected $casts = [
         'fechaHora' => 'datetime',
         'motivo' => 'string',
         'ubicacion' => 'string',
-        'estado' => 'string'
+        'estado' => 'string',
     ];
 
     public static array $rules = [
-        'fkMedico' => 'nullable',
-        'fkPaciente' => 'nullable',
-        'fechaHora' => 'required',
-        'motivo' => 'required|string|max:65535',
-        'ubicacion' => 'required|string|max:150',
-        'estado' => 'nullable|string'
+        'fkMedico'   => 'nullable|integer|exists:Medicos,id',
+        'fkPaciente' => 'nullable|integer|exists:Pacientes,id',
+        'fechaHora'  => 'required|date',
+        'motivo'     => 'required|string|max:65535',
+        'ubicacion'  => 'required|string|max:150',
+        'estado'     => 'nullable|string',
     ];
 
-    public function fkmedico(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    /**
+     * 🔹 Relación con el médico que programó la cita
+     */
+    public function medico(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Medico::class, 'fkMedico');
+        return $this->belongsTo(Medico::class, 'fkMedico', 'id');
     }
 
-    public function fkpaciente(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    /**
+     * 🔹 Relación con el paciente asignado a la cita
+     */
+    public function paciente(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Paciente::class, 'fkPaciente');
+        return $this->belongsTo(Paciente::class, 'fkPaciente', 'id');
     }
 }

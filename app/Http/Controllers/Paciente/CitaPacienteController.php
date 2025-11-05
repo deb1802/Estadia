@@ -5,56 +5,79 @@ namespace App\Http\Controllers\Paciente;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CitaCanceladaMail;
+use App\Models\Notificacion;
+use Flash;
+use Carbon\Carbon;
 
 class CitaPacienteController extends Controller
 {
+    /** INDEX — Mostrar citas del paciente */
     public function index()
     {
-        // Obtener ID del paciente autenticado
-        $paciente = DB::table('Pacientes')->where('usuario_id', Auth::id())->first();
+        $usuario = Auth::user();
 
-        if (!$paciente) {
-            return back()->with('error', 'No se encontró el paciente autenticado.');
-        }
-
-        // Consultar las citas de ese paciente
         $citas = DB::table('Citas as c')
             ->join('Medicos as m', 'm.id', '=', 'c.fkMedico')
-            ->join('Usuarios as um', 'um.idUsuario', '=', 'm.usuario_id')
+            ->join('Usuarios as uM', 'uM.idUsuario', '=', 'm.usuario_id')
+            ->join('Pacientes as p', 'p.id', '=', 'c.fkPaciente')
+            ->where('p.usuario_id', $usuario->idUsuario)
             ->select(
-                'c.idCita',
-                DB::raw("CONCAT(um.nombre, ' ', um.apellido) as medico"),
-                'c.fechaHora',
-                'c.motivo',
-                'c.ubicacion',
-                'c.estado'
+                'c.idCita', 'c.fechaHora', 'c.motivo', 'c.ubicacion', 'c.estado',
+                'uM.nombre as medico_nombre', 'uM.apellido as medico_apellido', 'uM.email as medico_email'
             )
-            ->where('c.fkPaciente', $paciente->id)
-            ->orderByDesc('c.fechaHora')
-            ->get();
+            ->orderBy('c.fechaHora', 'desc')
+            ->paginate(10);
 
         return view('paciente.citas.index', compact('citas'));
     }
 
-    public function show($id)
+    /** CANCELAR — El paciente cancela su cita */
+    public function cancelar($id)
     {
-        $paciente = DB::table('Pacientes')->where('usuario_id', Auth::id())->first();
+        $usuario = Auth::user();
 
         $cita = DB::table('Citas as c')
+            ->join('Pacientes as p', 'p.id', '=', 'c.fkPaciente')
             ->join('Medicos as m', 'm.id', '=', 'c.fkMedico')
-            ->join('Usuarios as um', 'um.idUsuario', '=', 'm.usuario_id')
-            ->select(
-                'c.*',
-                DB::raw("CONCAT(um.nombre, ' ', um.apellido) as medico")
-            )
+            ->join('Usuarios as uM', 'uM.idUsuario', '=', 'm.usuario_id')
+            ->where('p.usuario_id', $usuario->idUsuario)
             ->where('c.idCita', $id)
-            ->where('c.fkPaciente', $paciente->id)
+            ->select(
+                'c.*', 'uM.idUsuario as medico_usuario_id',
+                'uM.nombre as medico_nombre', 'uM.apellido as medico_apellido', 'uM.email as medico_email'
+            )
             ->first();
 
         if (!$cita) {
-            return redirect()->route('paciente.citas.index')->with('error', 'Cita no encontrada.');
+            Flash::error('❌ Cita no encontrada o no pertenece a tu cuenta.');
+            return redirect()->route('paciente.citas.index');
         }
 
-        return view('paciente.citas.show', compact('cita'));
+        DB::table('Citas')->where('idCita', $id)->update(['estado' => 'cancelada']);
+
+        Notificacion::create([
+            'fkUsuario' => $cita->medico_usuario_id,
+            'titulo' => 'Cita cancelada por paciente',
+            'mensaje' => 'El paciente ' . $usuario->nombre . ' ha cancelado la cita del ' .
+                         Carbon::parse($cita->fechaHora)->format('d/m/Y H:i'),
+            'tipo' => 'sistema',
+            'fecha' => now(),
+        ]);
+
+        if (!empty($cita->medico_email)) {
+            Mail::to($cita->medico_email)->send(new CitaCanceladaMail(
+                medicoNombre: $cita->medico_nombre . ' ' . $cita->medico_apellido,
+                pacienteNombre: $usuario->nombre . ' ' . $usuario->apellido,
+                fechaCita: $cita->fechaHora,
+                motivo: $cita->motivo,
+                ubicacion: $cita->ubicacion,
+                canceladaPor: 'paciente'
+            ));
+        }
+
+        Flash::success('✅ Has cancelado la cita y se notificó al médico.');
+        return redirect()->route('paciente.citas.index');
     }
 }
