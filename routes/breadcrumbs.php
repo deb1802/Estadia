@@ -291,6 +291,13 @@ if (!Breadcrumbs::exists('medico.seguimiento.show')) {
         $t->parent('medico.seguimiento.index');
         $t->push('Detalle del paciente #'.$idPaciente, route('medico.seguimiento.show', $idPaciente));
     });
+
+    // 🧠 Emociones registradas (médico)
+if (!Breadcrumbs::exists('medico.emociones.index')) {
+    Breadcrumbs::for('medico.emociones.index', fn(Trail $t) =>
+        $t->parent('medico.dashboard')->push('Registro emocional', route('medico.emociones.index')));
+}
+
 }
 
 /* =========================================================

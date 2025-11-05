@@ -158,5 +158,5 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
 .progress{ background:#dbe3ff; }
 .progress-bar{ height:100%; border-radius:6px; }
 </style>
-
+@include('medico.bottom-navbar')
 @endsection

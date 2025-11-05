@@ -61,7 +61,7 @@ class ExpedienteAdminController extends Controller
             ->join('Tests as t', 'a.fkTest', '=', 't.idTest')
             ->where('a.fkPaciente', $pacienteId)
             ->select(
-                't.nombre',
+                't.nombre as nombreTest',
                 't.tipoTrastorno',
                 'a.puntajeTotal',
                 'a.diagnosticoSugerido',
@@ -88,14 +88,41 @@ class ExpedienteAdminController extends Controller
             ->orderBy('r.fecha', 'desc')
             ->get();
 
-        // 💬 Respuestas emocionales
+        // 💬 Respuestas emocionales (JSON)
         $respuestas = DB::table('Emociones')
             ->where('fkPaciente', $pacienteId)
-            ->select('emocionesExperimentadas as emocion', 'intensidad', 'fechaHoraRegistro as fechaRegistro')
             ->orderBy('fechaHoraRegistro', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $emociones = json_decode($item->emocionesExperimentadas, true);
+                $intensidades = json_decode($item->intensidades, true);
 
-        return view('admin.expedientes.show', compact('expediente', 'citas', 'tests', 'actividades', 'medicamentos', 'respuestas'));
+                $detalle = [];
+
+                if ($emociones && $intensidades) {
+                    foreach ($emociones as $emocion) {
+                        $detalle[] = [
+                            'emocion' => $emocion,
+                            'intensidad' => $intensidades[$emocion] ?? null,
+                        ];
+                    }
+                }
+
+                return [
+                    'fechaRegistro' => $item->fechaHoraRegistro,
+                    'comentario' => $item->comentario,
+                    'detalles' => $detalle,
+                ];
+            });
+
+        return view('admin.expedientes.show', compact(
+            'expediente',
+            'citas',
+            'tests',
+            'actividades',
+            'medicamentos',
+            'respuestas'
+        ));
     }
 
     public function destroy($id)

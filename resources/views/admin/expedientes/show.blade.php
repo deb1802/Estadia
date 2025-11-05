@@ -1,166 +1,195 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+  .exp-wrapper{ max-width: 1100px; margin: 0 auto; }
+  .exp-card{ max-width: 1000px; margin-left: auto; margin-right: auto; }
+  .exp-half{ max-width: 520px; margin-left: auto; margin-right: auto; }
+  @media (min-width: 992px){
+    .exp-two-col{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .exp-half{ max-width: none; }
+  }
+</style>
+
 <div class="container py-4">
-    {{-- 🔹 Encabezado del expediente --}}
-    <div class="card shadow-sm mb-4 border-0">
-        <div class="card-body text-center text-white rounded-top" style="background: linear-gradient(135deg, #bea4d2, #c8b1da);">
-            <h3 class="mb-1"><i class="fas fa-file-medical-alt"></i> Expediente Clínico</h3>
-            <p class="mb-0">Última actualización:
-                <strong>{{ \Carbon\Carbon::parse($expediente->fechaActualizacion)->format('d/m/Y') }}</strong>
-            </p>
-        </div>
+  <div class="exp-wrapper">
 
-        <div class="card-body text-center">
-            <h4 class="text-dark mb-2">
-                <i class="fas fa-user"></i> Paciente:
-                <span class="text-primary">{{ $expediente->nombre_paciente }}</span>
-            </h4>
-
-            <hr>
-
-            <div class="row text-start">
-                <div class="col-md-6">
-                    <h5><i class="fas fa-notes-medical text-success"></i> Antecedentes</h5>
-                    <p>{{ $expediente->antecedentes ?? 'Sin registrar.' }}</p>
-                </div>
-                <div class="col-md-6">
-                    <h5><i class="fas fa-diagnoses text-danger"></i> Diagnóstico</h5>
-                    <p>{{ $expediente->diagnosticos ?? 'Sin registrar.' }}</p>
-                </div>
-            </div>
-
-            <div class="mt-3 text-start">
-                <h5><i class="fas fa-stethoscope text-info"></i> Notas Clínicas</h5>
-                <p>{{ $expediente->notasClinicas ?? 'Sin registrar.' }}</p>
-            </div>
-
-            <div class="mt-3 text-start">
-                <h5><i class="fas fa-comment-medical text-secondary"></i> Observaciones</h5>
-                <p>{{ $expediente->observaciones ?? 'Sin observaciones.' }}</p>
-            </div>
-        </div>
+    {{-- 🔹 Encabezado --}}
+    <div class="card shadow border-0 mb-4 text-center exp-card">
+      <div class="card-body text-white rounded-top"
+           style="background: linear-gradient(135deg, #007bff, #4c8dff);">
+        <h3 class="fw-bold mb-2">🩺 Expediente Clínico Digital</h3>
+        <p class="mb-0">
+          Última actualización:
+          <strong>{{ \Carbon\Carbon::parse($expediente->fechaActualizacion)->format('d/m/Y') }}</strong>
+        </p>
+      </div>
     </div>
 
-    {{-- 🔹 Sección de información consolidada --}}
-    <div class="row justify-content-center">
-        {{-- 📅 Citas --}}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header text-white" style="background-color: #bea4d2;">
-                    <i class="fas fa-calendar-check"></i> Historial de Citas
-                </div>
-                <div class="card-body">
-                    @forelse($citas as $cita)
-                        <div class="mb-3 border-bottom pb-2">
-                            <strong>{{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}</strong><br>
-                            Motivo: {{ $cita->motivo }}<br>
-                            Lugar: {{ $cita->ubicacion }}<br>
-                            Estado:
-                            <span class="badge bg-{{ $cita->estado === 'realizada' ? 'success' : ($cita->estado === 'cancelada' ? 'danger' : 'warning') }}">
-                                {{ ucfirst($cita->estado) }}
-                            </span>
-                        </div>
-                    @empty
-                        <p class="text-muted">No hay citas registradas.</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
+    {{-- 🔹 Datos del paciente --}}
+    <div class="card shadow border-0 mb-4 text-center exp-card">
+      <div class="card-body">
+        <h4 class="text-dark mb-3">
+          <i class="fas fa-user-md text-primary"></i>
+          Paciente:
+          <span class="fw-bold text-primary">{{ $expediente->nombre_paciente }}</span>
+        </h4>
 
-        {{-- 🧠 Tests Psicológicos --}}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header text-white" style="background-color: #bea4d2;">
-                    <i class="fas fa-brain"></i> Tests Psicológicos Aplicados
-                </div>
-                <div class="card-body">
-                    @forelse($tests as $test)
-                        <div class="mb-3 border-bottom pb-2">
-                            <strong>{{ $test->nombre }}</strong><br>
-                            Tipo: {{ $test->tipoTrastorno }}<br>
-                            Puntaje total: {{ $test->puntajeTotal ?? 'Pendiente' }}<br>
-                            Diagnóstico sugerido: {{ $test->diagnosticoSugerido ?? 'N/A' }}<br>
-                            Diagnóstico confirmado: {{ $test->diagnosticoConfirmado ?? 'N/A' }}<br>
-                            Fecha: {{ $test->fechaRespuesta ? \Carbon\Carbon::parse($test->fechaRespuesta)->format('d/m/Y') : 'N/A' }}
-                        </div>
-                    @empty
-                        <p class="text-muted">No hay tests registrados.</p>
-                    @endforelse
-                </div>
+        <div class="exp-two-col">
+          <div class="exp-half mb-3">
+            <div class="p-3 rounded shadow-sm bg-light h-100">
+              <h6><i class="fas fa-notes-medical text-success"></i> Antecedentes</h6>
+              <p class="mb-0">{{ $expediente->antecedentes ?? 'Sin registrar.' }}</p>
             </div>
+          </div>
+
+          <div class="exp-half mb-3">
+            <div class="p-3 rounded shadow-sm bg-light h-100">
+              <h6><i class="fas fa-diagnoses text-danger"></i> Diagnóstico</h6>
+              <p class="mb-0">{{ $expediente->diagnosticos ?? 'Sin registrar.' }}</p>
+            </div>
+          </div>
+
+          <div class="exp-half mb-3">
+            <div class="p-3 rounded shadow-sm bg-light h-100">
+              <h6><i class="fas fa-stethoscope text-info"></i> Notas Clínicas</h6>
+              <p class="mb-0">{{ $expediente->notasClinicas ?? 'Sin registrar.' }}</p>
+            </div>
+          </div>
+
+          <div class="exp-half mb-1">
+            <div class="p-3 rounded shadow-sm bg-light h-100">
+              <h6><i class="fas fa-comment-medical text-secondary"></i> Observaciones</h6>
+              <p class="mb-0">{{ $expediente->observaciones ?? 'Sin observaciones.' }}</p>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    {{-- 🔹 Bloques --}}
+    <div class="exp-two-col mb-4">
+
+      {{-- 📅 Citas --}}
+      <div class="card shadow border-0 h-100 exp-half">
+        <div class="card-header bg-info text-white fw-bold text-center">
+          <i class="fas fa-calendar-check"></i> Historial de Citas
+        </div>
+        <div class="card-body text-center">
+          @forelse($citas as $cita)
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}</strong><br>
+              Motivo: {{ $cita->motivo }}<br>
+              Estado:
+              <span class="badge bg-{{ $cita->estado === 'realizada' ? 'success' : ($cita->estado === 'cancelada' ? 'danger' : 'warning') }}">
+                {{ ucfirst($cita->estado) }}
+              </span>
+            </div>
+          @empty
+            <p class="text-muted m-0">No hay citas registradas.</p>
+          @endforelse
+        </div>
+      </div>
+
+      {{-- 🧠 Tests --}}
+      <div class="card shadow border-0 h-100 exp-half">
+        <div class="card-header bg-warning text-dark fw-bold text-center">
+          <i class="fas fa-brain"></i> Tests Psicológicos
+        </div>
+        <div class="card-body text-center">
+          @forelse($tests as $test)
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ $test->nombreTest }}</strong><br>
+              Tipo: {{ $test->tipoTrastorno }}<br>
+              Diagnóstico: {{ $test->diagnosticoConfirmado ?? 'Pendiente' }}<br>
+              Fecha: {{ $test->fechaRespuesta ?? 'N/A' }}
+            </div>
+          @empty
+            <p class="text-muted m-0">No hay tests aplicados.</p>
+          @endforelse
+        </div>
+      </div>
     </div>
 
     {{-- 🔹 Segunda fila --}}
-    <div class="row justify-content-center">
-        {{-- 🧘 Actividades Terapéuticas --}}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header text-white" style="background-color: #bea4d2;">
-                    <i class="fas fa-heartbeat"></i> Actividades Terapéuticas
-                </div>
-                <div class="card-body">
-                    @forelse($actividades as $act)
-                        <div class="mb-3 border-bottom pb-2">
-                            <strong>{{ $act->nombreActividad }}</strong><br>
-                            Estado:
-                            <span class="badge bg-{{ $act->estado === 'completada' ? 'success' : 'secondary' }}">
-                                {{ ucfirst($act->estado) }}
-                            </span><br>
-                            Asignada el: {{ \Carbon\Carbon::parse($act->fechaAsignacion)->format('d/m/Y') }}
-                        </div>
-                    @empty
-                        <p class="text-muted">No hay actividades asignadas.</p>
-                    @endforelse
-                </div>
-            </div>
-        </div>
+    <div class="exp-two-col mb-4">
 
-        {{-- 💊 Medicamentos Prescritos --}}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow border-0 h-100">
-                <div class="card-header text-white" style="background-color: #bea4d2;">
-                    <i class="fas fa-pills"></i> Medicamentos Prescritos
-                </div>
-                <div class="card-body">
-                    @forelse($medicamentos as $m)
-                        <div class="mb-3 border-bottom pb-2">
-                            <strong>{{ $m->nombre }}</strong><br>
-                            Dosis: {{ $m->dosis }}<br>
-                            Fecha: {{ \Carbon\Carbon::parse($m->fechaReceta)->format('d/m/Y') }}
-                        </div>
-                    @empty
-                        <p class="text-muted">No hay medicamentos prescritos.</p>
-                    @endforelse
-                </div>
-            </div>
+      {{-- 🧘 Actividades --}}
+      <div class="card shadow border-0 h-100 exp-half">
+        <div class="card-header bg-success text-white fw-bold text-center">
+          <i class="fas fa-heartbeat"></i> Actividades Terapéuticas
         </div>
+        <div class="card-body text-center">
+          @forelse($actividades as $act)
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ $act->nombreActividad }}</strong><br>
+              Estado:
+              <span class="badge bg-{{ $act->estado === 'completada' ? 'success' : 'secondary' }}">
+                {{ ucfirst($act->estado) }}
+              </span><br>
+              Asignada el: {{ \Carbon\Carbon::parse($act->fechaAsignacion)->format('d/m/Y') }}
+            </div>
+          @empty
+            <p class="text-muted m-0">No hay actividades asignadas.</p>
+          @endforelse
+        </div>
+      </div>
+
+      {{-- 💊 Medicamentos --}}
+      <div class="card shadow border-0 h-100 exp-half">
+        <div class="card-header bg-danger text-white fw-bold text-center">
+          <i class="fas fa-pills"></i> Medicamentos Prescritos
+        </div>
+        <div class="card-body text-center">
+          @forelse($medicamentos as $m)
+            <div class="mb-3 border-bottom pb-2">
+              <strong>{{ $m->nombre }}</strong><br>
+              Dosis: {{ $m->dosis }}<br>
+              Fecha: {{ \Carbon\Carbon::parse($m->fechaReceta)->format('d/m/Y') }}
+            </div>
+          @empty
+            <p class="text-muted m-0">No hay medicamentos registrados.</p>
+          @endforelse
+        </div>
+      </div>
     </div>
 
-    {{-- 🔹 Respuestas emocionales --}}
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header text-white" style="background-color: #bea4d2;">
-            <i class="fas fa-smile"></i> Respuestas Emocionales
-        </div>
-        <div class="card-body">
-            @forelse($respuestas as $r)
-                <div class="mb-3 border-bottom pb-2">
-                    <strong>{{ \Carbon\Carbon::parse($r->fechaRegistro)->format('d/m/Y') }}</strong><br>
-                    Emoción: {{ $r->emocion }}<br>
-                    Intensidad: {{ $r->intensidad }}/10
-                </div>
+    {{-- 💬 Emociones JSON --}}
+    <div class="card shadow border-0 mb-4 exp-card">
+      <div class="card-header bg-secondary text-white fw-bold text-center">
+        <i class="fas fa-smile"></i> Respuestas Emocionales
+      </div>
+      <div class="card-body text-center">
+        @forelse($respuestas as $r)
+          <div class="mb-4 border-bottom pb-3">
+            <strong>{{ \Carbon\Carbon::parse($r['fechaRegistro'])->format('d/m/Y H:i') }}</strong><br>
+
+            @forelse($r['detalles'] as $d)
+              <div class="mt-2">
+                <span class="fw-bold">{{ $d['emocion'] }}</span>
+                — Intensidad: <span class="text-primary">{{ $d['intensidad'] }}/10</span>
+              </div>
             @empty
-                <p class="text-muted">No se han registrado respuestas emocionales.</p>
+              <p class="text-muted">Sin detalles registrados.</p>
             @endforelse
-        </div>
+
+            @if($r['comentario'])
+              <p class="text-muted mt-2">📝 {{ $r['comentario'] }}</p>
+            @endif
+          </div>
+        @empty
+          <p class="text-muted m-0">No se han registrado respuestas emocionales.</p>
+        @endforelse
+      </div>
     </div>
 
-    {{-- 🔹 Botón de regreso --}}
-    <div class="text-center mt-4">
-        <a href="{{ route('admin.expedientes.index') }}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Volver al listado
-        </a>
+    {{-- 🔙 Volver --}}
+    <div class="text-center mb-5">
+      <a href="{{ route('admin.expedientes.index') }}" class="btn btn-outline-primary">
+        <i class="fas fa-arrow-left"></i> Volver al listado
+      </a>
     </div>
+
+  </div>
 </div>
 @endsection
