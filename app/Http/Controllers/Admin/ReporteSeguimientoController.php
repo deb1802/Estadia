@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
-use Carbon\Carbon;
-
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SeguimientoExport;
 
 class ReporteSeguimientoController extends Controller
 {
+    /**
+     * Mostrar formulario de selección de paciente
+     */
     public function index()
     {
         $pacientes = DB::table('Pacientes as p')
@@ -24,6 +24,9 @@ class ReporteSeguimientoController extends Controller
         return view('admin.reportes.seguimiento.seguimiento', compact('pacientes'));
     }
 
+    /**
+     * Generar reporte visual
+     */
     public function generar(Request $request)
     {
         $idPaciente = $request->input('paciente');
@@ -47,11 +50,15 @@ class ReporteSeguimientoController extends Controller
         $diagnosticos = DB::table('Expedientes')
             ->where('fkPaciente', $idPaciente)
             ->select('diagnosticos', 'fechaActualizacion')
+            ->orderBy('fechaActualizacion', 'desc')
             ->get();
 
         return view('admin.reportes.seguimiento.resultado', compact('paciente', 'citas', 'emociones', 'diagnosticos'));
     }
 
+    /**
+     * Exportar a Excel
+     */
     public function exportarExcel($idPaciente)
     {
         $paciente = DB::table('Pacientes as p')

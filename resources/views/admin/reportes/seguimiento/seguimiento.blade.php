@@ -21,15 +21,19 @@
             <div class="card-body">
                 <form method="POST" action="{{ route('admin.reportes.seguimiento.generar') }}">
                     @csrf
+
                     <div class="mb-4 text-center">
                         <label for="paciente" class="form-label fw-semibold">Paciente</label>
+
                         <select name="paciente" id="paciente" class="form-select shadow-sm" required>
                             <option value="">Selecciona un paciente...</option>
+
                             @foreach($pacientes as $p)
-                                <option value="{{ $p->id }}">
+                                <option value="{{ $p->idPaciente }}">
                                     {{ $p->nombre }} {{ $p->apellido }}
                                 </option>
                             @endforeach
+
                         </select>
                     </div>
 
