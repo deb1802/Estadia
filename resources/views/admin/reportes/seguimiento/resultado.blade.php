@@ -1,32 +1,65 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-5">
 
+<style>
+    .seg-wrapper { max-width: 1100px; margin: 0 auto; }
+    .seg-card { max-width: 950px; margin-left: auto; margin-right: auto; border-radius: 12px; }
+    .seg-header {
+        background: linear-gradient(135deg, #bea4d2, #c8b1da);
+        color: white;
+        border-radius: 12px 12px 0 0;
+    }
+    .seg-timeline li {
+        position: relative;
+        padding-left: 20px;
+        border-left: 3px solid #bea4d2;
+    }
+    .seg-timeline li::before {
+        content: "";
+        position: absolute;
+        left: -6.5px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        background: #bea4d2;
+        border-radius: 50%;
+    }
+</style>
+
+<div class="container py-4">
+<div class="seg-wrapper">
+
+    {{-- 🔹 Encabezado --}}
     <div class="text-center mb-4">
         <h2 class="fw-bold text-dark">
             <i class="fas fa-user-md text-primary me-2"></i>
-            Reporte de Seguimiento: {{ $paciente->nombre }} {{ $paciente->apellido }}
+            Reporte de Seguimiento
         </h2>
-        <p class="text-muted">Resumen cronológico de citas, emociones y diagnósticos registrados.</p>
+        <p class="text-muted">
+            Paciente: <strong class="text-primary">{{ $paciente->nombre }} {{ $paciente->apellido }}</strong>
+        </p>
+        <hr class="w-50 mx-auto opacity-50">
     </div>
 
-    {{-- 🔹 Línea de tiempo de citas --}}
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header text-white" style="background: linear-gradient(135deg, #bea4d2, #c8b1da);">
-            <strong><i class="fas fa-calendar-alt me-2"></i> Citas realizadas</strong>
+    {{-- 📅 Citas --}}
+    <div class="card shadow seg-card mb-4">
+        <div class="card-header seg-header fw-semibold">
+            <i class="fas fa-calendar-alt me-2"></i> Citas Realizadas
         </div>
         <div class="card-body text-center">
             @if($citas->isEmpty())
-                <p class="text-muted mb-0">No hay citas registradas.</p>
+                <p class="text-muted m-0">No hay citas registradas.</p>
             @else
-                <ul class="timeline list-unstyled text-start d-inline-block">
+                <ul class="list-unstyled seg-timeline mx-auto" style="max-width: 600px;">
                     @foreach($citas as $cita)
-                        <li class="mb-3 position-relative ps-4">
-                            <span class="position-absolute top-0 start-0 translate-middle p-2 bg-purple rounded-circle"></span>
-                            <strong>{{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}</strong> <br>
-                            <small class="text-muted">Motivo:</small> {{ $cita->motivo }} <br>
-                            <small class="text-muted">Estado:</small> {{ ucfirst($cita->estado) }}
+                        <li class="mb-3">
+                            <strong>{{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}</strong><br>
+                            Motivo: {{ $cita->motivo }}<br>
+                            Estado:
+                            <span class="badge bg-{{ $cita->estado === 'realizada' ? 'success' : ($cita->estado === 'cancelada' ? 'danger' : 'warning') }}">
+                                {{ ucfirst($cita->estado) }}
+                            </span>
                         </li>
                     @endforeach
                 </ul>
@@ -34,32 +67,34 @@
         </div>
     </div>
 
-    {{-- 🔹 Emociones registradas --}}
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header text-white" style="background: linear-gradient(135deg, #bea4d2, #c8b1da);">
-            <strong><i class="fas fa-heart me-2"></i> Emociones registradas</strong>
+    {{-- 💬 Emociones --}}
+    <div class="card shadow seg-card mb-4">
+        <div class="card-header seg-header fw-semibold">
+            <i class="fas fa-heart me-2"></i> Respuestas Emocionales Registradas
         </div>
-        <div class="card-body">
+        <div class="card-body text-center">
             @if($emociones->isEmpty())
-                <p class="text-center text-muted">No se han registrado emociones.</p>
+                <p class="text-muted m-0">No se han registrado emociones.</p>
             @else
-                <canvas id="emocionesChart" height="120"></canvas>
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <canvas id="emocionesChart" height="140"></canvas>
+                </div>
             @endif
         </div>
     </div>
 
-    {{-- 🔹 Diagnósticos --}}
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header text-white" style="background: linear-gradient(135deg, #bea4d2, #c8b1da);">
-            <strong><i class="fas fa-stethoscope me-2"></i> Diagnósticos clínicos</strong>
+    {{-- 🩺 Diagnósticos --}}
+    <div class="card shadow seg-card mb-4">
+        <div class="card-header seg-header fw-semibold">
+            <i class="fas fa-stethoscope me-2"></i> Diagnósticos Clínicos
         </div>
-        <div class="card-body">
+        <div class="card-body text-center">
             @if($diagnosticos->isEmpty())
-                <p class="text-center text-muted">No hay diagnósticos disponibles.</p>
+                <p class="text-muted m-0">No hay diagnósticos disponibles.</p>
             @else
-                <ul class="list-group">
+                <ul class="list-group mx-auto" style="max-width: 700px;">
                     @foreach($diagnosticos as $diag)
-                        <li class="list-group-item">
+                        <li class="list-group-item text-start">
                             <strong>{{ \Carbon\Carbon::parse($diag->fechaActualizacion)->format('d/m/Y') }}:</strong><br>
                             {!! nl2br(e($diag->diagnosticos)) !!}
                         </li>
@@ -69,53 +104,52 @@
         </div>
     </div>
 
-    {{-- 🔹 Botón exportar --}}
-    <div class="text-center mt-4">
-        <a href="{{ route('admin.reportes.seguimiento.excel', ['idPaciente' => request()->input('paciente')]) }}"
-           class="btn text-white px-4 py-2"
-           style="background: linear-gradient(135deg, #bea4d2, #c8b1da);">
+    {{-- 📤 Botones --}}
+    <div class="text-center my-4">
+        <a href="{{ route('admin.reportes.seguimiento.excel', $paciente->idPaciente) }}"
+           class="btn text-white px-4 shadow-sm"
+           style="background: linear-gradient(135deg, #bea4d2, #c8b1da); border-radius: 8px;">
             <i class="fas fa-file-excel me-2"></i> Exportar a Excel
         </a>
-        <a href="{{ route('admin.reportes.seguimiento') }}" class="btn btn-outline-secondary ms-2">
+
+        <a href="{{ route('admin.reportes.seguimiento') }}"
+           class="btn btn-outline-secondary px-4 ms-2"
+           style="border-radius: 8px;">
             <i class="fas fa-arrow-left"></i> Volver
         </a>
     </div>
+
+</div>
 </div>
 
-{{-- 🔹 Script para gráfico dinámico --}}
+{{-- 📊 Script Gráfico --}}
 @if(!$emociones->isEmpty())
     @php
         $labels = $emociones->map(fn($e) => \Carbon\Carbon::parse($e->fechaHoraRegistro)->format('d/m/Y'))->toArray();
-        $data = $emociones->map(fn($e) => $e->intensidad ?? 0)->toArray();
+        $averages = $emociones->map(function($e){
+            $int = json_decode($e->intensidades, true) ?? [];
+            return count($int) ? array_sum($int) / count($int) : 0;
+        })->toArray();
     @endphp
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('emocionesChart');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: @json($labels),
-                datasets: [{
-                    label: 'Nivel de intensidad emocional',
-                    data: @json($data),
-                    borderColor: '#bea4d2',
-                    backgroundColor: 'rgba(190, 164, 210, 0.3)',
-                    tension: 0.3,
-                    fill: true,
-                    pointBackgroundColor: '#b5c8e1',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } }
-                },
-                plugins: {
-                    legend: { display: true, position: 'bottom' }
-                }
-            }
-        });
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('emocionesChart'), {
+    type: 'line',
+    data: {
+        labels: @json($labels),
+        datasets: [{
+            label: 'Promedio de intensidad emocional',
+            data: @json($averages),
+            borderColor: '#9659b8',
+            backgroundColor: 'rgba(150, 89, 184, 0.25)',
+            tension: 0.35,
+            fill: true,
+            borderWidth: 2
+        }]
+    }
+});
+</script>
 @endif
+
 @endsection

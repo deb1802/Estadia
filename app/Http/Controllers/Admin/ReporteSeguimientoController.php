@@ -13,23 +13,17 @@ use App\Exports\SeguimientoExport;
 
 class ReporteSeguimientoController extends Controller
 {
-    /**
-     * 🔹 Mostrar formulario para seleccionar paciente
-     */
     public function index()
     {
         $pacientes = DB::table('Pacientes as p')
             ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
-            ->select('p.id', 'u.nombre', 'u.apellido')
+            ->select('p.id as idPaciente', 'u.nombre', 'u.apellido')
             ->orderBy('u.nombre')
             ->get();
 
         return view('admin.reportes.seguimiento.seguimiento', compact('pacientes'));
     }
 
-    /**
-     * 🔹 Generar el reporte de seguimiento visual en pantalla
-     */
     public function generar(Request $request)
     {
         $idPaciente = $request->input('paciente');
@@ -37,7 +31,7 @@ class ReporteSeguimientoController extends Controller
         $paciente = DB::table('Pacientes as p')
             ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
             ->where('p.id', $idPaciente)
-            ->select('u.nombre', 'u.apellido')
+            ->select('p.id as idPaciente', 'u.nombre', 'u.apellido')
             ->first();
 
         $citas = DB::table('Citas as c')
@@ -58,23 +52,20 @@ class ReporteSeguimientoController extends Controller
         return view('admin.reportes.seguimiento.resultado', compact('paciente', 'citas', 'emociones', 'diagnosticos'));
     }
 
-    /**
-     * 🔹 Exportar el reporte de seguimiento a Excel (CSV)
-     */
     public function exportarExcel($idPaciente)
-{
-    $paciente = DB::table('Pacientes as p')
-        ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
-        ->where('p.id', $idPaciente)
-        ->select('u.nombre', 'u.apellido')
-        ->first();
+    {
+        $paciente = DB::table('Pacientes as p')
+            ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
+            ->where('p.id', $idPaciente)
+            ->select('p.id as idPaciente', 'u.nombre', 'u.apellido')
+            ->first();
 
-    if (!$paciente) {
-        return back()->with('error', 'Paciente no encontrado.');
+        if (!$paciente) {
+            return back()->with('error', 'Paciente no encontrado.');
+        }
+
+        $nombreArchivo = 'Reporte_Seguimiento_' . $paciente->nombre . '_' . $paciente->apellido . '.xlsx';
+
+        return Excel::download(new SeguimientoExport($idPaciente), $nombreArchivo);
     }
-
-    $nombreArchivo = 'Reporte_Seguimiento_' . $paciente->nombre . '_' . $paciente->apellido . '.xlsx';
-
-    return Excel::download(new SeguimientoExport($idPaciente), $nombreArchivo);
-}
 }

@@ -125,7 +125,12 @@ if (!Breadcrumbs::exists('admin.recetas.pdf')) {
         $t->push('PDF');
     });
 }
-
+// 📂 Listado de expedientes (ADMIN)
+if (!Breadcrumbs::exists('admin.expedientes.index')) {
+    Breadcrumbs::for('admin.expedientes.index', fn(Trail $t) =>
+        $t->parent('admin.dashboard')
+          ->push('Expedientes Clínicos', route('admin.expedientes.index')));
+}
 /* === NUEVOS REPORTES ADMIN === */
 
 // 📊 Reporte de seguimiento de pacientes

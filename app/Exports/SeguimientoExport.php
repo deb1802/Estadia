@@ -6,10 +6,12 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithDrawings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use Carbon\Carbon;
 
-class SeguimientoExport implements FromArray, WithStyles, WithTitle
+class SeguimientoExport implements FromArray, WithStyles, WithTitle, WithDrawings
 {
     protected $idPaciente;
 
@@ -18,9 +20,6 @@ class SeguimientoExport implements FromArray, WithStyles, WithTitle
         $this->idPaciente = $idPaciente;
     }
 
-    /**
-     * 🔹 Generar los datos del Excel con el mismo contenido que la vista
-     */
     public function array(): array
     {
         $paciente = DB::table('Pacientes as p')
@@ -29,20 +28,25 @@ class SeguimientoExport implements FromArray, WithStyles, WithTitle
             ->select('u.nombre', 'u.apellido')
             ->first();
 
-        $nombrePaciente = $paciente
-            ? $paciente->nombre . ' ' . $paciente->apellido
-            : 'Desconocido';
+        $nombrePaciente = $paciente ? $paciente->nombre . ' ' . $paciente->apellido : 'Desconocido';
 
         $rows = [];
 
-        // 🔹 Encabezado general
+        // 🔹 Dejar espacio para el logo (filas 1-3) + fila 4 vacía
+        $rows[] = [''];
+        $rows[] = [''];
+        $rows[] = [''];
+        $rows[] = [''];
+
+        // -------- INICIO DEL CONTENIDO DESDE FILA 5 --------
         $rows[] = ["Reporte de Seguimiento del Paciente: $nombrePaciente"];
         $rows[] = ['Fecha de generación:', now()->format('d/m/Y H:i')];
         $rows[] = [''];
+
+        // 🟣 CITAS
         $rows[] = ['CITAS REALIZADAS'];
         $rows[] = ['Fecha', 'Motivo', 'Estado'];
 
-        // 📅 Citas
         $citas = DB::table('Citas')
             ->where('fkPaciente', $this->idPaciente)
             ->orderBy('fechaHora')
@@ -56,43 +60,41 @@ class SeguimientoExport implements FromArray, WithStyles, WithTitle
             ];
         }
 
-        if ($citas->isEmpty()) {
-            $rows[] = ['Sin citas registradas'];
-        }
+        if ($citas->isEmpty()) $rows[] = ['Sin citas registradas'];
 
-        // Espacio
         $rows[] = [''];
-        $rows[] = ['EMOCIONES REGISTRADAS'];
-        $rows[] = ['Fecha', 'Emociones experimentadas', 'Intensidad', 'Comentario'];
 
-        // 💬 Emociones
+        // 🟣 EMOCIONES
+        $rows[] = ['EMOCIONES REGISTRADAS'];
+        $rows[] = ['Fecha', 'Emociones experimentadas', 'Promedio Intensidad', 'Comentario'];
+
         $emociones = DB::table('Emociones')
             ->where('fkPaciente', $this->idPaciente)
             ->orderBy('fechaHoraRegistro')
             ->get();
 
         foreach ($emociones as $e) {
+            $int = json_decode($e->intensidades, true) ?? [];
+            $prom = count($int) ? array_sum($int) / count($int) : 0;
+
             $rows[] = [
                 Carbon::parse($e->fechaHoraRegistro)->format('d/m/Y H:i'),
                 $e->emocionesExperimentadas,
-                $e->intensidad,
+                round($prom, 1),
                 $e->comentario
             ];
         }
 
-        if ($emociones->isEmpty()) {
-            $rows[] = ['Sin emociones registradas'];
-        }
+        if ($emociones->isEmpty()) $rows[] = ['Sin emociones registradas'];
 
-        // Espacio
         $rows[] = [''];
+
+        // 🟣 DIAGNÓSTICOS
         $rows[] = ['DIAGNÓSTICOS CLÍNICOS'];
         $rows[] = ['Fecha', 'Diagnóstico'];
 
-        // 🩺 Diagnósticos
         $diagnosticos = DB::table('Expedientes')
             ->where('fkPaciente', $this->idPaciente)
-            ->select('diagnosticos', 'fechaActualizacion')
             ->orderBy('fechaActualizacion', 'desc')
             ->get();
 
@@ -103,41 +105,51 @@ class SeguimientoExport implements FromArray, WithStyles, WithTitle
             ];
         }
 
-        if ($diagnosticos->isEmpty()) {
-            $rows[] = ['Sin diagnósticos clínicos registrados'];
-        }
+        if ($diagnosticos->isEmpty()) $rows[] = ['Sin diagnósticos clínicos registrados'];
 
         return $rows;
     }
 
-    /**
-     * 🔹 Estilos generales del Excel
-     */
     public function styles(Worksheet $sheet)
     {
-        // Encabezado principal
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A4')->getFont()->setBold(true)->getColor()->setARGB('6A5ACD');
-        $sheet->getStyle('A8')->getFont()->setBold(true)->getColor()->setARGB('6A5ACD');
-        $sheet->getStyle('A12')->getFont()->setBold(true)->getColor()->setARGB('6A5ACD');
+        // 🔹 Título centrado
+        $sheet->mergeCells('A5:E5');
+        $sheet->getStyle('A5')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A5')->getAlignment()->setHorizontal('center');
 
-        // Ajuste automático de columnas
+        // 🔹 Colorear encabezados de secciones
+        $sheet->getStyle('A8:C8')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('D9C6EB');
+
+        $sheet->getStyle('A12:D12')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('D9C6EB');
+
+        $sheet->getStyle('A16:B16')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('D9C6EB');
+
+        // 🔹 Bordes SOLO en encabezados
+        $sheet->getStyle('A8:C8')->getBorders()->getAllBorders()->setBorderStyle('thin');
+        $sheet->getStyle('A12:D12')->getBorders()->getAllBorders()->setBorderStyle('thin');
+        $sheet->getStyle('A16:B16')->getBorders()->getAllBorders()->setBorderStyle('thin');
+
+        // 🔹 Ajustar ancho de columnas
         foreach (range('A', 'E') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
+    }
 
-        // Fondo suave para secciones
-        $sheet->getStyle('A4:C4')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('E6E6FA');
-
-        $sheet->getStyle('A8:D8')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('E6E6FA');
-
-        $sheet->getStyle('A12:B12')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('E6E6FA');
+    public function drawings()
+    {
+        $drawing = new Drawing();
+        $drawing->setName('Mindware Logo');
+        $drawing->setDescription('Logo de Mindware');
+        $drawing->setPath(public_path('img/mindware-logo.png'));
+        $drawing->setHeight(80);
+        $drawing->setCoordinates('A1');
+        return $drawing;
     }
 
     public function title(): string
