@@ -51,6 +51,7 @@
   }
   .grid-s1{ grid-column: span 3; grid-row: span 1; }
   .grid-l4{ grid-column: span 8; grid-row: span 2; }
+  .grid-l4-tall{ grid-column: span 8; grid-row: span 3; } /* más alta para Citas */
   .grid-m3t{ grid-column: span 4; grid-row: span 3; }
   .grid-full{ grid-column: 1 / -1; grid-row: span 1; }
   .grid-l4-row{ grid-column: span 8; grid-row: span 2; }
@@ -60,11 +61,12 @@
     .dashboard-grid{ grid-template-columns: repeat(8,1fr); grid-auto-rows: 120px; }
     .grid-s1{ grid-column: span 2; }
     .grid-l4, .grid-l4-row{ grid-column: span 8; grid-row: span 2; }
+    .grid-l4-tall{ grid-column: span 8; grid-row: span 3; }
     .grid-m3t, .grid-m3{ grid-column: span 8; grid-row: span 3; }
   }
   @media (max-width: 768px){
     .dashboard-grid{ grid-template-columns: repeat(4,1fr); grid-auto-rows: 120px; }
-    .grid-s1,.grid-l4,.grid-m3t,.grid-full,.grid-l4-row,.grid-m3{ grid-column: 1 / -1; }
+    .grid-s1,.grid-l4,.grid-l4-row,.grid-l4-tall,.grid-m3t,.grid-full,.grid-m3{ grid-column: 1 / -1; }
   }
 
   .mf-card{
@@ -169,7 +171,7 @@
 @section('content')
 <div class="wrap container-fluid">
 
-  {{-- Toolbar y filtros --}}
+  {{-- Toolbar y filtros (solo sexo y acciones) --}}
   <div class="toolbar">
     <div class="title">Resumen general del sistema</div>
 
@@ -179,16 +181,6 @@
       <button class="seg" data-sex="femenino"><i class="bi bi-gender-female"></i> Femenino</button>
       <button class="seg" data-sex="otro"><i class="bi bi-gender-ambiguous"></i> Otro</button>
     </div>
-
-    <input type="date" id="fromDate" class="form-control form-control-sm" style="max-width:160px">
-    <input type="date" id="toDate"   class="form-control form-control-sm" style="max-width:160px">
-
-    <select id="estadoCita" class="form-select form-select-sm" style="max-width:200px">
-      <option value="">Todas las citas</option>
-      <option value="programada">Programadas</option>
-      <option value="realizada">Realizadas</option>
-      <option value="cancelada">Canceladas</option>
-    </select>
 
     <div class="actions">
       <button class="btn btn-outline-primary btn-sm" id="btnReload"><i class="bi bi-arrow-repeat"></i> Recargar</button>
@@ -221,7 +213,7 @@
     <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-check2-circle"></i></div><div><div class="sub">Citas realizadas</div><div id="citas_real" class="val">0</div></div></div></div>
     <div class="mf-card grid-s1"><div class="kpi"><div class="ico"><i class="bi bi-x-circle"></i></div><div><div class="sub">Citas canceladas</div><div id="citas_canc" class="val">0</div></div></div></div>
 
-    {{-- Barras sexo --}}
+    {{-- Pacientes por sexo --}}
     <div class="mf-card chart-card grid-l4">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <span class="mf-title">Pacientes por sexo</span>
@@ -245,10 +237,11 @@
           <div class="flex-grow-1"><div class="progress sex"><div id="barO" class="progress-bar" style="width:0%"></div></div></div>
           <span id="pctO" class="tiny">0%</span>
         </div>
+        <div class="tiny mt-2">Esta gráfica usa el filtro de <b>sexo</b> (barra superior).</div>
       </div>
     </div>
 
-    {{-- Dona roles --}}
+    {{-- Usuarios por rol --}}
     <div class="mf-card chart-card grid-m3t">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <span class="mf-title">Usuarios por rol</span>
@@ -259,7 +252,7 @@
         </div>
       </div>
       <div class="hbox"><canvas id="rolesChart"></canvas></div>
-      <div class="mt-2 tiny">Tip: haz clic en las leyendas del gráfico para mostrar/ocultar un rol.</div>
+      <div class="mt-2 tiny">No depende de filtros (muestra el total por rol).</div>
     </div>
 
     {{-- Test --}}
@@ -267,18 +260,35 @@
       <div class="d-flex align-items-center gap-3 flex-wrap">
         <i class="bi bi-emoji-smile fs-4 text-primary"></i>
         <div class="fw-bold me-2">Test psicológicos</div>
-        <span class="legend-pill">Respondidos: <span id="tests_total">0</span></span>
+        <span class="legend-pill">Total de Respondidos: <span id="tests_total">0</span></span>
         <span class="legend-pill">Comentarios: <span id="respuestas_test">0</span></span>
+        <div class="mt-2 tiny">No depende de filtros de fecha, solo por sexo.</div>
       </div>
     </div>
 
-    {{-- Citas --}}
-    <div class="mf-card chart-card grid-l4">
-      <div class="d-flex justify-content-between align-items-center mb-1">
+    {{-- Citas (filtros dentro del card + botón aplicar) --}}
+    <div class="mf-card chart-card grid-l4-tall">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
         <span class="mf-title">Citas por estado</span>
-        <button class="btn btn-light btn-sm badge-soft" data-export="citas"><i class="bi bi-download"></i> Exportar PNG</button>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <input type="date" id="fromDate" class="form-control form-control-sm" style="max-width:160px">
+          <input type="date" id="toDate"   class="form-control form-control-sm" style="max-width:160px">
+          <select id="estadoCita" class="form-select form-select-sm" style="max-width:200px">
+            <option value="">Todas las citas</option>
+            <option value="programada">Programadas</option>
+            <option value="realizada">Realizadas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+          <button class="btn btn-outline-primary btn-sm" id="applyCitas">
+            <i class="bi bi-funnel"></i> Aplicar filtros
+          </button>
+          <button class="btn btn-light btn-sm badge-soft" data-export="citas">
+            <i class="bi bi-download"></i> Exportar PNG
+          </button>
+        </div>
       </div>
       <div class="hbox"><canvas id="citasChart"></canvas></div>
+      <div class="tiny mt-2">Puedes filtrar por <b>rango de fechas</b> y <b>estado</b>. Los cambios se aplican al pulsar <b>Aplicar filtros</b>.</div>
     </div>
 
     {{-- Emociones --}}
@@ -288,6 +298,7 @@
         <button class="btn btn-light btn-sm badge-soft" data-export="emociones"><i class="bi bi-download"></i> Exportar PNG</button>
       </div>
       <div class="hbox"><canvas id="emocionesChart"></canvas></div>
+      <div class="tiny mt-2">Afectado por el <b>rango de fechas</b> (no por sexo).</div>
     </div>
 
     {{-- Medicamentos --}}
@@ -297,6 +308,7 @@
         <button class="btn btn-light btn-sm badge-soft" data-export="meds"><i class="bi bi-download"></i> Exportar PNG</button>
       </div>
       <div class="hbox"><canvas id="medsChart"></canvas></div>
+      <div class="tiny mt-2">Top 8 por conteo; usa el <b>rango de fechas</b> de recetas.</div>
     </div>
 
   </div>
@@ -370,6 +382,14 @@
         <h4>Expediente Clínico</h4>
         <p>Consulta y administra expedientes de pacientes.</p>
       </a>
+       <a href="{{ route('admin.testimonios.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="450">
+        <div class="icon-box" style="background: linear-gradient(135deg, #00cec9, #6c5ce7);">
+          <i class="fas fa-file-medical-alt"></i>
+        </div>
+        <h4>Testimonios de pacientes</h4>
+        <p>Monitorea las experiencias de pacientes.</p>
+      </a>
+      
       <a href="{{ route('admin.reportes.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="200">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #00bcd4);">
           <i class="fas fa-chart-bar"></i>
@@ -411,7 +431,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const lastUpdate = document.getElementById("lastUpdate");
   const autoBadge  = document.getElementById("autoBadge");
   const autoToggle = document.getElementById("autoRefresh");
+
+  // filtros de Citas dentro del card
   const estadoSel  = document.getElementById("estadoCita");
+  const fromInput  = document.getElementById("fromDate");
+  const toInput    = document.getElementById("toDate");
+  const applyBtn   = document.getElementById("applyCitas");
+
+  // Estado "aplicado" para Citas/fechas (solo se usa al pulsar aplicar o en auto-refresh)
+  const applied = { from:"", to:"", estado:"" };
 
   const sexoGroup = document.getElementById("sexoGroup");
   let sexoActual = "";
@@ -420,10 +448,17 @@ document.addEventListener("DOMContentLoaded", () => {
       sexoGroup.querySelectorAll(".seg").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       sexoActual = btn.dataset.sex || "";
-      cargar();
+      cargar(); // sexo aplica inmediato
     });
   });
-  estadoSel.addEventListener("change", cargar);
+
+  // Aplicar filtros SOLO al hacer clic
+  applyBtn.addEventListener("click", () => {
+    applied.from   = fromInput.value || "";
+    applied.to     = toInput.value   || "";
+    applied.estado = estadoSel.value || "";
+    cargar();
+  });
 
   document.getElementById("btnReload").addEventListener("click", cargar);
   autoToggle.addEventListener("change", (e) => toggleAuto(e.target.checked));
@@ -463,9 +498,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function cargar(){
     const params = {
       sexo: sexoActual,
-      from: document.getElementById("fromDate").value || "",
-      to:   document.getElementById("toDate").value   || "",
-      estado_cita: estadoSel.value || ""
+      from: applied.from,       // usa SOLO lo aplicado
+      to:   applied.to,
+      estado_cita: applied.estado
     };
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}?${query}`);
@@ -503,10 +538,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderCharts(charts, cards){
-    // ===== Pacientes por sexo (barras) — AHORA RESPETA EL FILTRO =====
+    // Pacientes por sexo
     const pacSexoAbs = charts?.pacientes_por_sexo?.absolutos || {};
     const all = ['masculino','femenino','otro'];
-    const labelsSexo = (sexoActual && all.includes(sexoActual)) ? [sexoActual] : all; // solo el filtro, o todos
+    const labelsSexo = (sexoActual && all.includes(sexoActual)) ? [sexoActual] : all;
     const dataSexo   = labelsSexo.map(k => pacSexoAbs[k] ?? 0);
 
     const colorList  = mapSexoColors(labelsSexo);
@@ -532,26 +567,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }]},
       options:{
         responsive:true, maintainAspectRatio:false,
-        animation:{ duration: 900, easing: 'cubicBezier(.2,.8,.2,1)', delay: (ctx) => ctx.dataIndex * 80 },
-        hover: { mode:'index', intersect:false },
         plugins:{
           legend:{ display:false },
-          tooltip:{
-            mode:'index', intersect:false,
-            callbacks:{ title: (items)=> items.map(i => i.label.charAt(0).toUpperCase()+i.label.slice(1)) },
-            backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true
-          },
           datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
         },
-        scales:{
-          x:{ grid:{ display:false }, ticks:{ font:{ weight:700 }, callback:(v,i)=> labelsSexo[i][0].toUpperCase()+labelsSexo[i].slice(1) } },
-          y:{ beginAtZero:true, ticks:{ precision:0 } }
-        }
+        scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
       },
       plugins: [ChartDataLabels]
     });
 
-    // ===== Roles (dona) =====
+    // Usuarios por rol
     const rolesObj = cards?.usuarios_por_rol || {};
     const rolLabels = Object.keys(rolesObj);
     const rolData   = Object.values(rolesObj);
@@ -565,17 +590,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }]},
       options:{
         responsive:true, maintainAspectRatio:false, cutout:"58%",
-        animation:{ animateRotate:true, animateScale:true, duration: 950, easing: 'easeOutQuart' },
         plugins:{
           legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, font:{ weight:700 } } },
-          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
           datalabels:{ display:false }
         }
       },
       plugins: [ChartDataLabels]
     });
 
-    // ===== Citas por estado (barras) =====
+    // Citas
     const citasObj = charts?.citas_por_estado || {};
     const cKeys = ['programada','realizada','cancelada'];
     const citasData   = cKeys.map(k => citasObj[k] ?? 0);
@@ -600,15 +623,14 @@ document.addEventListener("DOMContentLoaded", () => {
         responsive:true, maintainAspectRatio:false,
         plugins:{
           legend:{ display:false },
-          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
           datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
         },
-        scales:{ x:{ grid:{ display:false }, ticks:{ font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
+        scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
       },
       plugins: [ChartDataLabels]
     });
 
-    // ===== Emociones (dona) =====
+    // Emociones
     const emoObj = charts?.emocion_pastel || {};
     const emoLabels = Object.keys(emoObj);
     const emoData   = Object.values(emoObj);
@@ -629,16 +651,12 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options:{
         responsive:true, maintainAspectRatio:false, cutout:"58%",
-        plugins:{
-          legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, font:{ weight:700 } } },
-          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
-          datalabels:{ display:false }
-        }
+        plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, font:{ weight:700 } } }, datalabels:{ display:false } }
       },
       plugins: [ChartDataLabels]
     });
 
-    // ===== Top Medicamentos (columnas) =====
+    // Top Medicamentos
     const medsArr = charts?.top_medicamentos || [];
     const medsLabels = medsArr.map(x => x.nombre);
     const medsData   = medsArr.map(x => x.total);
@@ -662,11 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options:{
         responsive:true, maintainAspectRatio:false,
-        plugins:{
-          legend:{ display:false },
-          tooltip:{ backgroundColor:'rgba(15,23,42,.92)', titleColor:'#fff', bodyColor:'#e2e8f0', padding:10, borderWidth:0, displayColors:true },
-          datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v }
-        },
+        plugins:{ legend:{ display:false }, datalabels:{ anchor:'end', align:'end', offset:4, color:'#203a6a', font:{ weight:700 }, formatter:(v)=> v } },
         scales:{ x:{ grid:{ display:false }, ticks:{ maxRotation: 45, minRotation: 0, font:{ weight:700 } } }, y:{ beginAtZero:true, ticks:{ precision:0 } } }
       },
       plugins: [ChartDataLabels]

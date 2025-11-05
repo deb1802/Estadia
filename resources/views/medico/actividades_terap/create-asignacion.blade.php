@@ -241,6 +241,23 @@
             onclick="window.location='{{ route('medico.actividades_terap.index') }}'">
             <i class="bi bi-arrow-90deg-left me-1"></i> Volver
         </button>
+        {{-- ✅ Alerta verde de éxito --}}
+                    @if(session('success'))
+                        <div id="alert-success" class="alert alert-success mt-3 shadow-sm">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ session('success') }}
+                        </div>
+                        <script>
+                            setTimeout(() => {
+                                const alertBox = document.getElementById('alert-success');
+                                if (alertBox) {
+                                    alertBox.style.transition = 'opacity .8s ease';
+                                    alertBox.style.opacity = '0';
+                                    setTimeout(() => alertBox.remove(), 800);
+                                }
+                            }, 6000);
+                        </script>
+                    @endif
       </div>
   </div>
 </section>
@@ -404,3 +421,74 @@
 </div>
   @include('medico.bottom-navbar')
 @endsection
+
+<style>
+  /* ==== Estilo compacto alineado a la izquierda ==== */
+  .alert {
+    position: relative;
+    margin: 1rem 0 1rem 1rem;   /* se separa del borde izquierdo */
+    max-width: 400px;           /* tamaño reducido */
+    border-radius: 6px;
+    padding: 8px 12px;          /* más compacto */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* alinea contenido a la izquierda */
+    font-weight: 500;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  }
+
+  /* Éxito */
+  .alert-success {
+    background: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    border-left: 6px solid #198754;
+  }
+
+  /* Info */
+  .alert-info {
+    background: #cff4fc;
+    color: #055160;
+    border: 1px solid #b6effb;
+    border-left: 6px solid #0dcaf0;
+  }
+
+  /* Error / Danger */
+  .alert-danger, .alert-error {
+    background: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+    border-left: 6px solid #dc3545;
+  }
+
+  /* Warning */
+  .alert-warning {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+    border-left: 6px solid #ffc107;
+  }
+
+  /* Ícono dentro del alert */
+  .alert i {
+    font-size: 1rem;
+    margin-right: 8px;
+  }
+</style>
+
+
+<script>
+  // Desvanece y remueve cualquier .alert (success/info/warn/error) a los 6s
+  (function() {
+    const alerts = document.querySelectorAll('.alert');
+    if (!alerts.length) return;
+    setTimeout(() => {
+      alerts.forEach(el => {
+        el.style.transition = 'opacity .8s ease';
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 800);
+      });
+    }, 6000);
+  })();
+</script>
