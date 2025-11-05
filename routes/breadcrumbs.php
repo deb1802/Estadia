@@ -88,6 +88,13 @@ foreach ($adminResources as $slug => $label) {
     }
 }
 
+/* Respaldo y restauracion */
+if (!Breadcrumbs::exists('admin.backup.index')) {
+    Breadcrumbs::for('admin.backup.index', fn(Trail $t) =>
+        $t->parent('admin.dashboard')->push('Respaldo y restauración', route('admin.backup.index'))
+    );
+}
+
 /* === Panel / Reportes / Backups / Recetas === */
 if (!Breadcrumbs::exists('admin.panel.estadisticas')) {
     Breadcrumbs::for('admin.panel.estadisticas', fn(Trail $t) =>

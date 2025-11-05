@@ -170,6 +170,11 @@ Route::get('/reportes/emocional', [App\Http\Controllers\Admin\ReporteEmocionalCo
 Route::get('/reportes/emocional/export', [App\Http\Controllers\Admin\ReporteEmocionalController::class, 'export'])
     ->name('reportes.emocional.export');
 
+    // ✅ RESPALDO Y RESTAURACIÓN
+    Route::get('backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backup.index');
+Route::get('backup/download', [\App\Http\Controllers\Admin\BackupController::class, 'backup'])->name('backup.download');
+Route::post('backup/restore', [\App\Http\Controllers\Admin\BackupController::class, 'restore'])->name('backup.restore');
+
 
     });
 

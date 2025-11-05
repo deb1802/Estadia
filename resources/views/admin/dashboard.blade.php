@@ -397,7 +397,7 @@
         <h4>Reportes</h4>
         <p>Visualiza estadísticas y reportes del sistema.</p>
       </a>
-      <a href="#" class="gestion-card" data-aos="zoom-in" data-aos-delay="600">
+      <a href="{{ route('admin.backup.index') }}" class="gestion-card" data-aos="zoom-in" data-aos-delay="600">
         <div class="icon-box" style="background: linear-gradient(135deg, #6c63ff, #425ac5ff);">
           <i class="fas fa-database"></i>
         </div>
