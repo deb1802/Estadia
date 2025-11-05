@@ -32,7 +32,7 @@ class SeguimientoController extends Controller
             ->select('p.id', 'u.nombre', 'u.apellido', 'u.email as correo')
             ->first();
 
-        // Línea de tiempo de citas
+        // Línea de tiempo de citas (deja tu estilo tal cual en la vista)
         $citas = DB::table('Citas')
             ->where('fkPaciente', $idPaciente)
             ->orderBy('fechaHora')
@@ -45,6 +45,28 @@ class SeguimientoController extends Controller
             ->orderBy('fechaHoraRegistro')
             ->get();
 
-        return view('medico.seguimiento.show', compact('paciente', 'citas', 'emociones'));
+        // Actividades (completadas primero; luego el resto)
+        $actividades = DB::table('AsignacionActividad as aa')
+            ->join('Actividades as a', 'a.idActividad', '=', 'aa.fkActividad')
+            ->where('aa.fkPaciente', $idPaciente)
+            ->orderByDesc(DB::raw("aa.estado = 'completada'")) // true primero
+            ->orderByDesc('aa.fechaFinalizacion')
+            ->orderByDesc('aa.fechaAsignacion')
+            ->select(
+                'aa.idAsignacionActividad',
+                'aa.estado',
+                'aa.fechaAsignacion',
+                'aa.fechaFinalizacion',
+                'aa.indicaciones',
+                'a.titulo',
+                'a.tipoContenido',
+                'a.categoriaTerapeutica',
+                'a.diagnosticoDirigido',
+                'a.nivelSeveridad'
+            )
+            ->limit(12)
+            ->get();
+
+        return view('medico.seguimiento.show', compact('paciente', 'citas', 'emociones', 'actividades'));
     }
 }
