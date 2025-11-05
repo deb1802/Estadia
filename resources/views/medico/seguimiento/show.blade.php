@@ -1,171 +1,385 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-5">
-    {{-- 🔹 Encabezado principal --}}
-    <h3 class="fw-bold mb-4 text-center text-dark">
-        <i class="fas fa-user-circle text-primary me-2"></i> Seguimiento de {{ $paciente->nombre }} {{ $paciente->apellido }}
-    </h3>
+<div class="container py-4">
 
-    {{-- 🔹 Timeline de citas --}}
-    <div class="card shadow border-0 mx-auto mb-5" style="max-width: 900px;">
-        <div class="card-header text-center fw-semibold text-white" style="background-color: #b5c8e1;">
-            <i class="fas fa-calendar-check me-2"></i> Línea de tiempo de citas
+  {{-- ========= Encabezado centrado ========= --}}
+  <div class="text-center mb-4">
+    <h1 class="fw-bold display-5 text-primary mb-3" style="letter-spacing:.4px;">
+      <i class="fas fa-user-circle me-2"></i>
+      Seguimiento de {{ $paciente->nombre }} {{ $paciente->apellido }}
+    </h1>
+
+    <button type="button" class="btn btn-soft" onclick="window.location='{{ route('medico.dashboard') }}'">
+      <i class="fas fa-arrow-left me-2"></i> Volver al dashboard
+    </button>
+  </div>
+
+  {{-- ========= Timeline de citas (SIN CAMBIOS DE ESTILO) ========= --}}
+  <div class="card shadow border-0 mx-auto mb-4" style="max-width: 980px;">
+    <div class="card-header text-center fw-semibold text-white" style="background-color: #b5c8e1;">
+      <i class="fas fa-calendar-check me-2"></i> Línea de tiempo de citas
+    </div>
+    <div class="card-body p-4">
+      @if($citas->isEmpty())
+        <p class="text-center text-muted mb-0">No hay citas registradas.</p>
+      @else
+        <div class="timeline">
+          @foreach($citas as $index => $cita)
+            <div class="timeline-item">
+              <div class="timeline-icon 
+                  @if($cita->estado == 'realizada') bg-success 
+                  @elseif($cita->estado == 'programada') bg-warning 
+                  @elseif($cita->estado == 'cancelada') bg-danger 
+                  @else bg-secondary @endif">
+                <i class="fas fa-stethoscope text-white"></i>
+              </div>
+              <div class="timeline-content">
+                <h6 class="fw-bold text-dark mb-1">
+                  {{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}
+                </h6>
+                <p class="mb-1">
+                  <strong>Estado:</strong>
+                  <span class="text-capitalize">{{ $cita->estado }}</span>
+                </p>
+                <p class="mb-1"><strong>Motivo:</strong> {{ $cita->motivo }}</p>
+                <p class="text-muted small mb-0">
+                  <i class="fas fa-map-marker-alt me-1"></i> {{ $cita->ubicacion }}
+                </p>
+              </div>
+            </div>
+          @endforeach
         </div>
-        <div class="card-body p-4">
-            @if($citas->isEmpty())
-                <p class="text-center text-muted mb-0">No hay citas registradas.</p>
-            @else
-                <div class="timeline">
-                    @foreach($citas as $index => $cita)
-                        <div class="timeline-item">
-                            <div class="timeline-icon 
-                                @if($cita->estado == 'realizada') bg-success 
-                                @elseif($cita->estado == 'programada') bg-warning 
-                                @elseif($cita->estado == 'cancelada') bg-danger 
-                                @else bg-secondary @endif">
-                                <i class="fas fa-stethoscope text-white"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h6 class="fw-bold text-dark mb-1">
-                                    {{ \Carbon\Carbon::parse($cita->fechaHora)->format('d/m/Y H:i') }}
-                                </h6>
-                                <p class="mb-1">
-                                    <strong>Estado:</strong> 
-                                    <span class="text-capitalize">{{ $cita->estado }}</span>
-                                </p>
-                                <p class="mb-1"><strong>Motivo:</strong> {{ $cita->motivo }}</p>
-                                <p class="text-muted small mb-0"><i class="fas fa-map-marker-alt me-1"></i> {{ $cita->ubicacion }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
+      @endif
+    </div>
+  </div>
+
+  {{-- ========= Actividades recientes ========= --}}
+  <div class="card shadow-sm border-0 mx-auto mb-4" style="max-width: 980px;">
+    <div class="card-header bg-white d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-app-indicator text-primary"></i>
+        <span class="fw-bold">Actividades realizadas recientemente</span>
+      </div>
+      <small class="text-muted">Últimas 12</small>
+    </div>
+
+    <div class="activity-center py-2">
+      @forelse($actividades as $a)
+        <div class="list-group-item border-0 px-0">
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <span class="badge rounded-pill bg-soft-blue text-nowrap">{{ ucfirst($a->tipoContenido) }}</span>
+            <span class="badge {{ $a->estado === 'completada' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-dark' }}">
+              {{ ucfirst($a->estado) }}
+            </span>
+          </div>
+
+          <div class="fs-6 fw-semibold">{{ $a->titulo }}</div>
+
+          <div class="text-muted small mt-1">
+            <span class="me-2"><strong>Categoría:</strong> {{ $a->categoriaTerapeutica }}</span>
+            <span><strong>Dirigida a:</strong> {{ $a->diagnosticoDirigido }}</span>
+          </div>
+
+          <div class="text-muted small">
+            <strong>Asignada:</strong> {{ \Carbon\Carbon::parse($a->fechaAsignacion)->format('d/m/Y') }}
+            @if($a->estado === 'completada' && $a->fechaFinalizacion)
+              · <strong>Finalizada:</strong> {{ \Carbon\Carbon::parse($a->fechaFinalizacion)->format('d/m/Y') }}
             @endif
+          </div>
+
+          @if($a->indicaciones)
+            <div class="small mt-1">{{ $a->indicaciones }}</div>
+          @endif
+
+          <hr class="my-3" />
         </div>
+      @empty
+        <div class="list-group-item text-muted text-center border-0">Sin actividades registradas.</div>
+      @endforelse
+    </div>
+  </div>
+
+  {{-- ========= Evolución emocional ========= --}}
+  <div class="card shadow border-0 mx-auto" style="max-width: 980px; position: relative;">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-activity text-primary"></i>
+        <span class="fw-bold">Evolución emocional</span>
+      </div>
+
+      <div class="btn-group btn-group-sm" role="group" aria-label="tipo-grafica">
+        <button id="btnLinea" type="button" class="btn btn-outline-primary active">Línea</button>
+        <button id="btnBarras" type="button" class="btn btn-outline-primary">Barras</button>
+      </div>
     </div>
 
-    {{-- 📊 Evolución emocional --}}
-    <div class="card shadow border-0 mx-auto" style="max-width: 900px;">
-        <div class="card-header text-center fw-semibold text-white" style="background-color: #b5c8e1;">
-            <i class="fas fa-heartbeat me-2"></i> Evolución emocional del paciente
-        </div>
-        <div class="card-body">
-            <canvas id="graficoEmociones" height="120"></canvas>
-        </div>
+    {{-- CHIPS --}}
+    <div class="px-3 pt-3 pb-1">
+      <div class="emochips">
+        @php
+          $emoColors = [
+            'Tranquilo'   => '#fde615ff',
+            'Ansioso'     => '#f3902dff',
+            'Motivado'    => '#3edfb4ff',
+            'Confundido'  => '#8a8ea0ff',
+            'Frustrado'   => '#f8382aff',
+            'Feliz'       => '#4ca6f5ff',
+            'Triste'      => '#0b23e0ff',
+            'Irritado'    => '#fa3479ff',
+          ];
+        @endphp
+        @foreach($emoColors as $nombre=>$hex)
+          <span class="chip-emo">
+            <span class="dot" style="background: {{ $hex }}"></span>
+            <span class="label">{{ $nombre }}</span>
+          </span>
+        @endforeach
+      </div>
     </div>
+
+    <div class="card-body">
+      <canvas id="graficoEmociones" height="120"></canvas>
+    </div>
+
+    {{-- Mascota decorativa --}}
+    <div class="mascot-side" aria-hidden="true" title="MindWare">
+      <svg viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="mwGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"  stop-color="#bea4d2"/>
+            <stop offset="100%" stop-color="#b5c8e1"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 15c16 0 31 8 38 19 7 11 6 24 0 36-6 12-19 23-35 24-16 2-34-5-41-17-7-12-3-28 6-41 9-13 16-21 32-21z"
+              fill="url(#mwGrad)"></path>
+        <circle cx="48" cy="55" r="5" fill="#1f2d3d"/>
+        <circle cx="72" cy="55" r="5" fill="#1f2d3d"/>
+        <path d="M46 70c6 10 22 10 28 0" stroke="#1f2d3d" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
+    </div>
+  </div>
 </div>
 
-{{-- 📈 Chart.js --}}
+{{-- ====== Chart.js + adaptador fechas ====== --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 <script>
-const ctx = document.getElementById('graficoEmociones');
-const emociones = @json($emociones);
+  // ---- Datos desde PHP ----
+  const raw = @json($emociones);
 
-const labels = emociones.map(e => e.fechaHoraRegistro);
-const intensidades = emociones.map(e => e.intensidad);
+  // Colores por emoción (coincide con chips)
+  const EMO = {
+    'Tranquilo':'#fde615ff','Ansioso':'#f3902dff','Motivado':'#3edfb4ff','Confundido':'#8a8ea0ff',
+    'Frustrado':'#f8382aff','Feliz':'#4ca6f5ff','Triste':'#0b23e0ff','Irritado':'#fa3479ff'
+  };
+  const ORDER = Object.keys(EMO);
+  const dayStart = val => { const d=new Date(val); d.setHours(0,0,0,0); return d.getTime(); };
 
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Nivel de intensidad emocional',
-            data: intensidades,
-            borderColor: '#b5c8e1',
-            backgroundColor: 'rgba(181, 200, 225, 0.3)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 5,
-            pointHoverRadius: 8,
-            pointBackgroundColor: '#b5c8e1'
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 5,
-                ticks: { stepSize: 1 }
-            }
-        }
+  // Construir datasets (uno por emoción)
+  const byEmo = {};
+  ORDER.forEach(e=>{
+    byEmo[e] = {
+      label: e,
+      data: [],
+      borderColor: EMO[e] + 'CC',
+      backgroundColor: EMO[e],
+      pointRadius: 0,
+      pointHitRadius: 18,
+      showLine: true,
+      tension: .35,
+      parsing: false
+    };
+  });
+
+  // Rellenar puntos (cada registro puede tener múltiples emociones)
+  raw.forEach(r=>{
+    const x = dayStart(r.fechaHoraRegistro);
+    const y = Number(r.intensidad)||0;
+    let emos = [];
+    try{
+      emos = Array.isArray(r.emocionesExperimentadas)
+        ? r.emocionesExperimentadas
+        : JSON.parse(r.emocionesExperimentadas||'[]');
+    }catch{}
+    emos.forEach(e=> byEmo[e]?.data.push({x,y}));
+  });
+
+  const datasets = Object.values(byEmo);
+
+  // Plugin: separa bolitas en la misma fecha y las dibuja grandes
+  const sameDaySpread = {
+    id:'sameDaySpread',
+    afterDatasetsDraw(chart){
+      const ctx = chart.ctx;
+      const groups = new Map();
+      chart.data.datasets.forEach((ds,di)=>{
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach(el=>{
+          const p = el.$context.parsed;
+          if(!p.x) return;
+          const k = dayStart(p.x);
+          (groups.get(k) ?? groups.set(k,[]).get(k)).push({ el, fill: ds.backgroundColor });
+        });
+      });
+      const shifts = [-18,-10,-4,4,10,18,-26,26];
+      groups.forEach(list=>{
+        list.forEach((it,i)=>{
+          const e = it.el;
+          const dx = (list.length===1 ? 0 : shifts[i % shifts.length]);
+          ctx.save();
+          ctx.translate(dx,0);
+          ctx.fillStyle = it.fill;
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, 10, 0, Math.PI*2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
+      });
     }
-});
+  };
+
+  // Tooltip externo MULTI-EMOCIÓN
+  function externalLegendTooltip(ctx){
+    const {chart, tooltip} = ctx;
+    let tip = document.getElementById('mwChartTip');
+    if(!tip){
+      tip = document.createElement('div');
+      tip.id = 'mwChartTip';
+      tip.className = 'mw-tip';
+      tip.innerHTML = '<div class="mw-tip-date"></div><div class="mw-tip-items"></div>';
+      document.body.appendChild(tip);
+    }
+    if(tooltip.opacity === 0){
+      tip.style.opacity = 0;
+      return;
+    }
+
+    // Título con fecha
+    const dateStr = new Date(tooltip.dataPoints[0].parsed.x).toLocaleDateString();
+    tip.querySelector('.mw-tip-date').textContent = dateStr;
+
+    // Items (todas las emociones de ese día)
+    const itemsBox = tip.querySelector('.mw-tip-items');
+    itemsBox.innerHTML = '';
+    const items = tooltip.dataPoints
+      .map(dp => ({ label: dp.dataset.label, y: dp.parsed.y, color: dp.dataset.backgroundColor }))
+      .filter(it => it.y != null)
+      .sort((a,b)=> a.label.localeCompare(b.label)); // Cambia a ordenar por intensidad si quieres
+
+    items.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'mw-tip-row';
+      row.innerHTML =
+        `<span class="mw-tip-dot" style="background:${it.color}"></span>
+         <span class="mw-tip-text">${it.label} · Intensidad ${it.y}</span>`;
+      itemsBox.appendChild(row);
+    });
+
+    const rect = chart.canvas.getBoundingClientRect();
+    const x = rect.left + window.scrollX + tooltip.caretX + 12;
+    const y = rect.top  + window.scrollY + tooltip.caretY - 12;
+    tip.style.left = x + 'px';
+    tip.style.top  = y + 'px';
+    tip.style.opacity = 1;
+  }
+
+  const baseOptions = {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false }, // captura todas las emociones del día
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false, external: externalLegendTooltip }
+    },
+    scales: {
+      x: { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd/MM/yyyy' } }, grid: { color: 'rgba(0,0,0,.06)' } },
+      y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.06)' } }
+    },
+    elements: { point: { radius: 0, hitRadius: 18 } }
+  };
+
+  const cfg = { type:'line', data:{ datasets }, options: baseOptions, plugins:[sameDaySpread] };
+  let chart = new Chart(document.getElementById('graficoEmociones'), cfg);
+
+  // Toggle Línea/Barras manteniendo el tooltip múltiple
+  const btnLinea  = document.getElementById('btnLinea');
+  const btnBarras = document.getElementById('btnBarras');
+  function setActive(btn){ [btnLinea, btnBarras].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+  btnLinea.addEventListener('click', () => {
+    if (chart.config.type === 'line') return;
+    chart.destroy();
+    chart = new Chart(document.getElementById('graficoEmociones'), {
+      type:'line', data:{ datasets }, options: baseOptions, plugins:[sameDaySpread]
+    });
+    setActive(btnLinea);
+  });
+
+  btnBarras.addEventListener('click', () => {
+    if (chart.config.type === 'bar') return;
+    chart.destroy();
+    chart = new Chart(document.getElementById('graficoEmociones'), {
+      type:'bar',
+      data:{ datasets: datasets.map(d=>({
+        label:d.label, data:d.data,
+        backgroundColor: d.backgroundColor + '99',
+        borderColor: d.borderColor, borderWidth:1
+      }))},
+      options: baseOptions
+    });
+    setActive(btnBarras);
+  });
 </script>
 
-{{-- 🎨 Estilos del timeline --}}
 <style>
-.timeline {
-    position: relative;
-    margin: 0 auto;
-    padding: 10px 0;
-    max-width: 700px;
-}
+  :root{ --stroke:#e6effc; --ink:#21374f; }
 
-.timeline::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 100%;
-    background-color: #b5c8e1;
-    border-radius: 2px;
-}
+  .btn-soft{
+    background:#fff; border:1px solid var(--stroke); color:var(--ink);
+    border-radius:999px; padding:.55rem 1.3rem; font-weight:600;
+    transition:.2s ease; box-shadow:0 6px 16px rgba(17,35,61,.08);
+  }
+  .btn-soft:hover{ background:#f2f7ff; color:#0f2442; }
 
-.timeline-item {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    position: relative;
-}
+  .activity-center{ max-width:760px; margin:0 auto; padding:.5rem 1.25rem; text-align:left; }
+  .bg-soft-blue{ background:#eaf3ff; color:#1f3b60; }
 
-.timeline-item:nth-child(odd) .timeline-content {
-    margin-left: calc(50% + 30px);
-    text-align: left;
-}
+  .emochips{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; }
+  .chip-emo{ display:inline-flex; align-items:center; gap:8px; padding:.35rem .6rem; border:1px solid var(--stroke); border-radius:999px; background:#fff; box-shadow:0 6px 14px rgba(33,55,79,.06); font-weight:600; color:var(--ink); line-height:1; }
+  .chip-emo .dot{ width:10px; height:10px; border-radius:50%; }
 
-.timeline-item:nth-child(even) .timeline-content {
-    margin-right: calc(50% + 30px);
-    text-align: right;
-}
+  /* Tooltip externo multi-emoción */
+  .mw-tip{
+    position:absolute; pointer-events:none; opacity:0;
+    background:#fff; border:1px solid var(--stroke); border-radius:12px;
+    padding:.45rem .65rem; box-shadow:0 10px 22px rgba(17,35,61,.15);
+    color:#21374f; z-index:1050; min-width: 170px;
+  }
+  .mw-tip-date{ font-weight:800; font-size:.86rem; margin-bottom:.25rem; opacity:.85; }
+  .mw-tip-items{ display:flex; flex-direction:column; gap:.15rem; }
+  .mw-tip-row{ display:flex; align-items:center; gap:.45rem; font-weight:700; white-space:nowrap; }
+  .mw-tip-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; box-shadow:0 0 0 2px #fff inset, 0 0 0 1px rgba(33,55,79,.08); }
+  .mw-tip-text{ line-height:1; }
 
-.timeline-icon {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-}
+  .mascot-side{ position:absolute; right:-64px; top:10px; width:120px; height:120px; filter:drop-shadow(0 10px 18px rgba(17,35,61,.16)); pointer-events:none; animation:bob 3.2s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
 
-.timeline-content {
-    background: #f9fbff;
-    padding: 15px 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    width: 45%;
-    transition: all 0.3s ease-in-out;
-}
-
-.timeline-content:hover {
-    transform: scale(1.02);
-    background-color: #eef3fb;
-}
-
-.bg-success { background-color: #a8d5a2 !important; }
-.bg-warning { background-color: #ffe29a !important; color: #333; }
-.bg-danger { background-color: #f5a3a3 !important; }
-.bg-secondary { background-color: #b5c8e1 !important; }
+  /* ===== Timeline intacto ===== */
+  .timeline{ position:relative; margin:0 auto; padding:10px 0; max-width:700px; }
+  .timeline::before{ content:""; position:absolute; left:50%; top:0; transform:translateX(-50%); width:4px; height:100%; background-color:#b5c8e1; border-radius:2px; }
+  .timeline-item{ display:flex; align-items:flex-start; margin-bottom:2rem; position:relative; }
+  .timeline-item:nth-child(odd) .timeline-content{ margin-left:calc(50% + 30px); text-align:left; }
+  .timeline-item:nth-child(even) .timeline-content{ margin-right:calc(50% + 30px); text-align:right; }
+  .timeline-icon{ position:absolute; left:50%; transform:translateX(-50%); width:45px; height:45px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:white; box-shadow:0 3px 6px rgba(0,0,0,0.2); }
+  .timeline-content{ background:#f9fbff; padding:15px 20px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.08); width:45%; transition:.3s ease-in-out; }
+  .timeline-content:hover{ transform:scale(1.02); background-color:#eef3fb; }
+  .bg-success{ background-color:#a8d5a2 !important; }
+  .bg-warning{ background-color:#ffe29a !important; color:#333; }
+  .bg-danger{ background-color:#f5a3a3 !important; }
+  .bg-secondary{ background-color:#b5c8e1 !important; }
 </style>
+@include('medico.bottom-navbar')
 @endsection

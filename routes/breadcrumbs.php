@@ -3,6 +3,9 @@
 use Diglactic\Breadcrumbs\Breadcrumbs;
 use Diglactic\Breadcrumbs\Generator as Trail;
 
+/* =========================================================
+| Helper genérico para mostrar títulos en breadcrumbs
+========================================================= */
 if (!function_exists('crumbTitle')) {
     function crumbTitle($item, string $fallback = 'Registro'): string {
         if (is_object($item)) {
@@ -23,8 +26,8 @@ if (!function_exists('crumbTitle')) {
 }
 
 /* =========================================================
-|  ROOTS por ROL
-|========================================================= */
+|  DASHBOARDS (ROOTS por ROL)
+========================================================= */
 if (!Breadcrumbs::exists('admin.dashboard')) {
     Breadcrumbs::for('admin.dashboard', fn(Trail $t) =>
         $t->push('Dashboard', route('admin.dashboard')));
@@ -40,15 +43,15 @@ if (!Breadcrumbs::exists('paciente.dashboard')) {
 
 /* =========================================================
 |  ADMIN
-|========================================================= */
+========================================================= */
 
 /** Recursos admin (index/create/show/edit) */
 $adminResources = [
-    'usuarios'         => 'Usuarios',
-    'medicamentos'     => 'Medicamentos',
-    'tutores'          => 'Tutores',
-    'citas'            => 'Citas',
-    'actividades_terap'=> 'Actividades Terapéuticas',
+    'usuarios'          => 'Usuarios',
+    'medicamentos'      => 'Medicamentos',
+    'tutores'           => 'Tutores',
+    'citas'             => 'Citas',
+    'actividades_terap' => 'Actividades Terapéuticas',
 ];
 
 foreach ($adminResources as $slug => $label) {
@@ -68,7 +71,6 @@ foreach ($adminResources as $slug => $label) {
         });
     }
 
-    // admin.<modulo>.show
     $nameShow = "admin.$slug.show";
     if (!Breadcrumbs::exists($nameShow)) {
         Breadcrumbs::for($nameShow, function (Trail $t, $modelOrId) use ($nameIndex) {
@@ -77,7 +79,6 @@ foreach ($adminResources as $slug => $label) {
         });
     }
 
-    // admin.<modulo>.edit
     $nameEdit = "admin.$slug.edit";
     if (!Breadcrumbs::exists($nameEdit)) {
         Breadcrumbs::for($nameEdit, function (Trail $t, $modelOrId) use ($nameIndex) {
@@ -85,15 +86,13 @@ foreach ($adminResources as $slug => $label) {
             $t->push('Editar: '.crumbTitle($modelOrId));
         });
     }
-
 }
 
-/** Panel/Reportes/Backups/Recetas (GET) */
+/* === Panel / Reportes / Backups / Recetas === */
 if (!Breadcrumbs::exists('admin.panel.estadisticas')) {
     Breadcrumbs::for('admin.panel.estadisticas', fn(Trail $t) =>
         $t->parent('admin.dashboard')->push('Panel de estadísticas', route('admin.panel.estadisticas')));
 }
-
 if (!Breadcrumbs::exists('admin.reportes.index')) {
     Breadcrumbs::for('admin.reportes.index', fn(Trail $t) =>
         $t->parent('admin.dashboard')->push('Reportes', route('admin.reportes.index')));
@@ -102,7 +101,6 @@ if (!Breadcrumbs::exists('admin.reportes.pacientes.genero')) {
     Breadcrumbs::for('admin.reportes.pacientes.genero', fn(Trail $t) =>
         $t->parent('admin.reportes.index')->push('Pacientes por género', route('admin.reportes.pacientes.genero')));
 }
-
 if (!Breadcrumbs::exists('admin.backups.index')) {
     Breadcrumbs::for('admin.backups.index', fn(Trail $t) =>
         $t->parent('admin.dashboard')->push('Respaldos', route('admin.backups.index')));
@@ -111,7 +109,6 @@ if (!Breadcrumbs::exists('admin.backups.diag')) {
     Breadcrumbs::for('admin.backups.diag', fn(Trail $t) =>
         $t->parent('admin.backups.index')->push('Diagnóstico', route('admin.backups.diag')));
 }
-
 if (!Breadcrumbs::exists('admin.recetas.index')) {
     Breadcrumbs::for('admin.recetas.index', fn(Trail $t) =>
         $t->parent('admin.dashboard')->push('Recetas', route('admin.recetas.index')));
@@ -129,18 +126,46 @@ if (!Breadcrumbs::exists('admin.recetas.pdf')) {
     });
 }
 
+/* === NUEVOS REPORTES ADMIN === */
+
+// 📊 Reporte de seguimiento de pacientes
+if (!Breadcrumbs::exists('admin.reportes.seguimiento')) {
+    Breadcrumbs::for('admin.reportes.seguimiento', fn(Trail $t) =>
+        $t->parent('admin.reportes.index')->push('Seguimiento de pacientes', route('admin.reportes.seguimiento')));
+}
+if (!Breadcrumbs::exists('admin.reportes.seguimiento.excel')) {
+    Breadcrumbs::for('admin.reportes.seguimiento.excel', function (Trail $t, $idPaciente) {
+        $t->parent('admin.reportes.seguimiento');
+        $t->push('Exportar Excel #'.$idPaciente, route('admin.reportes.seguimiento.excel', $idPaciente));
+    });
+}
+
+// 📆 Reporte visual de citas por mes
+if (!Breadcrumbs::exists('admin.reportes.citas.mes')) {
+    Breadcrumbs::for('admin.reportes.citas.mes', fn(Trail $t) =>
+        $t->parent('admin.reportes.index')->push('Citas por mes', route('admin.reportes.citas.mes')));
+}
+
+// 🧠 Reporte de clasificación emocional
+if (!Breadcrumbs::exists('admin.reportes.emocional')) {
+    Breadcrumbs::for('admin.reportes.emocional', fn(Trail $t) =>
+        $t->parent('admin.reportes.index')->push('Clasificación emocional', route('admin.reportes.emocional')));
+}
+if (!Breadcrumbs::exists('admin.reportes.emocional.export')) {
+    Breadcrumbs::for('admin.reportes.emocional.export', fn(Trail $t) =>
+        $t->parent('admin.reportes.emocional')->push('Exportar'));
+}
+
 /* =========================================================
 |  MÉDICO
-|========================================================= */
-
-/** Recursos médico */
+========================================================= */
 $medicoResources = [
     'pacientes'         => 'Pacientes',
     'medicamentos'      => 'Medicamentos',
     'actividades_terap' => 'Actividades Terapéuticas',
     'tutores'           => 'Tutores',
     'citas'             => 'Citas',
-    'tests'             => 'Tests Psicológicos', // resource principal
+    'tests'             => 'Tests Psicológicos',
 ];
 
 foreach ($medicoResources as $slug => $label) {
@@ -159,28 +184,23 @@ foreach ($medicoResources as $slug => $label) {
             $t->push('Crear');
         });
     }
-// medico.<modulo>.show
-$nameShow = "$base.show";
-if (!Breadcrumbs::exists($nameShow)) {
-    Breadcrumbs::for($nameShow, function (Trail $t, $modelOrId) use ($nameIndex) {
-        $t->parent($nameIndex);
-        $t->push(crumbTitle($modelOrId, 'Detalle'));
-    });
+    $nameShow = "$base.show";
+    if (!Breadcrumbs::exists($nameShow)) {
+        Breadcrumbs::for($nameShow, function (Trail $t, $modelOrId) use ($nameIndex) {
+            $t->parent($nameIndex);
+            $t->push(crumbTitle($modelOrId, 'Detalle'));
+        });
+    }
+    $nameEdit = "$base.edit";
+    if (!Breadcrumbs::exists($nameEdit)) {
+        Breadcrumbs::for($nameEdit, function (Trail $t, $modelOrId) use ($nameIndex) {
+            $t->parent($nameIndex);
+            $t->push('Editar: '.crumbTitle($modelOrId));
+        });
+    }
 }
 
-// medico.<modulo>.edit
-$nameEdit = "$base.edit";
-if (!Breadcrumbs::exists($nameEdit)) {
-    Breadcrumbs::for($nameEdit, function (Trail $t, $modelOrId) use ($nameIndex) {
-        $t->parent($nameIndex);
-        $t->push('Editar: '.crumbTitle($modelOrId));
-    });
-}
-
-
-}
-
-/** Médico → Recetas (grupo personalizado) */
+/* === Recetas médico === */
 if (!Breadcrumbs::exists('medico.recetas.create')) {
     Breadcrumbs::for('medico.recetas.create', fn(Trail $t) =>
         $t->parent('medico.dashboard')->push('Recetas', route('medico.recetas.create'))->push('Crear'));
@@ -188,30 +208,18 @@ if (!Breadcrumbs::exists('medico.recetas.create')) {
 if (!Breadcrumbs::exists('medico.recetas.show')) {
     Breadcrumbs::for('medico.recetas.show', function (Trail $t, $idReceta) {
         $t->parent('medico.dashboard');
-        $t->push('Recetas', route('medico.recetas.create')); // no tienes index; usamos create como lista/entrada
+        $t->push('Recetas', route('medico.recetas.create'));
         $t->push('Detalle #'.$idReceta);
     });
 }
-if (!Breadcrumbs::exists('medico.recetas.detalle')) {
-    Breadcrumbs::for('medico.recetas.detalle', function (Trail $t, $idReceta) {
-        $t->parent('medico.recetas.show', $idReceta);
-        $t->push('Detalle');
-    });
-}
-if (!Breadcrumbs::exists('medico.recetas.pdf')) {
-    Breadcrumbs::for('medico.recetas.pdf', function (Trail $t, $idReceta) {
-        $t->parent('medico.recetas.show', $idReceta);
-        $t->push('PDF');
-    });
-}
 
-/** Médico → Medicamentos → Asignar (GET) */
+/* === Medicamentos → Asignar === */
 if (!Breadcrumbs::exists('medico.medicamentos.asignar')) {
     Breadcrumbs::for('medico.medicamentos.asignar', fn(Trail $t) =>
         $t->parent('medico.medicamentos.index')->push('Asignar'));
 }
 
-/** Médico → Actividades Terap. → Asignar/Asignadas */
+/* === Actividades terapéuticas → Asignar/Asignadas === */
 if (!Breadcrumbs::exists('medico.actividades_terap.asignar')) {
     Breadcrumbs::for('medico.actividades_terap.asignar', fn(Trail $t) =>
         $t->parent('medico.actividades_terap.index')->push('Asignar'));
@@ -221,7 +229,7 @@ if (!Breadcrumbs::exists('medico.actividades_terap.asignadas')) {
         $t->parent('medico.actividades_terap.index')->push('Asignadas'));
 }
 
-/** Médico → Tests: Asignar, Builder, Asignaciones */
+/* === Tests médico === */
 if (!Breadcrumbs::exists('medico.tests.asignar.index')) {
     Breadcrumbs::for('medico.tests.asignar.index', fn(Trail $t) =>
         $t->parent('medico.tests.index')->push('Asignar'));
@@ -239,15 +247,55 @@ if (!Breadcrumbs::exists('medico.tests.asignaciones.show')) {
     });
 }
 
-/** Médico → Notificaciones (vista) */
+/* === Notificaciones médico === */
 if (!Breadcrumbs::exists('medico.notificaciones.index')) {
     Breadcrumbs::for('medico.notificaciones.index', fn(Trail $t) =>
         $t->parent('medico.dashboard')->push('Notificaciones', route('medico.notificaciones.index')));
 }
 
+/* === EXPEDIENTES clínicos médico === */
+if (!Breadcrumbs::exists('medico.expedientes.index')) {
+    Breadcrumbs::for('medico.expedientes.index', fn(Trail $t) =>
+        $t->parent('medico.dashboard')->push('Expedientes', route('medico.expedientes.index')));
+}
+if (!Breadcrumbs::exists('medico.expedientes.show')) {
+    Breadcrumbs::for('medico.expedientes.show', function (Trail $t, $id) {
+        $t->parent('medico.expedientes.index');
+        $t->push('Detalle #'.$id, route('medico.expedientes.show', $id));
+    });
+}
+if (!Breadcrumbs::exists('medico.expedientes.create')) {
+    Breadcrumbs::for('medico.expedientes.create', fn(Trail $t) =>
+        $t->parent('medico.expedientes.index')->push('Crear'));
+}
+if (!Breadcrumbs::exists('medico.expedientes.edit')) {
+    Breadcrumbs::for('medico.expedientes.edit', function (Trail $t, $id) {
+        $t->parent('medico.expedientes.show', $id);
+        $t->push('Editar');
+    });
+}
+
+/* === Testimonios médico === */
+if (!Breadcrumbs::exists('medico.testimonios.index')) {
+    Breadcrumbs::for('medico.testimonios.index', fn(Trail $t) =>
+        $t->parent('medico.dashboard')->push('Testimonios', route('medico.testimonios.index')));
+}
+/* === Seguimiento de Pacientes (Médico) === */
+if (!Breadcrumbs::exists('medico.seguimiento.index')) {
+    Breadcrumbs::for('medico.seguimiento.index', fn(Trail $t) =>
+        $t->parent('medico.dashboard')->push('Seguimiento de pacientes', route('medico.seguimiento.index')));
+}
+
+if (!Breadcrumbs::exists('medico.seguimiento.show')) {
+    Breadcrumbs::for('medico.seguimiento.show', function (Trail $t, $idPaciente) {
+        $t->parent('medico.seguimiento.index');
+        $t->push('Detalle del paciente #'.$idPaciente, route('medico.seguimiento.show', $idPaciente));
+    });
+}
+
 /* =========================================================
 |  PACIENTE
-|========================================================= */
+========================================================= */
 if (!Breadcrumbs::exists('paciente.testimonios.index')) {
     Breadcrumbs::for('paciente.testimonios.index', fn(Trail $t) =>
         $t->parent('paciente.dashboard')->push('Testimonios', route('paciente.testimonios.index')));
@@ -256,16 +304,12 @@ if (!Breadcrumbs::exists('paciente.tutores.index')) {
     Breadcrumbs::for('paciente.tutores.index', fn(Trail $t) =>
         $t->parent('paciente.dashboard')->push('Tutores', route('paciente.tutores.index')));
 }
-
-/** Tutores */
 if (!Breadcrumbs::exists('paciente.tutores.show')) {
     Breadcrumbs::for('paciente.tutores.show', function ($trail, $tutor) {
         $trail->parent('paciente.tutores.index');
         $trail->push('Detalles');
     });
 }
-
-/** Paciente → Recetas */
 if (!Breadcrumbs::exists('paciente.recetas.index')) {
     Breadcrumbs::for('paciente.recetas.index', fn(Trail $t) =>
         $t->parent('paciente.dashboard')->push('Mis recetas', route('paciente.recetas.index')));
@@ -282,14 +326,10 @@ if (!Breadcrumbs::exists('paciente.recetas.pdf')) {
         $t->push('PDF');
     });
 }
-
-/** Paciente → Mis Actividades */
 if (!Breadcrumbs::exists('paciente.actividades.index')) {
     Breadcrumbs::for('paciente.actividades.index', fn(Trail $t) =>
         $t->parent('paciente.dashboard')->push('Mis actividades', route('paciente.actividades.index')));
 }
-
-/** Paciente → Tests asignados */
 if (!Breadcrumbs::exists('paciente.tests.index')) {
     Breadcrumbs::for('paciente.tests.index', fn(Trail $t) =>
         $t->parent('paciente.dashboard')->push('Mis tests', route('paciente.tests.index')));
