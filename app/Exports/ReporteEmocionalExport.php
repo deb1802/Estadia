@@ -8,16 +8,16 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
-class ReporteEmocionalExport implements FromCollection, WithHeadings, WithStyles, WithDrawings, WithTitle
+class ReporteEmocionalExport implements FromCollection, WithHeadings, WithStyles, WithDrawings, WithTitle, WithCustomStartCell
 {
     protected $datos;
 
     public function __construct()
     {
-        // 🔹 Obtener información completa (como la vista)
         $this->datos = DB::table('Expedientes')
             ->selectRaw('diagnosticos, COUNT(*) as total')
             ->whereNotNull('diagnosticos')
@@ -26,13 +26,14 @@ class ReporteEmocionalExport implements FromCollection, WithHeadings, WithStyles
             ->get();
     }
 
-    /** 📊 Colección para el Excel */
+    /** 📊 Datos */
     public function collection()
     {
+        $total = max(1, $this->datos->sum('total')); // evitar división por 0
         return $this->datos->map(fn($d) => [
             $d->diagnosticos,
             $d->total,
-            round(($d->total / $this->datos->sum('total')) * 100, 2) . '%',
+            round(($d->total / $total) * 100, 2) . '%',
         ]);
     }
 
@@ -42,50 +43,50 @@ class ReporteEmocionalExport implements FromCollection, WithHeadings, WithStyles
         return ['Diagnóstico', 'Total de Pacientes', 'Porcentaje'];
     }
 
-    /** 🧾 Título de la hoja */
-    public function title(): string
+    /** ▶️ La tabla empieza en A5 (1–3 logo, 4 título) */
+    public function startCell(): string
     {
-        return 'Reporte de Clasificación';
+        return 'A5';
     }
 
     /** 🎨 Estilos */
     public function styles(Worksheet $sheet)
     {
-        // 🔹 Encabezado centrado y con color
-        $sheet->getStyle('A1:C1')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A1:C1')->getAlignment()->setHorizontal('center');
-        $sheet->getStyle('A1:C1')->getFill()
+        // Fila 4: Título centrado
+        $sheet->mergeCells('A4:C4');
+        $sheet->setCellValue('A4', 'Reporte de Clasificación por Estado Emocional');
+        $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A4')->getAlignment()->setHorizontal('center');
+
+        // Fila 5: Encabezados de la tabla
+        $sheet->getStyle('A5:C5')->getFont()->setBold(true);
+        $sheet->getStyle('A5:C5')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A5:C5')->getFill()
             ->setFillType('solid')
-            ->getStartColor()->setRGB('E1D4F2');
+            ->getStartColor()->setRGB('CFC1E8'); // lila pastel
 
-        // 🔹 Centrar toda la tabla
+        // Columnas centradas y anchos
         $sheet->getStyle('A:C')->getAlignment()->setHorizontal('center');
-
-        // 🔹 Anchos
         $sheet->getColumnDimension('A')->setWidth(45);
         $sheet->getColumnDimension('B')->setWidth(25);
         $sheet->getColumnDimension('C')->setWidth(25);
 
-        // 🔹 Bordes
-        $rows = $sheet->getHighestRow();
-        $sheet->getStyle("A1:C{$rows}")
-            ->getBorders()->getAllBorders()->setBorderStyle('thin');
+        // Bordes solo para tabla (desde encabezados hacia abajo)
+        $lastRow = $sheet->getHighestRow();
+        if ($lastRow >= 5) {
+            $sheet->getStyle("A5:C{$lastRow}")
+                ->getBorders()->getAllBorders()->setBorderStyle('thin');
+        }
 
-        // 🔹 Título general centrado arriba
-        $sheet->mergeCells('A3:C3');
-        $sheet->setCellValue('A3', 'Reporte de Clasificación por Estado Emocional');
-        $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(14);
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center');
-
-        // 🔹 Centrar la tabla
-        $sheet->setShowGridlines(true);
-        $sheet->getPageSetup()->setHorizontalCentered(true);
-        $sheet->getPageSetup()->setVerticalCentered(true);
+        // Opcional: más espacio bajo el logo
+        $sheet->getRowDimension(1)->setRowHeight(22);
+        $sheet->getRowDimension(2)->setRowHeight(22);
+        $sheet->getRowDimension(3)->setRowHeight(22);
 
         return [];
     }
 
-    /** 🧷 Logo */
+    /** 🧷 Logo (ocupa filas 1–3) */
     public function drawings()
     {
         $drawing = new Drawing();
@@ -94,6 +95,14 @@ class ReporteEmocionalExport implements FromCollection, WithHeadings, WithStyles
         $drawing->setPath(public_path('img/mindware-logo.png'));
         $drawing->setHeight(80);
         $drawing->setCoordinates('A1');
+        // Si quieres separarlo más del título:
+        // $drawing->setOffsetY(2);
         return $drawing;
+    }
+
+    /** 🏷 Título de la hoja */
+    public function title(): string
+    {
+        return 'Reporte de Clasificación';
     }
 }
