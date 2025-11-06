@@ -174,7 +174,7 @@
     'Frustrado':'#f8382aff','Feliz':'#4ca6f5ff','Triste':'#0b23e0ff','Irritado':'#fa3479ff'
   };
   const ORDER = Object.keys(EMO);
-  const dayStart = val => { const d=new Date(val); d.setHours(0,0,0,0); return d.getTime(); };
+  const dayStart = val => { const d=new Date(val); d.setHours(0,0,0,0); return +d; };
 
   // Construir datasets (uno por emoción)
   const byEmo = {};
@@ -242,9 +242,10 @@
     }
   };
 
-  // Tooltip externo MULTI-EMOCIÓN
+  // Tooltip externo MULTI-EMOCIÓN — filtrado por el día exacto
   function externalLegendTooltip(ctx){
-    const {chart, tooltip} = ctx;
+    const { chart, tooltip } = ctx;
+
     let tip = document.getElementById('mwChartTip');
     if(!tip){
       tip = document.createElement('div');
@@ -253,43 +254,53 @@
       tip.innerHTML = '<div class="mw-tip-date"></div><div class="mw-tip-items"></div>';
       document.body.appendChild(tip);
     }
-    if(tooltip.opacity === 0){
+
+    if (tooltip.opacity === 0) {
       tip.style.opacity = 0;
       return;
     }
 
-    // Título con fecha
-    const dateStr = new Date(tooltip.dataPoints[0].parsed.x).toLocaleDateString();
+    const _dayStart = (val) => { const d = new Date(val); d.setHours(0,0,0,0); return +d; };
+    const hoveredDay = _dayStart(tooltip.dataPoints[0].parsed.x);
+
+    const dateStr = new Date(hoveredDay).toLocaleDateString();
     tip.querySelector('.mw-tip-date').textContent = dateStr;
 
-    // Items (todas las emociones de ese día)
     const itemsBox = tip.querySelector('.mw-tip-items');
     itemsBox.innerHTML = '';
+
+    // Solo emociones del MISMO día
     const items = tooltip.dataPoints
+      .filter(dp => _dayStart(dp.parsed.x) === hoveredDay)
       .map(dp => ({ label: dp.dataset.label, y: dp.parsed.y, color: dp.dataset.backgroundColor }))
       .filter(it => it.y != null)
-      .sort((a,b)=> a.label.localeCompare(b.label)); // Cambia a ordenar por intensidad si quieres
+      .sort((a, b) => a.label.localeCompare(b.label));
 
-    items.forEach(it=>{
+    for (const it of items) {
       const row = document.createElement('div');
       row.className = 'mw-tip-row';
       row.innerHTML =
         `<span class="mw-tip-dot" style="background:${it.color}"></span>
          <span class="mw-tip-text">${it.label} · Intensidad ${it.y}</span>`;
       itemsBox.appendChild(row);
-    });
+    }
 
     const rect = chart.canvas.getBoundingClientRect();
     const x = rect.left + window.scrollX + tooltip.caretX + 12;
-    const y = rect.top  + window.scrollY + tooltip.caretY - 12;
+    const y = rect.top  + window.scrollY + tooltip.caretY  - 12;
     tip.style.left = x + 'px';
     tip.style.top  = y + 'px';
     tip.style.opacity = 1;
   }
 
+  // === NUEVA interacción: no mezclar fechas ===
   const baseOptions = {
     responsive: true,
-    interaction: { mode: 'index', intersect: false }, // captura todas las emociones del día
+    interaction: {
+      mode: 'nearest',  // antes 'index'
+      axis: 'x',        // busca por eje X (fecha)
+      intersect: false
+    },
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false, external: externalLegendTooltip }
@@ -304,7 +315,7 @@
   const cfg = { type:'line', data:{ datasets }, options: baseOptions, plugins:[sameDaySpread] };
   let chart = new Chart(document.getElementById('graficoEmociones'), cfg);
 
-  // Toggle Línea/Barras manteniendo el tooltip múltiple
+  // Toggle Línea/Barras manteniendo el tooltip múltiple y la interacción
   const btnLinea  = document.getElementById('btnLinea');
   const btnBarras = document.getElementById('btnBarras');
   function setActive(btn){ [btnLinea, btnBarras].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }

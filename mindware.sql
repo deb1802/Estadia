@@ -202,7 +202,6 @@ CREATE TABLE AsignacionesTest (
   confirmadoPor INT NULL,
   fechaConfirmacion DATETIME NULL,
   notasClinicas TEXT NULL,
-  subescalas JSON NULL,
   FOREIGN KEY (fkTest) REFERENCES Tests(idTest),
   FOREIGN KEY (fkPaciente) REFERENCES Pacientes(id),
   FOREIGN KEY (confirmadoPor) REFERENCES Medicos(id),

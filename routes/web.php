@@ -26,7 +26,7 @@ use App\Http\Controllers\Medico\ExpedienteController;
 use App\Http\Controllers\Medico\TestimonioController as MedicoTestimonioController;
 use App\Http\Controllers\Admin\TestimonioModerationController;
 use App\Http\Controllers\Admin\TestimonioController as AdminTestimonioController;
-
+use App\Http\Controllers\Admin\ReporteTestsController;
 
 Route::pattern('actividad', '[0-9]+');
 
