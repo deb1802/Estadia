@@ -229,7 +229,6 @@ Route::prefix('emociones')->name('emociones.')->group(function () {
     ->names('tutores');
 
         // 🗓️ Citas
-        // 🗓️ Citas
 Route::resource('citas', App\Http\Controllers\Medico\CitaMedicoController::class)
     ->names('citas')
     ->parameters(['citas' => 'idCita']);

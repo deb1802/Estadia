@@ -29,7 +29,8 @@
                 <p class="fs-5 text-dark mb-1">
                     {{ Auth::user()->nombre ?? Auth::user()->name }} {{ Auth::user()->apellido ?? '' }}
                 </p>
-                {!! Form::hidden('fkMedico', $medicoId) !!}
+                {!! Form::hidden('fkMedico', $medico->id) !!}
+
             </div>
 
             {{-- 🔹 Paciente --}}
@@ -38,7 +39,7 @@
                 <select name="fkPaciente" id="fkPaciente" class="form-select shadow-sm" required>
                     <option value="">Seleccione un paciente...</option>
                     @foreach($pacientes as $paciente)
-                        <option value="{{ $paciente->id }}">{{ $paciente->display_name }}</option>
+                        <option value="{{ $paciente->id }}">{{ $paciente->nombre }}</option>
                     @endforeach
                 </select>
             </div>
