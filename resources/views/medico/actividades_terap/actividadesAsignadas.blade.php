@@ -18,19 +18,21 @@
 @endphp
 
 @section('content')
-<section class="content-header text-center mb-2">
-  <div class="container-fluid d-flex justify-content-between align-items-center flex-wrap gap-3">
-      <div class="text-start">
-          <h1 class="fw-semibold text-primary" style="font-size:2.2rem;">Actividades asignadas a los pacientes</h1>
-          <p class="text-muted mb-0">Consulta el historial de actividades que has asignado a tus pacientes.</p>
-      </div>
+{{-- ===== Encabezado sin contenedor; botón IZQUIERDA y títulos CENTRADOS ===== --}}
+<section class="content-header no-container">
+  <div class="head-actions">
+    <button type="button" class="btn btn-soft"
+      onclick="window.location='{{ route('medico.dashboard') }}'">
+      <i class="bi bi-arrow-90deg-left me-1"></i> Volver
+    </button>
+  </div>
 
-      {{-- Botón Volver --}}
-      <button type="button"
-        class="btn btn-soft"
-        onclick="window.location='{{ route('medico.dashboard') }}'">
-          <i class="bi bi-arrow-90deg-left me-1"></i> Volver
-      </button>
+  <div class="head-titles text-center">
+    <h1 class="title">
+      <i class="bi bi-clipboard2-check me-2"></i>
+      Actividades asignadas a los pacientes
+    </h1>
+    <p class="subtitle">Consulta el historial de actividades que has asignado a tus pacientes.</p>
   </div>
 </section>
 
@@ -41,18 +43,27 @@
   <div class="card card-body shadow-sm mb-3 card-search">
     <form id="search-form" method="GET" action="{{ route('medico.actividades_terap.asignadas') }}" class="w-100">
 
-      {{-- Chips de estado --}}
-      <div class="mb-2 d-flex align-items-center flex-wrap gap-2">
+      {{-- Chips de estado (colores solicitados) --}}
+      <div class="mb-3 d-flex align-items-center flex-wrap gap-2">
         <span class="filter-label me-1">Estado:</span>
 
+        @php $activeAll = empty($estado); @endphp
         <a href="{{ route('medico.actividades_terap.asignadas', array_filter(['f'=>$f,'q'=>$q])) }}"
-           class="chip {{ $estado ? 'chip-outline' : 'chip-primary' }}">Todas</a>
+           class="chip chip-all {{ $activeAll ? 'is-active' : 'is-outline' }}">
+          Todas
+        </a>
 
+        @php $activePend = $estado==='pendiente'; @endphp
         <a href="{{ route('medico.actividades_terap.asignadas', array_filter(['estado'=>'pendiente','f'=>$f,'q'=>$q])) }}"
-           class="chip {{ $estado==='pendiente' ? 'chip-primary' : 'chip-outline' }}">Pendientes</a>
+           class="chip chip-pending {{ $activePend ? 'is-active' : 'is-outline' }}">
+          Pendientes
+        </a>
 
+        @php $activeDone = $estado==='completada'; @endphp
         <a href="{{ route('medico.actividades_terap.asignadas', array_filter(['estado'=>'completada','f'=>$f,'q'=>$q])) }}"
-           class="chip {{ $estado==='completada' ? 'chip-primary' : 'chip-outline' }}">Completadas</a>
+           class="chip chip-done {{ $activeDone ? 'is-active' : 'is-outline' }}">
+          Completadas
+        </a>
       </div>
 
       {{-- 🔍 Barra de búsqueda --}}
@@ -132,20 +143,22 @@
 
           <h3 class="activity-title">{{ $a->titulo }}</h3>
           <div class="meta">
-            <span>Tipo: <b>{{ ucfirst($a->tipoContenido) }}</b></span>
+            <span>Tipo: <b class="strong">{{ ucfirst($a->tipoContenido) }}</b></span>
             <span>· Categoría: {{ $a->categoriaTerapeutica ?? 'N/D' }}</span>
             <span>· Diagnóstico: {{ $a->diagnosticoDirigido ?? 'N/D' }}</span>
             <span>· Severidad: {{ $a->nivelSeveridad ?? 'N/D' }}</span>
           </div>
           <div class="dates">
-            Asignada: <b>{{ $fechaAsig }}</b>
-            @if($fechaLim) · Límite: <b>{{ $fechaLim }}</b>@endif
+            Asignada: <b class="strong">{{ $fechaAsig }}</b>
+            @if($fechaLim) · Límite: <b class="strong">{{ $fechaLim }}</b>@endif
           </div>
         </div>
 
-        <span class="badge {{ $a->estado==='pendiente' ? 'badge-pending' : 'badge-done' }}">
-          {{ ucfirst($a->estado) }}
-        </span>
+        @php
+          $badgeClass = $a->estado==='pendiente' ? 'badge-pending' : 'badge-done';
+          $badgeText  = ucfirst($a->estado);
+        @endphp
+        <span class="badge {{ $badgeClass }}">{{ $badgeText }}</span>
       </div>
 
       @if($indicaciones)
@@ -196,49 +209,152 @@
 
 {{-- ===== Estilos ===== --}}
 <style>
-  section.content-header { margin-top:-10px!important; padding-top:5px!important; }
-  .search-bar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
-  .search-input-group { display:flex; align-items:center; gap:8px; flex:1; }
-  .search-input-group input { flex:1; max-width:980px; border-radius:10px; font-size:1rem; }
-  .search-input-group select { width:220px; border-radius:10px; }
-  .card-search { border-radius:12px; padding:15px 20px; }
-  .chip{ padding:6px 10px; border-radius:999px; text-decoration:none; font-size:.875rem; border:1px solid transparent; }
-  .chip-primary{ background:#2563eb; color:#fff; }
-  .chip-outline{ border-color:#e6eaf0; color:#1f2937; background:#fff; }
-  .filter-label{ color:#6b7280; }
-
   :root{
+    /* Paleta base */
     --bg:#f8fafc; --card:#ffffff; --border:#e6eaf0; --text:#1f2937; --muted:#6b7280;
-    --primary:#2563eb; --primary-600:#1d4ed8; --ok:#16a34a;
+
+    /* Azul MindWare */
+    --mw:#2563eb;           /* azul principal */
+    --mw-600:#1d4ed8;
+    --mw-50:#eff6ff;
+
+    /* Estado (chips/badges) */
+    --ok:#16a34a;
+    --ok-50:#ecfdf5;
+    --ok-b:#a7f3d0;
+
+    --warn:#f59e0b;
+    --warn-50:#fffbeb;
+    --warn-b:#fde68a;
+
+    /* Grises botón suave */
+    --g-text:#374151;
+    --g-text-strong:#111827;
+    --g-borde:#d1d5db;
+    --g-borde-2:#9ca3af;
+    --g-bg:#ffffff;
+    --g-bg-hover:#f3f4f6;
   }
+
   body{ background:var(--bg); }
+
+  /* ===== Encabezado sin contenedor ni tarjeta ===== */
+  section.content-header.no-container{
+    margin-top:-6px!important; padding-top:0!important;
+  }
+  .head-actions{
+    display:flex; justify-content:flex-start; align-items:center;
+    padding:6px 0 2px 0;
+  }
+  .head-titles .title{
+    font-size:2.05rem; line-height:1.2; margin:.25rem 0 0;
+    color:#0f172a; letter-spacing:.2px;
+  }
+  .head-titles .subtitle{ margin:6px 0 4px; color:var(--muted); }
+
+  /* ===== Botón suave (Volver) ===== */
+  .btn-soft{
+    background: var(--g-bg);
+    border: 1px solid var(--g-borde);
+    color: var(--g-text);
+    border-radius: 999px;
+    font-weight: 600;
+    padding: .6rem 1.25rem;
+    transition: all .25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,.05);
+  }
+  .btn-soft:hover{
+    background: var(--g-bg-hover);
+    border-color: var(--g-borde-2);
+    color: var(--g-text-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.08);
+  }
+  .btn-soft:active{ transform: scale(.98); }
+
+  /* ===== Buscador / filtros ===== */
+  .card-search{ border-radius:14px; padding:16px 18px; }
+  .search-bar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; width:100%; }
+  .search-input-group{ display:flex; align-items:center; gap:8px; flex:1; min-width:280px; }
+  .search-input-group input{ flex:1; border-radius:10px; font-size:1rem; }
+  .search-input-group select{ width:240px; border-radius:10px; }
+  .filter-label{ color:#64748b; font-weight:600; }
+
+  /* ===== Chips con color por estado ===== */
+  .chip{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:8px 14px; border-radius:999px; text-decoration:none;
+    font-size:.9rem; border:1px solid transparent; font-weight:600;
+    transition: all .2s ease;
+  }
+  /* Todas → Azul MindWare */
+  .chip-all.is-active{ background:var(--mw); color:#fff; }
+  .chip-all.is-outline{ background:#fff; color:var(--mw); border-color:var(--mw); }
+  .chip-all:is(:hover,:focus){ filter:brightness(0.97); }
+  /* Pendientes → Amarillo */
+  .chip-pending.is-active{ background:var(--warn); color:#0b0b0b; }
+  .chip-pending.is-outline{ background:#fff; color:var(--warn); border-color:var(--warn); }
+  .chip-pending:is(:hover,:focus){ filter:brightness(0.98); }
+  /* Completadas → Verde */
+  .chip-done.is-active{ background:var(--ok); color:#f8fff9; }
+  .chip-done.is-outline{ background:#fff; color:var(--ok); border-color:var(--ok); }
+  .chip-done:is(:hover,:focus){ filter:brightness(0.98); }
+
+  /* ===== Alerts ===== */
   .alert{ margin:12px 0; padding:10px 12px; border-radius:12px; font-size:.95rem; }
-  .alert.ok{ background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
-  .alert.warn{ background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+  .alert.ok{ background:var(--ok-50); color:#065f46; border:1px solid var(--ok-b); }
+  .alert.warn{ background:var(--warn-50); color:#92400e; border:1px solid var(--warn-b); }
   .alert.err{ background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
 
-  .activity-card{ background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:0 4px 12px rgba(0,0,0,0.04); padding:16px; margin-bottom:14px; }
+  /* ===== Cards de actividades ===== */
+  .activity-card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 6px 16px rgba(0,0,0,.05); padding:16px; margin-bottom:14px;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .activity-card:hover{ transform: translateY(-1px); box-shadow:0 10px 22px rgba(0,0,0,.08); }
   .card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; }
-  .activity-title{ margin:6px 0 4px; color:var(--text); font-size:1.15rem; }
+  .activity-title{ margin:8px 0 6px; color:var(--text); font-size:1.18rem; font-weight:800; letter-spacing:.2px; }
   .meta{ color:var(--muted); display:flex; flex-wrap:wrap; gap:8px; }
-  .dates{ color:var(--muted); margin-top:4px; }
-  .badge{ padding:6px 10px; border-radius:999px; font-size:.83rem; }
-  .badge-pending{ background:#fff7ed; color:#7c2d12; border:1px solid #fed7aa; }
-  .badge-done{ background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
-  .paciente-chip{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:.85rem; }
-  .paciente-chip .txt{ font-weight:600; }
+  .dates{ color:var(--muted); margin-top:6px; }
+  .strong{ color:#0f172a; }
+
+  /* Badges de estado */
+  .badge{ padding:7px 12px; border-radius:999px; font-size:.86rem; font-weight:700; }
+  .badge-pending{ background:var(--warn-50); color:#7c2d12; border:1px solid var(--warn-b); }
+  .badge-done{ background:var(--ok-50); color:#065f46; border:1px solid var(--ok-b); }
+
+  .paciente-chip{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 10px; border-radius:999px; background:var(--mw-50); color:#1e2a78; font-size:.85rem;
+    border:1px dashed #dbeafe;
+  }
+  .paciente-chip .txt{ font-weight:700; }
+
   .note{ margin-top:12px; background:#f8fafc; border:1px dashed var(--border); border-radius:12px; }
-  .note-title{ font-weight:600; padding:10px 12px 4px; color:#0f172a; }
-  .note-body{ padding:0 12px 10px; color:#374151; line-height:1.5; white-space:pre-line; }
+  .note-title{ font-weight:700; padding:10px 12px 4px; color:#0f172a; }
+  .note-body{ padding:0 12px 10px; color:#374151; line-height:1.55; white-space:pre-line; }
+
   .resource{ margin-top:12px; }
-  .btn-link{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:10px; text-decoration:none; color:#1f2937; background:#fff; }
+  .btn-link{
+    display:inline-flex; align-items:center; gap:8px; padding:9px 14px;
+    border:1px solid var(--border); border-radius:10px; text-decoration:none; color:#1f2937; background:#fff;
+    font-weight:600;
+  }
   .btn-link:hover{ background:#f3f4f6; }
   .media{ max-width:100%; height:auto; border-radius:12px; border:1px solid #e6eaf0; }
   .img{ display:block; }
   .muted{ color:#6b7280; }
-  .empty{ margin-top:10px; text-align:center; }
+
+  .empty{ margin-top:10px; text-align:center; border-radius:14px; }
   .empty .empty-body{ padding:36px 16px; }
   .empty i{ font-size:28px; color:#6b7280; }
+  .btn-ghost{
+    display:inline-block; margin-top:8px; padding:8px 14px; border-radius:999px;
+    border:1px dashed var(--mw); color:var(--mw); text-decoration:none; font-weight:700;
+  }
+  .btn-ghost:hover{ background:#eef2ff; }
+
   .pagination-wrap{ margin-top:16px; display:flex; justify-content:center; }
 </style>
 
@@ -265,13 +381,11 @@
     setPlaceholder();
     select?.addEventListener('change', setPlaceholder);
 
-    // Debounce simple
     const debounce = (fn, delay = 450) => {
       let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
     };
 
     const autoSubmit = debounce(() => {
-      // Evita submit vacío en búsqueda global
       if (input.value.trim() === '' && (select.value || '') === '') return;
       form.requestSubmit();
     }, 450);
@@ -279,54 +393,14 @@
     input?.addEventListener('keyup', autoSubmit);
     select?.addEventListener('change', () => form.requestSubmit());
 
-    // Enter envía inmediatamente
     input?.addEventListener('keydown', function(e){
       if(e.key === 'Enter'){ e.preventDefault(); form.requestSubmit(); }
     });
   })();
 </script>
+ @include('medico.bottom-navbar')
 @endsection
 
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<style>
-  :root{
-    --g-text:#374151;       /* gris oscuro */
-    --g-text-strong:#111827;
-    --g-borde:#d1d5db;      /* gris claro borde */
-    --g-borde-2:#9ca3af;    /* gris medio hover */
-    --g-bg:#ffffff;         /* fondo blanco */
-    --g-bg-hover:#f3f4f6;   /* gris claro hover */
-  }
-
-  /* ===== Botón suave reutilizable (Volver) ===== */
-  .btn-soft{
-    background: var(--g-bg);
-    border: 1px solid var(--g-borde);
-    color: var(--g-text);
-    border-radius: 50px;
-    font-weight: 500;
-    padding: .5rem 1.25rem;
-    transition: all .25s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,.04);
-  }
-
-  .btn-soft:hover{
-    background: var(--g-bg-hover);
-    border-color: var(--g-borde-2);
-    color: var(--g-text-strong);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(0,0,0,.08);
-  }
-
-  .btn-soft:active{
-    transform: scale(.98);
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
-  }
-
-  .btn-soft i{
-    font-size: 1rem;
-    vertical-align: middle;
-  }
-</style>
 @endpush

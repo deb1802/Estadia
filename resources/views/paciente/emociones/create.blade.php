@@ -160,5 +160,6 @@
         intensityContainer.appendChild(block);
     }
 </script>
+@include('paciente.bottom-navbar')
 
 @endsection

@@ -15,7 +15,7 @@
     </button>
   </div>
 
-  {{-- ========= Timeline de citas (SIN CAMBIOS DE ESTILO) ========= --}}
+  {{-- ========= Timeline de citas ========= --}}
   <div class="card shadow border-0 mx-auto mb-4" style="max-width: 980px;">
     <div class="card-header text-center fw-semibold text-white" style="background-color: #b5c8e1;">
       <i class="fas fa-calendar-check me-2"></i> Línea de tiempo de citas
@@ -168,84 +168,70 @@
   // ---- Datos desde PHP ----
   const raw = @json($emociones);
 
-  // Colores por emoción (coincide con chips)
+  // Paleta por emoción (coincide con chips)
   const EMO = {
     'Tranquilo':'#fde615ff','Ansioso':'#f3902dff','Motivado':'#3edfb4ff','Confundido':'#8a8ea0ff',
     'Frustrado':'#f8382aff','Feliz':'#4ca6f5ff','Triste':'#0b23e0ff','Irritado':'#fa3479ff'
   };
   const ORDER = Object.keys(EMO);
-  const dayStart = val => { const d=new Date(val); d.setHours(0,0,0,0); return +d; };
 
-  // Construir datasets (uno por emoción)
+  // Helpers de fecha
+  const toDayStr = (val) => {
+    const d = new Date(val); d.setHours(0,0,0,0);
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  };
+  const safeJson = (v) => {
+    if (v == null) return null;
+    if (typeof v === 'string') { try { return JSON.parse(v); } catch { return null; } }
+    return v;
+  };
+  const fmt = (dstr) => { const [y,m,d]=dstr.split('-'); return `${d}/${m}/${y}`; };
+
+  // Fechas únicas (solo registradas)
+  const daySet = new Set();
+  raw.forEach(r => daySet.add(toDayStr(r.fechaHoraRegistro)));
+  const LABELS_RAW = Array.from(daySet).sort();    // YYYY-MM-DD
+  const LABELS = LABELS_RAW.map(fmt);              // dd/mm/yyyy
+  const dayIndex = Object.fromEntries(LABELS_RAW.map((d,i)=>[d,i]));
+
+  // Datasets base (por emoción)
   const byEmo = {};
-  ORDER.forEach(e=>{
-    byEmo[e] = {
-      label: e,
-      data: [],
-      borderColor: EMO[e] + 'CC',
-      backgroundColor: EMO[e],
-      pointRadius: 0,
-      pointHitRadius: 18,
-      showLine: true,
-      tension: .35,
-      parsing: false
-    };
-  });
+  ORDER.forEach(e=> byEmo[e] = { label:e, color:EMO[e], points:[] });
 
-  // Rellenar puntos (cada registro puede tener múltiples emociones)
+  // Relleno a partir de: emocionesExperimentadas + intensidades (array o objeto)
   raw.forEach(r=>{
-    const x = dayStart(r.fechaHoraRegistro);
-    const y = Number(r.intensidad)||0;
-    let emos = [];
-    try{
-      emos = Array.isArray(r.emocionesExperimentadas)
-        ? r.emocionesExperimentadas
-        : JSON.parse(r.emocionesExperimentadas||'[]');
-    }catch{}
-    emos.forEach(e=> byEmo[e]?.data.push({x,y}));
+    const dstr = toDayStr(r.fechaHoraRegistro);
+    const x = dayIndex[dstr];
+    const emos = safeJson(r.emocionesExperimentadas) || [];
+    const ints = safeJson(r.intensidades);
+
+    if (!Array.isArray(emos) || emos.length === 0) return;
+
+    emos.forEach((emocion, idx) => {
+      if (!(emocion in byEmo)) return;
+
+      let y = null;
+      if (Array.isArray(ints)) y = Number(ints[idx]);
+      else if (ints && typeof ints === 'object') y = Number(ints[emocion]);
+      else if (typeof r.intensidad !== 'undefined') y = Number(r.intensidad); // compat
+      if (!Number.isFinite(y)) return;
+
+      y = Math.max(0, Math.min(5, y));
+      byEmo[emocion].points.push({ x, y, _day: dstr });
+    });
   });
 
-  const datasets = Object.values(byEmo);
-
-  // Plugin: separa bolitas en la misma fecha y las dibuja grandes
-  const sameDaySpread = {
-    id:'sameDaySpread',
-    afterDatasetsDraw(chart){
-      const ctx = chart.ctx;
-      const groups = new Map();
-      chart.data.datasets.forEach((ds,di)=>{
-        const meta = chart.getDatasetMeta(di);
-        meta.data.forEach(el=>{
-          const p = el.$context.parsed;
-          if(!p.x) return;
-          const k = dayStart(p.x);
-          (groups.get(k) ?? groups.set(k,[]).get(k)).push({ el, fill: ds.backgroundColor });
-        });
-      });
-      const shifts = [-18,-10,-4,4,10,18,-26,26];
-      groups.forEach(list=>{
-        list.forEach((it,i)=>{
-          const e = it.el;
-          const dx = (list.length===1 ? 0 : shifts[i % shifts.length]);
-          ctx.save();
-          ctx.translate(dx,0);
-          ctx.fillStyle = it.fill;
-          ctx.strokeStyle = '#fff';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.arc(e.x, e.y, 10, 0, Math.PI*2);
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-        });
-      });
-    }
+  // Escalas comunes (categoría = fechas registradas)
+  const commonScales = {
+    x: { type: 'category', labels: LABELS, grid: { color: 'rgba(0,0,0,.06)' } },
+    y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.06)' } }
   };
 
-  // Tooltip externo MULTI-EMOCIÓN — filtrado por el día exacto
+  // Tooltip externo por día
   function externalLegendTooltip(ctx){
     const { chart, tooltip } = ctx;
-
     let tip = document.getElementById('mwChartTip');
     if(!tip){
       tip = document.createElement('div');
@@ -254,36 +240,28 @@
       tip.innerHTML = '<div class="mw-tip-date"></div><div class="mw-tip-items"></div>';
       document.body.appendChild(tip);
     }
+    if (tooltip.opacity === 0){ tip.style.opacity = 0; return; }
 
-    if (tooltip.opacity === 0) {
-      tip.style.opacity = 0;
-      return;
-    }
-
-    const _dayStart = (val) => { const d = new Date(val); d.setHours(0,0,0,0); return +d; };
-    const hoveredDay = _dayStart(tooltip.dataPoints[0].parsed.x);
-
-    const dateStr = new Date(hoveredDay).toLocaleDateString();
-    tip.querySelector('.mw-tip-date').textContent = dateStr;
+    const idx = tooltip.dataPoints?.[0]?.parsed?.x ?? 0;
+    const dstr = LABELS[idx] || '';
+    tip.querySelector('.mw-tip-date').textContent = dstr;
 
     const itemsBox = tip.querySelector('.mw-tip-items');
     itemsBox.innerHTML = '';
-
-    // Solo emociones del MISMO día
     const items = tooltip.dataPoints
-      .filter(dp => _dayStart(dp.parsed.x) === hoveredDay)
+      .filter(dp => (dp.parsed?.x ?? -1) === idx)
       .map(dp => ({ label: dp.dataset.label, y: dp.parsed.y, color: dp.dataset.backgroundColor }))
-      .filter(it => it.y != null)
-      .sort((a, b) => a.label.localeCompare(b.label));
+      .filter(it => Number.isFinite(it.y))
+      .sort((a,b)=> a.label.localeCompare(b.label));
 
-    for (const it of items) {
+    items.forEach(it=>{
       const row = document.createElement('div');
       row.className = 'mw-tip-row';
       row.innerHTML =
         `<span class="mw-tip-dot" style="background:${it.color}"></span>
          <span class="mw-tip-text">${it.label} · Intensidad ${it.y}</span>`;
       itemsBox.appendChild(row);
-    }
+    });
 
     const rect = chart.canvas.getBoundingClientRect();
     const x = rect.left + window.scrollX + tooltip.caretX + 12;
@@ -293,38 +271,111 @@
     tip.style.opacity = 1;
   }
 
-  // === NUEVA interacción: no mezclar fechas ===
-  const baseOptions = {
-    responsive: true,
-    interaction: {
-      mode: 'nearest',  // antes 'index'
-      axis: 'x',        // busca por eje X (fecha)
-      intersect: false
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: { enabled: false, external: externalLegendTooltip }
-    },
-    scales: {
-      x: { type: 'time', time: { unit: 'day', displayFormats: { day: 'dd/MM/yyyy' } }, grid: { color: 'rgba(0,0,0,.06)' } },
-      y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.06)' } }
-    },
-    elements: { point: { radius: 0, hitRadius: 18 } }
+  // Plugin SOLO para LÍNEA: separa bolitas en mismo día y dibuja la “conexión del día”
+  const sameDaySpread = {
+    id:'sameDaySpread',
+    afterDatasetsDraw(chart){
+      const ctx = chart.ctx;
+      const groups = new Map();
+      chart.data.datasets.forEach((ds,di)=>{
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach(el=>{
+          if (!el?.$context?.parsed) return;
+          const {x,y} = el.$context.parsed; if (x == null) return;
+          (groups.get(x) ?? groups.set(x,[]).get(x)).push({ el, fill: ds.backgroundColor });
+        });
+      });
+
+      const shifts = [-18,-10,-4,4,10,18,-26,26];
+
+      groups.forEach(list=>{
+        list.sort((a,b)=>a.el.y - b.el.y);
+        const withPos = list.map((it,i)=>{
+          const dx = (list.length===1 ? 0 : shifts[i % shifts.length]);
+          const x = it.el.x + dx, y = it.el.y;
+          ctx.save();
+          ctx.fillStyle = it.fill; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+          ctx.restore();
+          return {x,y};
+        });
+        if (withPos.length > 1) {
+          ctx.save(); ctx.strokeStyle = '#111'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(withPos[0].x, withPos[0].y);
+          for (let i=1;i<withPos.length;i++) ctx.lineTo(withPos[i].x, withPos[i].y);
+          ctx.stroke(); ctx.restore();
+        }
+      });
+    }
   };
 
-  const cfg = { type:'line', data:{ datasets }, options: baseOptions, plugins:[sameDaySpread] };
-  let chart = new Chart(document.getElementById('graficoEmociones'), cfg);
+  // Opciones base
+  const baseOptionsLine = {
+    responsive: true,
+    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+    plugins: { legend: { display: false }, tooltip: { enabled: false, external: externalLegendTooltip } },
+    scales: commonScales,
+    elements: { point: { radius: 0, hitRadius: 18 } }
+  };
+  const baseOptionsBar = {
+    responsive: true,
+    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+    plugins: { legend: { display: false }, tooltip: { enabled: false, external: externalLegendTooltip } },
+    scales: commonScales,
+    elements: { point: { radius: 0 } },
+    maintainAspectRatio: true
+    // Para barras apiladas, descomenta:
+    // , scales: { x: { ...commonScales.x, stacked: true }, y: { ...commonScales.y, stacked: true } }
+  };
 
-  // Toggle Línea/Barras manteniendo el tooltip múltiple y la interacción
+  // Armar datasets según tipo
+  const makeLineDatasets = () => Object.values(byEmo).map(e => ({
+    label: e.label,
+    data: e.points,                   // [{x:indexFecha, y:intensidad}]
+    borderColor: e.color + 'CC',
+    backgroundColor: e.color,
+    pointRadius: 6,
+    pointHoverRadius: 7,
+    pointHitRadius: 18,
+    showLine: true,
+    spanGaps: false,
+    tension: .35,
+    parsing: false
+  }));
+
+  const makeBarDatasets = () => Object.values(byEmo).map(e => ({
+    type: 'bar',
+    label: e.label,
+    data: e.points,
+    backgroundColor: e.color,
+    borderWidth: 0,
+    parsing: false,
+    barPercentage: 0.75,
+    categoryPercentage: 0.8
+  }));
+
+  // Render inicial: LÍNEA
+  const ctx = document.getElementById('graficoEmociones');
+  let chart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets: makeLineDatasets() },
+    options: baseOptionsLine,
+    plugins: [sameDaySpread]
+  });
+
+  // Toggle Línea/Barras
   const btnLinea  = document.getElementById('btnLinea');
   const btnBarras = document.getElementById('btnBarras');
-  function setActive(btn){ [btnLinea, btnBarras].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  const setActive = (btn)=>[btnLinea,btnBarras].forEach(b=>b.classList.toggle('active', b===btn));
 
   btnLinea.addEventListener('click', () => {
     if (chart.config.type === 'line') return;
     chart.destroy();
-    chart = new Chart(document.getElementById('graficoEmociones'), {
-      type:'line', data:{ datasets }, options: baseOptions, plugins:[sameDaySpread]
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: { datasets: makeLineDatasets() },
+      options: baseOptionsLine,
+      plugins: [sameDaySpread]
     });
     setActive(btnLinea);
   });
@@ -332,14 +383,11 @@
   btnBarras.addEventListener('click', () => {
     if (chart.config.type === 'bar') return;
     chart.destroy();
-    chart = new Chart(document.getElementById('graficoEmociones'), {
-      type:'bar',
-      data:{ datasets: datasets.map(d=>({
-        label:d.label, data:d.data,
-        backgroundColor: d.backgroundColor + '99',
-        borderColor: d.borderColor, borderWidth:1
-      }))},
-      options: baseOptions
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: { datasets: makeBarDatasets() },
+      options: baseOptionsBar,
+      plugins: [] // sin líneas
     });
     setActive(btnBarras);
   });
@@ -362,7 +410,7 @@
   .chip-emo{ display:inline-flex; align-items:center; gap:8px; padding:.35rem .6rem; border:1px solid var(--stroke); border-radius:999px; background:#fff; box-shadow:0 6px 14px rgba(33,55,79,.06); font-weight:600; color:var(--ink); line-height:1; }
   .chip-emo .dot{ width:10px; height:10px; border-radius:50%; }
 
-  /* Tooltip externo multi-emoción */
+  /* Tooltip externo */
   .mw-tip{
     position:absolute; pointer-events:none; opacity:0;
     background:#fff; border:1px solid var(--stroke); border-radius:12px;
