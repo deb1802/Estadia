@@ -146,12 +146,28 @@
       <div class="card-body">
         <div class="d-flex flex-column flex-md-row align-items-start gap-3">
           <div class="thumb-wrap">
-            @php $img = $medicamento->imagenMedicamento ?? null; @endphp
-            @if($img)
-              <img src="{{ asset(ltrim($img,'/')) }}" alt="Imagen medicamento" style="max-width:100%; max-height:100%; object-fit:contain;">
+            @php
+              use Illuminate\Support\Facades\Storage;
+
+              $img = $medicamento->imagenMedicamento ?? null;
+              $url = null;
+              if ($img) {
+                  if (preg_match('/^https?:\/\//', $img)) {
+                      $url = $img;
+                  } else {
+                      // Construir URL pública desde storage
+                      $url = Storage::url('medicamentos/' . ltrim($img, '/'));
+                  }
+              }
+            @endphp
+
+            @if($url && Storage::disk('public')->exists('medicamentos/' . ltrim($img, '/')))
+              <img src="{{ $url }}" alt="Imagen medicamento"
+                  style="max-width:100%; max-height:100%; object-fit:contain;">
             @else
               <i class="bi bi-capsule" style="font-size:3rem; color:#94a3b8;"></i>
             @endif
+
           </div>
 
           <div class="flex-grow-1">

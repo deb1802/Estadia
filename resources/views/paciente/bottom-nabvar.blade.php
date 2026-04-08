@@ -1,4 +1,4 @@
-{{-- resources/views/paciente/bottom-nabvar.blade.php --}}
+{{-- resources/views/paciente/bottom-navbar.blade.php --}}
 @php
   use App\Models\Notificacion;
   use Illuminate\Support\Facades\Auth;
@@ -13,6 +13,12 @@
   $__isHome     = request()->routeIs('paciente.dashboard') || request()->is('paciente') || request()->is('paciente/');
   $__isRecetas  = request()->routeIs('paciente.recetas.*');
   $__isActs     = request()->is('paciente/actividades*') || request()->routeIs('paciente.actividades_terap.*');
+
+  // URLs de destino seguras
+  $__testsUrl = Route::has('paciente.tests.index') ? route('paciente.tests.index') : url('/paciente/tests');
+  $__actsUrl  = Route::has('paciente.actividades_terap.index')
+              ? route('paciente.actividades_terap.index')
+              : (Route::has('paciente.actividades.index') ? route('paciente.actividades.index') : url('/paciente/actividades'));
 @endphp
 
 <style>
@@ -46,53 +52,36 @@
     position:absolute; left:0; right:0; bottom:14px; margin:0 auto; pointer-events:none;
     max-width:480px; width: calc(100% - 24px);
   }
-  .modal-dialog-scrollable .modal-body {
-    max-height: 70vh;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-    position: relative;
-  }
+  .modal-dialog-scrollable .modal-body { max-height: 70vh; overflow-y: auto; scroll-behavior: smooth; position: relative; }
   .modal-dialog-scrollable .modal-body::before,
   .modal-dialog-scrollable .modal-body::after {
-    content: "";
-    position: sticky;
-    left: 0; right: 0;
-    height: 20px;
-    z-index: 2;
-    pointer-events: none;
+    content: ""; position: sticky; left: 0; right: 0; height: 20px; z-index: 2; pointer-events: none;
   }
-  .modal-dialog-scrollable .modal-body::before {
-    top: 0;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.95), transparent);
-  }
-  .modal-dialog-scrollable .modal-body::after {
-    bottom: 0;
-    background: linear-gradient(to top, rgba(255,255,255,0.95), transparent);
-  }
-  .modal-content{
-    pointer-events:auto; background:#ffffff; border:0; border-radius:16px;
-    box-shadow:0 24px 60px rgba(2,6,23,.22); overflow:hidden;
-  }
-  .modal-header{
-    display:flex; align-items:center; gap:8px;
-    background: linear-gradient(180deg, #eaf2ff, #ffffff 70%);
-    border-bottom:1px solid #e6efff; padding:.6rem .85rem;
-  }
+  .modal-dialog-scrollable .modal-body::before { top: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.95), transparent); }
+  .modal-dialog-scrollable .modal-body::after { bottom: 0; background: linear-gradient(to top, rgba(255,255,255,0.95), transparent); }
+  .modal-content{ pointer-events:auto; background:#ffffff; border:0; border-radius:16px; box-shadow:0 24px 60px rgba(2,6,23,.22); overflow:hidden; }
+  .modal-header{ display:flex; align-items:center; gap:8px; background: linear-gradient(180deg, #eaf2ff, #ffffff 70%); border-bottom:1px solid #e6efff; padding:.6rem .85rem; }
   .modal-title{ margin:0; font-size:1rem; font-weight:800; color:#1e40af; }
   .close{ padding:.25rem .5rem; background:transparent; border:0; font-size:1.25rem; line-height:1; color:#334155; }
 
-  .btn{ display:inline-block; font-weight:600; padding:.28rem .65rem; border:1px solid #cbd5e1;
-        border-radius:.5rem; background:#fff; color:#374151; font-size:.85rem; }
+  .btn{ display:inline-block; font-weight:600; padding:.28rem .65rem; border:1px solid #cbd5e1; border-radius:.5rem; background:#fff; color:#374151; font-size:.85rem; }
   .btn-sm{ padding:.22rem .55rem; font-size:.82rem; }
-  .btn-outline-secondary{ border-color:#cbd5e1; color:#334155; }
-  .btn-outline-secondary:hover{ background:#f3f4f6; }
-  .btn-outline-primary{ border-color:#3b82f6; color:#1d4ed8; }
-  .btn-outline-primary:hover{ background:#eff6ff; }
+  .btn-outline-secondary{ border-color:#cbd5e1; color:#334155; }  .btn-outline-secondary:hover{ background:#f3f4f6; }
+  .btn-outline-primary{ border-color:#3b82f6; color:#1d4ed8; }   .btn-outline-primary:hover{ background:#eff6ff; }
+
+  .btn-go{
+    border-color:#2563eb; color:#1d4ed8; font-weight:700;
+  }
+  .btn-go:hover{ background:#eff6ff; }
 
   .list-group{ list-style:none; margin:0; padding:0; }
   .list-group-item{ padding:.75rem .95rem; border-bottom:1px solid #eff2f8; background:#ffffff; }
   .font-weight-bold{ font-weight:800; color:#0f172a; }
   .text-muted{ color:#6b7280; }
+  .badge-unread{
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:.72rem; font-weight:800; background:#ef4444; color:#fff; border-radius:999px; padding:.1rem .45rem; margin-left:.4rem;
+  }
 </style>
 
 <div class="patient-bottom-navbar">
@@ -130,20 +119,42 @@
         </form>
         <button type="button" class="close ml-2" data-dismiss="modal"><span>&times;</span></button>
       </div>
+
       <div class="modal-body">
         <ul class="list-group list-group-flush">
           @forelse($__items as $n)
+            @php
+              // Detección por palabras clave
+              $__texto = Str::lower(trim(($n->titulo ?? '').' '.($n->mensaje ?? '')));
+              $__isTest = Str::contains($__texto, [' test ', ' tests ', '/paciente/tests', 'mis tests']);
+              $__isActs = Str::contains($__texto, ['actividad', 'actividades', '/paciente/actividades']);
+              $__isRec  = Str::contains($__texto, ['receta', 'recetas', 'medicamento', 'medicamentos']);
+            @endphp
+
             <li class="list-group-item {{ $n->leida ? '' : 'font-weight-bold' }}">
               <div class="small">{{ $n->titulo ?? 'Notificación' }}</div>
               <div class="text-muted small">{{ $n->mensaje ?? '' }}</div>
-              <div class="d-flex justify-content-between align-items-center mt-1">
+
+              <div class="d-flex justify-content-between align-items-center mt-2">
                 <span class="text-muted small">{{ optional($n->fecha)->format('d/m/Y H:i') }}</span>
-                @unless($n->leida)
-                  <form method="POST" action="{{ url('/paciente/notificaciones/'.$n->idNotificacion.'/leer') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar leída</button>
-                  </form>
-                @endunless
+
+                <div class="d-flex gap-2">
+                  {{-- Botones contextuales según tipo --}}
+                  @if($__isTest)
+                    <a href="{{ $__testsUrl }}" class="btn btn-sm btn-go" title="Ir a mis tests">Ir al test</a>
+                  @elseif($__isActs)
+                    <a href="{{ $__actsUrl }}" class="btn btn-sm btn-go" title="Ir a mis actividades">Ir a la actividad</a>
+                  @elseif($__isRec)
+                    <a href="{{ route('paciente.recetas.index') }}" class="btn btn-sm btn-go" title="Ir a mis recetas">Ir a mis recetas</a>
+                  @endif
+
+                  @unless($n->leida)
+                    <form method="POST" action="{{ url('/paciente/notificaciones/'.$n->idNotificacion.'/leer') }}" class="d-inline">
+                      @csrf
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">Marcar leída</button>
+                    </form>
+                  @endunless
+                </div>
               </div>
             </li>
           @empty

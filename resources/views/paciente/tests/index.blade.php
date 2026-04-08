@@ -189,6 +189,7 @@
     </div>
   @endif
 </div>
+@include('paciente.bottom-nabvar')
 @endsection
 
 @push('scripts')

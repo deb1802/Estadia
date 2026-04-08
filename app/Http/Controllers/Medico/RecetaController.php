@@ -284,6 +284,72 @@ class RecetaController extends Controller
             'detalles' => $detalles,
         ]);
     }
+    public function finalizar(Request $request, int $idReceta): RedirectResponse
+{
+    $usuarioId = Auth::id();
+    if (!$usuarioId) abort(401, 'No autenticado.');
+
+    $medico = DB::table('Medicos')->select('id', 'usuario_id')
+        ->where('usuario_id', $usuarioId)->first();
+
+    if (!$medico) abort(403, 'El usuario autenticado no está vinculado a un médico.');
+
+    $receta = DB::table('RecetasMedicas')
+        ->where('idReceta', $idReceta)
+        ->first();
+
+    if (!$receta) abort(404, 'Receta no encontrada.');
+    if ((int)$receta->fkMedico !== (int)$medico->id)
+        abort(403, 'No puedes finalizar esta receta.');
+
+    // Asegurar que haya medicamentos
+    $tieneDetalle = DB::table('Detalle_Medicamento')
+        ->where('fkReceta', $idReceta)
+        ->exists();
+
+    if (!$tieneDetalle) {
+        return back()->with('error', 'No puedes finalizar una receta vacía. Agrega al menos un medicamento.');
+    }
+
+    // Insertar la notificación
+    try {
+        $pacienteUsuario = DB::table('RecetasMedicas as r')
+            ->join('Pacientes as p', 'p.id', '=', 'r.fkPaciente')
+            ->join('Usuarios as up', 'up.idUsuario', '=', 'p.usuario_id')
+            ->where('r.idReceta', $idReceta)
+            ->value('up.idUsuario');
+
+        $medicoUser = DB::table('Medicos as m')
+            ->join('Usuarios as u', 'u.idUsuario', '=', 'm.usuario_id')
+            ->where('m.id', $medico->id)
+            ->select('u.nombre', 'u.apellido')
+            ->first();
+
+        $medicoNombre = trim(($medicoUser->nombre ?? '') . ' ' . ($medicoUser->apellido ?? ''));
+
+        $titulo  = 'Receta médica disponible';
+        $mensaje = "Tu médico {$medicoNombre} finalizó una nueva receta médica. "
+                 . "Puedes consultarla en el módulo de «Mis recetas».";
+
+        if ($pacienteUsuario) {
+            DB::table('Notificaciones')->insert([
+                'fkUsuario' => (int)$pacienteUsuario,
+                'titulo'    => $titulo,
+                'mensaje'   => $mensaje,
+                'tipo'      => 'sistema',
+                'fecha'     => now(),
+                'leida'     => 0,
+            ]);
+        }
+
+    } catch (\Throwable $e) {
+        report($e); // No interrumpe el flujo
+    }
+
+   return redirect("medico/pacientes/{$receta->fkPaciente}")
+        ->with('success', 'Receta finalizada y paciente notificado correctamente.');
+}
+
 
     /**
      * 🧾 Genera el PDF de la receta (formato clásico).

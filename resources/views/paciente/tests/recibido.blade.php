@@ -53,4 +53,5 @@ body{ background:linear-gradient(180deg,var(--bg),#eef3f9); color:var(--ink); }
     </div>
   </div>
 </div>
+@include('paciente.bottom-nabvar')
 @endsection

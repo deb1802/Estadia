@@ -190,7 +190,7 @@ Route::middleware(['auth', 'rol:medico'])
 
         Route::resource('pacientes', PacienteController::class);
 
-        // 💊 Recetas
+       // 💊 Recetas
         Route::prefix('recetas')->name('recetas.')->group(function () {
             Route::get('crear', [RecetaController::class, 'create'])->name('create');
             Route::post('/', [RecetaController::class, 'store'])->name('store');
@@ -199,6 +199,7 @@ Route::middleware(['auth', 'rol:medico'])
             Route::delete('{idReceta}/detalle/{idDetalle}', [RecetaController::class, 'borrarDetalle'])->name('detalle.borrar');
             Route::get('{idReceta}/pdf', [RecetaController::class, 'pdf'])->name('pdf');
             Route::get('{idReceta}', [RecetaController::class, 'show'])->name('show');
+            Route::post('{idReceta}/finalizar', [RecetaController::class, 'finalizar'])->name('finalizar');
         });
 
         // 💊 Asignación de medicamentos

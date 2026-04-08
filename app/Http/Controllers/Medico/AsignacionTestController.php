@@ -65,7 +65,7 @@ class AsignacionTestController extends Controller
         return view('medico.tests.asignar', compact('pacientes', 'tests'));
     }
 
-    /** 🔹 POST: asignar uno o varios tests a un paciente + enviar correo */
+    /** 🔹 POST: asignar uno o varios tests a un paciente + enviar correo + crear notificación en sistema */
     public function store(Request $request)
     {
         $medicoId = $this->medicoIdOrFail();
@@ -106,26 +106,74 @@ class AsignacionTestController extends Controller
             $ahora = now();
             foreach ($data['tests'] as $testId) {
                 AsignacionTest::create([
-                    'fkTest'              => (int) $testId,
-                    'fkPaciente'          => (int) $data['paciente_id'],
-                    'fechaAsignacion'     => $ahora,
-                    'fechaRespuesta'      => null,
-                    'puntajeTotal'        => null,
-                    'diagnosticoSugerido' => null,
+                    'fkTest'               => (int) $testId,
+                    'fkPaciente'           => (int) $data['paciente_id'],
+                    'fechaAsignacion'      => $ahora,
+                    'fechaRespuesta'       => null,
+                    'puntajeTotal'         => null,
+                    'diagnosticoSugerido'  => null,
                     'diagnosticoConfirmado'=> null,
-                    'confirmadoPor'       => null,
-                    'fechaConfirmacion'   => null,
-                    'notasClinicas'       => null,
-                    'subescalas'          => null,
+                    'confirmadoPor'        => null,
+                    'fechaConfirmacion'    => null,
+                    'notasClinicas'        => null,
                 ]);
             }
         });
 
         /* ======================================================
-           2️⃣ Enviar correo al paciente (sin registrar notificación)
+           1.5️⃣ Crear notificación en el sistema para el paciente
+           (NO altera nada más; solo inserta en Notificaciones)
         ====================================================== */
         try {
-            // 🔸 Obtener correo y nombre del paciente
+            // 🔸 Obtener info necesaria del paciente (incluye idUsuario)
+            $pacienteRow = DB::table('Pacientes as p')
+                ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
+                ->where('p.id', $pacienteId)
+                ->select('u.idUsuario as uid', 'u.email', 'u.nombre', 'u.apellido')
+                ->first();
+
+            // 🔸 Obtener nombre del médico
+            $medicoRow = DB::table('Medicos as m')
+                ->join('Usuarios as u', 'u.idUsuario', '=', 'm.usuario_id')
+                ->where('m.id', $medicoId)
+                ->select('u.nombre', 'u.apellido')
+                ->first();
+
+            // 🔸 Info de los tests para mensaje
+            $testsInfo = Test::whereIn('idTest', $data['tests'])
+                ->get(['nombre', 'tipoTrastorno']);
+
+            if ($pacienteRow) {
+                $listaNombres = $testsInfo->pluck('nombre')->filter()->values()->all();
+                $titulo = count($listaNombres) > 1 ? 'Nuevos tests asignados' : 'Nuevo test asignado';
+                $medicoNombre = trim(($medicoRow->nombre ?? '') . ' ' . ($medicoRow->apellido ?? ''));
+                $urlAccion = url('/paciente/tests');
+
+                $mensaje = "Tu médico {$medicoNombre} te asignó "
+                . (count($listaNombres) > 1 ? 'los siguientes tests' : 'un test')
+                . ": " . implode(', ', $listaNombres)
+                . ". Ingresa al módulo de «Mis tests» para responderlos.";
+
+
+                // Inserción directa (evita depender de un modelo)
+                DB::table('Notificaciones')->insert([
+                    'fkUsuario' => (int) $pacienteRow->uid,
+                    'titulo'    => $titulo,
+                    'mensaje'   => $mensaje,
+                    'tipo'      => 'sistema',
+                    'fecha'     => now(),   // opcional; la tabla ya tiene DEFAULT CURRENT_TIMESTAMP
+                    'leida'     => 0,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('❌ Error creando notificación de test asignado: '.$e->getMessage());
+        }
+
+        /* ======================================================
+           2️⃣ Enviar correo al paciente 
+        ====================================================== */
+        try {
+            
             $pacienteRow = DB::table('Pacientes as p')
                 ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
                 ->where('p.id', $pacienteId)
@@ -144,9 +192,9 @@ class AsignacionTestController extends Controller
                 ->get(['nombre', 'tipoTrastorno']);
 
             if ($pacienteRow && !empty($pacienteRow->email)) {
-                $toEmail        = $pacienteRow->email;
-                $pacienteNombre = trim(($pacienteRow->nombre ?? '') . ' ' . ($pacienteRow->apellido ?? ''));
-                $medicoNombre   = trim(($medicoRow->nombre ?? '') . ' ' . ($medicoRow->apellido ?? ''));
+                $toEmail         = $pacienteRow->email;
+                $pacienteNombre  = trim(($pacienteRow->nombre ?? '') . ' ' . ($pacienteRow->apellido ?? ''));
+                $medicoNombre    = trim(($medicoRow->nombre ?? '') . ' ' . ($medicoRow->apellido ?? ''));
                 $fechaAsignacion = now();
                 $urlAccion       = url('/paciente/tests');
 
@@ -170,162 +218,160 @@ class AsignacionTestController extends Controller
            3️⃣ Redirigir con mensaje de éxito
         ====================================================== */
         return redirect()
-            ->route('medico.tests.asignar.index')
-            ->with('success', ' Test(s) asignado(s) correctamente y correo enviado al paciente.');
+            ->route('medico.tests.asignar.index') 
+            ->with('success', ' Test(s) asignado(s) correctamente y notificado al paciente  por correo y en sistema');
     }
 
     public function detalle($idAsignacionTest)
-{
-    try {
-        $userId   = Auth::id();
-        $medicoId = DB::table('Medicos')->where('usuario_id', $userId)->value('id');
-        abort_unless($medicoId, 403, 'No se encontró perfil de médico.');
+    {
+        try {
+            $userId   = Auth::id();
+            $medicoId = DB::table('Medicos')->where('usuario_id', $userId)->value('id');
+            abort_unless($medicoId, 403, 'No se encontró perfil de médico.');
 
-        // Armar query base
-        $q = DB::table('AsignacionesTest as a')
+            // Armar query base
+            $q = DB::table('AsignacionesTest as a')
+                ->join('Tests as t', 't.idTest', '=', 'a.fkTest')
+                ->join('Pacientes as p', 'p.id', '=', 'a.fkPaciente')
+                ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
+                ->where('a.idAsignacionTest', $idAsignacionTest);
+
+            // Restringir por pertenencia del paciente al médico SI existe la columna correspondiente
+            if (Schema::hasColumn('Pacientes', 'medico_id')) {
+                $q->where('p.medico_id', $medicoId);
+            } elseif (Schema::hasColumn('Pacientes', 'fkMedico')) {
+                $q->where('p.fkMedico', $medicoId);
+            } // si no existe ninguna, no filtramos (entorno demo)
+
+            $asig = $q->select([
+                    'a.*',
+                    DB::raw('t.nombre as nombreTest'),
+                    DB::raw('t.tipoTrastorno as tipoTrastorno'),
+                    DB::raw('u.nombre as nomPac'),
+                    DB::raw('u.apellido as apePac'),
+                ])->first();
+
+            abort_unless($asig, 404, 'Asignación no encontrada.');
+
+            $respuestas = DB::table('RespuestasTest as r')
+                ->join('PreguntasTest as p', 'p.idPregunta', '=', 'r.fkPregunta')
+                ->leftJoin('OpcionesPregunta as o', 'o.idOpcion', '=', 'r.fkOpcion')
+                ->where('r.fkAsignacionTest', $idAsignacionTest)
+                ->orderBy('p.orden')
+                ->select([
+                    'p.texto as pregunta',
+                    'p.tipo as tipoPregunta',
+                    'o.etiqueta as opcion',
+                    'r.respuestaAbierta',
+                    'r.puntajeObtenido'
+                ])
+                ->get();
+
+            return view('medico.tests._detalle_asignacion', [
+                'asig'        => $asig,
+                'respuestas'  => $respuestas,
+                'csrf'        => csrf_token(),
+                'prefillDiag' => $asig->diagnosticoConfirmado ?: $asig->diagnosticoSugerido,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Detalle asignación falló', [
+                'asignacion' => $idAsignacionTest,
+                'medicoId'   => $medicoId ?? null,
+                'msg'        => $e->getMessage(),
+            ]);
+
+            // HTML cortito para el modal (evita el dump enorme)
+            return response(
+                '<div class="text-danger">No se pudo cargar el detalle. '
+                .htmlentities($e->getMessage()).'</div>',
+                500
+            );
+        }
+    }
+
+    // App\Http\Controllers\Medico\AsignacionTestController.php
+
+    public function confirmar(Request $request, $idAsignacionTest)
+    {
+        $medicoId = $this->medicoIdOrFail();
+
+        $data = $request->validate([
+            'diagnostico_confirmado' => ['nullable','string','max:150'],
+            'notas_clinicas'         => ['nullable','string','max:10000'],
+        ]);
+
+        // Verificamos pertenencia: la asignación -> test -> pertenece al médico logueado
+        $row = \DB::table('AsignacionesTest as a')
+            ->join('Tests as t','t.idTest','=','a.fkTest')
+            ->where('a.idAsignacionTest', $idAsignacionTest)
+            ->where('t.fkMedico', $medicoId)
+            ->select('a.idAsignacionTest')
+            ->first();
+
+        abort_unless($row, 403, 'No puedes confirmar este resultado.');
+
+        \DB::table('AsignacionesTest')
+            ->where('idAsignacionTest', $idAsignacionTest)
+            ->update([
+                'diagnosticoConfirmado' => $data['diagnostico_confirmado'] ?? null,
+                'notasClinicas'         => $data['notas_clinicas'] ?? null,
+                'confirmadoPor'         => $medicoId,
+                'fechaConfirmacion'     => now(),
+            ]);
+
+        // Si te lo piden vía AJAX, responde JSON; si no, redirige con flash
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return redirect()
+            ->route('medico.tests.asignaciones.show', $idAsignacionTest)
+            ->with('success', '✅ Diagnóstico confirmado correctamente.');
+    }
+
+    public function showDetalle($idAsignacionTest)
+    {
+        // 🧑‍⚕️ Medico actual
+        $user      = \Auth::user();
+        $medicoId  = \DB::table('Medicos')->where('usuario_id', $user->idUsuario)->value('id');
+
+        abort_unless($medicoId, 403, 'Tu cuenta no está vinculada a un perfil de médico.');
+
+        // 📄 Traer asignación + test + paciente (solo si el test pertenece a este médico)
+        $asig = \DB::table('AsignacionesTest as a')
             ->join('Tests as t', 't.idTest', '=', 'a.fkTest')
             ->join('Pacientes as p', 'p.id', '=', 'a.fkPaciente')
-            ->join('Usuarios as u', 'u.idUsuario', '=', 'p.usuario_id')
-            ->where('a.idAsignacionTest', $idAsignacionTest);
-
-        // Restringir por pertenencia del paciente al médico SI existe la columna correspondiente
-        if (Schema::hasColumn('Pacientes', 'medico_id')) {
-            $q->where('p.medico_id', $medicoId);
-        } elseif (Schema::hasColumn('Pacientes', 'fkMedico')) {
-            $q->where('p.fkMedico', $medicoId);
-        } // si no existe ninguna, no filtramos (entorno demo)
-
-        $asig = $q->select([
+            ->join('Usuarios as up', 'up.idUsuario', '=', 'p.usuario_id')
+            ->where('a.idAsignacionTest', $idAsignacionTest)
+            ->where('t.fkMedico', $medicoId) // seguridad: el test es del médico logueado
+            ->select([
                 'a.*',
-                DB::raw('t.nombre as nombreTest'),
-                DB::raw('t.tipoTrastorno as tipoTrastorno'),
-                DB::raw('u.nombre as nomPac'),
-                DB::raw('u.apellido as apePac'),
-            ])->first();
+                \DB::raw('t.nombre as nombreTest'),
+                \DB::raw('up.nombre as nomPac'),
+                \DB::raw('up.apellido as apePac'),
+            ])
+            ->first();
 
         abort_unless($asig, 404, 'Asignación no encontrada.');
 
-        $respuestas = DB::table('RespuestasTest as r')
+        // 🧩 Respuestas (pregunta + etiqueta opción + puntaje)
+        $respuestas = \DB::table('RespuestasTest as r')
             ->join('PreguntasTest as p', 'p.idPregunta', '=', 'r.fkPregunta')
             ->leftJoin('OpcionesPregunta as o', 'o.idOpcion', '=', 'r.fkOpcion')
             ->where('r.fkAsignacionTest', $idAsignacionTest)
             ->orderBy('p.orden')
             ->select([
-                'p.texto as pregunta',
-                'p.tipo as tipoPregunta',
-                'o.etiqueta as opcion',
+                \DB::raw('p.texto as pregunta'),
+                \DB::raw('o.etiqueta as opcion'),
                 'r.respuestaAbierta',
-                'r.puntajeObtenido'
+                'r.puntajeObtenido',
             ])
             ->get();
 
-        return view('medico.tests._detalle_asignacion', [
-            'asig'        => $asig,
-            'respuestas'  => $respuestas,
-            'csrf'        => csrf_token(),
-            'prefillDiag' => $asig->diagnosticoConfirmado ?: $asig->diagnosticoSugerido,
+        return view('medico.tests.detalle_asignacion', [
+            'asig'       => $asig,
+            'respuestas' => $respuestas,
         ]);
-
-    } catch (\Throwable $e) {
-        Log::error('Detalle asignación falló', [
-            'asignacion' => $idAsignacionTest,
-            'medicoId'   => $medicoId ?? null,
-            'msg'        => $e->getMessage(),
-        ]);
-
-        // HTML cortito para el modal (evita el dump enorme)
-        return response(
-            '<div class="text-danger">No se pudo cargar el detalle. '
-            .htmlentities($e->getMessage()).'</div>',
-            500
-        );
     }
-}
-
-// App\Http\Controllers\Medico\AsignacionTestController.php
-
-public function confirmar(Request $request, $idAsignacionTest)
-{
-    $medicoId = $this->medicoIdOrFail();
-
-    $data = $request->validate([
-        'diagnostico_confirmado' => ['nullable','string','max:150'],
-        'notas_clinicas'         => ['nullable','string','max:10000'],
-    ]);
-
-    // Verificamos pertenencia: la asignación -> test -> pertenece al médico logueado
-    $row = \DB::table('AsignacionesTest as a')
-        ->join('Tests as t','t.idTest','=','a.fkTest')
-        ->where('a.idAsignacionTest', $idAsignacionTest)
-        ->where('t.fkMedico', $medicoId)
-        ->select('a.idAsignacionTest')
-        ->first();
-
-    abort_unless($row, 403, 'No puedes confirmar este resultado.');
-
-    \DB::table('AsignacionesTest')
-        ->where('idAsignacionTest', $idAsignacionTest)
-        ->update([
-            'diagnosticoConfirmado' => $data['diagnostico_confirmado'] ?? null,
-            'notasClinicas'         => $data['notas_clinicas'] ?? null,
-            'confirmadoPor'         => $medicoId,
-            'fechaConfirmacion'     => now(),
-        ]);
-
-    // Si te lo piden vía AJAX, responde JSON; si no, redirige con flash
-    if ($request->expectsJson() || $request->wantsJson()) {
-        return response()->json(['ok' => true]);
-    }
-
-    return redirect()
-        ->route('medico.tests.asignaciones.show', $idAsignacionTest)
-        ->with('success', '✅ Diagnóstico confirmado correctamente.');
-}
-
-public function showDetalle($idAsignacionTest)
-{
-    // 🧑‍⚕️ Medico actual
-    $user      = \Auth::user();
-    $medicoId  = \DB::table('Medicos')->where('usuario_id', $user->idUsuario)->value('id');
-
-    abort_unless($medicoId, 403, 'Tu cuenta no está vinculada a un perfil de médico.');
-
-    // 📄 Traer asignación + test + paciente (solo si el test pertenece a este médico)
-    $asig = \DB::table('AsignacionesTest as a')
-        ->join('Tests as t', 't.idTest', '=', 'a.fkTest')
-        ->join('Pacientes as p', 'p.id', '=', 'a.fkPaciente')
-        ->join('Usuarios as up', 'up.idUsuario', '=', 'p.usuario_id')
-        ->where('a.idAsignacionTest', $idAsignacionTest)
-        ->where('t.fkMedico', $medicoId) // seguridad: el test es del médico logueado
-        ->select([
-            'a.*',
-            \DB::raw('t.nombre as nombreTest'),
-            \DB::raw('up.nombre as nomPac'),
-            \DB::raw('up.apellido as apePac'),
-        ])
-        ->first();
-
-    abort_unless($asig, 404, 'Asignación no encontrada.');
-
-    // 🧩 Respuestas (pregunta + etiqueta opción + puntaje)
-    $respuestas = \DB::table('RespuestasTest as r')
-        ->join('PreguntasTest as p', 'p.idPregunta', '=', 'r.fkPregunta')
-        ->leftJoin('OpcionesPregunta as o', 'o.idOpcion', '=', 'r.fkOpcion')
-        ->where('r.fkAsignacionTest', $idAsignacionTest)
-        ->orderBy('p.orden')
-        ->select([
-            \DB::raw('p.texto as pregunta'),
-            \DB::raw('o.etiqueta as opcion'),
-            'r.respuestaAbierta',
-            'r.puntajeObtenido',
-        ])
-        ->get();
-
-    return view('medico.tests.detalle_asignacion', [
-        'asig'       => $asig,
-        'respuestas' => $respuestas,
-    ]);
-}
-
-
 }

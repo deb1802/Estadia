@@ -254,6 +254,7 @@
     </div>
   @endif
 </div>
+ @include('medico.bottom-navbar')
 @endsection
 
 @push('scripts')

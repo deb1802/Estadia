@@ -264,18 +264,76 @@
             </div>
           @endif
 
-          {{-- Botón Finalizar --}}
+          {{-- Botón Finalizar con SweetAlert2 --}}
           <div class="d-flex justify-content-end gap-2 mt-3">
-            <a href="{{ url('medico/pacientes/'.$receta->idPaciente) }}" class="btn btn-outline-secondary">
-              Finalizar
-            </a>
+            {{-- Formulario oculto que se enviará al confirmar --}}
+            <form id="finalizeForm" action="{{ route('medico.recetas.finalizar', $receta->idReceta) }}" method="POST" class="d-none">
+              @csrf
+            </form>
+
+            <button type="button"
+                    id="btnShowFinalize"
+                    class="btn btn-outline-secondary fw-semibold shadow-sm">
+              <i class="bi bi-check-circle me-1"></i> Finalizar
+            </button>
           </div>
+
         </section>
 
       </div> {{-- /sheet --}}
     </div> {{-- /notebook --}}
   </div>
 </div>
+
+
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var btn = document.getElementById('btnShowFinalize');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    var submitFinalize = function () {
+      var form = document.getElementById('finalizeForm');
+      if (form) form.submit();
+    };
+
+    // Si existe SweetAlert2 usamos un modal bonito; si no, fallback a confirm()
+    if (typeof Swal !== 'undefined' && Swal.fire) {
+      Swal.fire({
+        title: 'Finalizar receta',
+        html: 'Se notificará al paciente que la receta está disponible en <b>Mis recetas</b>. ¿Confirmas finalizar esta receta?',
+        icon: 'question',
+        showCancelButton: true,
+        focusConfirm: false,
+        confirmButtonText: 'Confirmar y notificar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        buttonsStyling: true,
+        // Colores corporativos
+        confirmButtonColor: '#1d4ed8',   // azul acción
+        cancelButtonColor: '#94a3b8',    // gris suave
+        // Clases para tipografía/espaciado
+        customClass: {
+          popup: 'shadow-lg rounded-3',
+          title: 'fw-bold',
+          confirmButton: 'px-3 py-2 fw-semibold',
+          cancelButton: 'px-3 py-2 fw-semibold'
+        }
+      }).then(function (r) {
+        if (r.isConfirmed) submitFinalize();
+      });
+    } else {
+      if (confirm('Se notificará al paciente que la receta está disponible en "Mis recetas". ¿Confirmas finalizar esta receta?')) {
+        submitFinalize();
+      }
+    }
+  });
+});
+</script>
+@endpush
+
 
 @include('medico.bottom-navbar')
 @endsection
